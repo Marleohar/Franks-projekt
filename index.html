@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Multi-Biblioteks System v0.8</title>
+  <title>Multi-Biblioteks System v0.9</title>
   <style>
     :root {
       --bg: #d4d0c8;
@@ -14,9 +14,6 @@
       --grid-line: #c8c8c8;
       --tag-bg: #e8eef7;
       --tag-border: #5b7bb2;
-      --warn-bg: #fff0f0;
-      --warn-border: #d9534f;
-      --warn-text: #900;
     }
 
     * { box-sizing: border-box; }
@@ -49,7 +46,6 @@
       align-items: center;
     }
 
-    /* Verktygsfält med Backup/Export */
     .top-toolbar {
       background: var(--bg);
       padding: 4px 8px;
@@ -57,7 +53,6 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
       gap: 6px;
     }
 
@@ -169,14 +164,7 @@
       display: inline-flex;
       align-items: center;
     }
-    .tag-badge.warn-badge {
-      background: var(--warn-bg);
-      border-color: var(--warn-border);
-      color: var(--warn-text);
-      font-weight: bold;
-    }
 
-    /* Kategori-block i Objekthanteraren */
     .cat-block {
       background: #fafafa;
       border: 1px solid #ccc;
@@ -186,10 +174,6 @@
     .cat-block.empty-cat {
       background: #fdfdfd;
       border-style: dashed;
-    }
-    .cat-block.pinned-cat {
-      background: #fff9f9;
-      border: 1px solid #e0b0b0;
     }
     .cat-header {
       font-weight: bold;
@@ -201,11 +185,6 @@
       margin-bottom: 6px;
       font-size: 10px;
       text-transform: uppercase;
-    }
-    .cat-header.pinned-header {
-      color: #900;
-      background: #ffe6e6;
-      border-color: #d9534f;
     }
 
     table.grid-table {
@@ -252,37 +231,32 @@
       background: #fafafa;
     }
 
-    /* Varningsruta för pinnade kategorier i formeln */
-    .warning-alert-panel {
-      background: var(--warn-bg);
-      border: 2px solid var(--warn-border);
+    /* Pinnade kategorier i Formeln */
+    .pinned-status-panel {
+      background: #fdf8e2;
+      border: 1px solid #c9b36d;
       padding: 6px 10px;
       margin-bottom: 10px;
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
-    .warning-title {
+    .pinned-status-header {
       font-weight: bold;
-      color: var(--warn-text);
+      color: #5c4b12;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    .pinned-status-item {
+      font-size: 11px;
+      color: #222;
+      padding: 2px 0;
       display: flex;
       align-items: center;
-      gap: 4px;
-      text-transform: uppercase;
-      font-size: 10px;
-    }
-    .warning-item {
-      font-size: 11px;
-      color: #333;
-      padding-left: 14px;
-      position: relative;
-    }
-    .warning-item::before {
-      content: "•";
-      color: #900;
-      font-weight: bold;
-      position: absolute;
-      left: 4px;
+      gap: 6px;
     }
 
     .balance-box {
@@ -343,23 +317,16 @@
       cursor: pointer;
       font-weight: bold;
     }
-    .obj-link {
-      color: #0a246a;
-      text-decoration: underline;
-      cursor: pointer;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
 
 <div class="window">
   <div class="title-bar">
-    <span>Multi-Biblioteks Taggningssystem v0.8 [Lokal Lagring & Varningsstöd]</span>
+    <span>Multi-Biblioteks Taggningssystem v0.9 [Dynamiska Pinnar & Ren Taxonomi]</span>
     <span id="save-status-indicator" style="font-size: 10px; font-weight: normal; color: #fff;">Autosparad lokalt ✓</span>
   </div>
 
-  <!-- VERKTYGSFÄLT FÖR BACKUP OCH LOKAL FILHANTERING -->
   <div class="top-toolbar">
     <div style="display:flex; align-items:center; gap:8px;">
       <button onclick="exportDatabaseFile()">💾 Exportera bibliotek (.json)</button>
@@ -367,7 +334,7 @@
       <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="handleFileImport(event)">
     </div>
     <div style="font-size:10px; color:#555;">
-      <span>All data sparas lokalt i telefonens minne. Inget skickas till servrar.</span>
+      <span>Lokal, säker och serverlös lagring direkt i webbläsaren.</span>
     </div>
   </div>
 
@@ -481,12 +448,15 @@
         </div>
 
         <div class="section-card" style="height: 100%;">
-          <!-- PINNADE VARNINGAR / FÖRSIKTIGHETSRUTA -->
-          <div id="formula-warning-box" class="warning-alert-panel" style="display: none;">
-            <div class="warning-title">
-              <span>⚠️ Särskild Försiktighet & Varningar (Pinnade taggar)</span>
+          <!-- PINNADE KATEGORIER: DYNAMISK & ANPASSNINGSBAR -->
+          <div class="pinned-status-panel">
+            <div class="pinned-status-header">
+              <span>📌 Pinnade Status- & Varningskategorier</span>
+              <button onclick="promptManagePins()" style="font-size:9px; padding:1px 4px;">⚙ Hantera pinnar</button>
             </div>
-            <div id="formula-warning-items"></div>
+            <div id="formula-pinned-items" style="margin-top:4px;">
+              <span style="color:#888; font-style:italic; font-size:10px;">Inga aktiva träffar på pinnade kategorier i receptet.</span>
+            </div>
           </div>
 
           <div class="section-title">
@@ -547,13 +517,19 @@
 </div>
 
 <script>
-// ==================== GRUNDDATA & LOKAL LAGRING ====================
+// ==================== GRUNDDATA ====================
 const defaultDatabase = {
   categories: {
-    "Temperatur": { system: "Energetik", desc: "Termiska kvaliteter", isPinned: false },
-    "Smak":       { system: "Sensorik", desc: "Grundsmaker", isPinned: false },
-    "Verkan":     { system: "Medicin", desc: "Fysiologisk verkan", isPinned: false },
-    "Varningar":  { system: "Försiktighet", desc: "Toxicitet, kontraindikationer eller överdosrisker", isPinned: true }
+    "Temperatur": { system: "Energetik", desc: "Termiska kvaliteter" },
+    "Smak":       { system: "Sensorik", desc: "Grundsmaker" },
+    "Verkan":     { system: "Medicin", desc: "Fysiologisk verkan" },
+    "Tryckstatus":{ system: "Logistik", desc: "Boklager & tillgänglighet" },
+    "Varningar":  { system: "Säkerhet", desc: "Kontraindikationer eller överdosrisker" }
+  },
+  // Valfria pinnar i formeln: kategori -> symbol
+  pinnedConfigs: {
+    "Varningar": "⚠️",
+    "Tryckstatus": "📚"
   },
   properties: {
     "Varm":         { category: "Temperatur", desc: "Värmande energi", opposite: "Kall" },
@@ -563,35 +539,34 @@ const defaultDatabase = {
     "Stark":        { category: "Smak", desc: "Hetta och skärpa", opposite: "" },
     "Matsmältning": { category: "Verkan", desc: "Stödjer magen", opposite: "" },
     "Lugnande":     { category: "Verkan", desc: "Sedativ verkan", opposite: "" },
-    "Toxisk vid överdos": { category: "Varningar", desc: "Bör ej konsumeras i stora mängder", opposite: "" }
+    "Slut på förlag":{ category: "Tryckstatus", desc: "Går ej att beställa", opposite: "" },
+    "Toxisk dos":   { category: "Varningar", desc: "Farlig vid hög konsumtion", opposite: "" }
   },
   objects: [
     { id: "ingefara", name: "Ingefära", defaultRole: "Drivande rot", props: { "Varm": {}, "Stark": {}, "Matsmältning": {} } },
     { id: "kamomill", name: "Kamomill", defaultRole: "Basört", props: { "Kall": {}, "Söt": {}, "Lugnande": {} } },
     { id: "pepparmynta", name: "Pepparmynta", defaultRole: "Kylande balans", props: { "Kall": {}, "Matsmältning": {} } },
-    { id: "lakritsrot", name: "Lakritsrot", defaultRole: "Harmonisör", props: { "Varm": {}, "Söt": {}, "Matsmältning": {}, "Toxisk vid överdos": {} } }
+    { id: "lakritsrot", name: "Lakritsrot", defaultRole: "Harmonisör", props: { "Varm": {}, "Söt": {}, "Matsmältning": {}, "Toxisk dos": {} } }
   ]
 };
 
-// Ladda från LocalStorage eller kör grunddata
 let database = defaultDatabase;
-const storedData = localStorage.getItem("my_custom_db_v8");
+const storedData = localStorage.getItem("my_custom_db_v9");
 if (storedData) {
   try { database = JSON.parse(storedData); } catch(e) { database = defaultDatabase; }
 }
+if (!database.pinnedConfigs) database.pinnedConfigs = { "Varningar": "⚠️" };
 
 function persistData() {
-  localStorage.setItem("my_custom_db_v8", JSON.stringify(database));
-  const indicator = document.getElementById("save-status-indicator");
-  indicator.innerText = "Sparad " + new Date().toLocaleTimeString();
-  indicator.style.color = "#90ee90";
-  setTimeout(() => { indicator.style.color = "#fff"; }, 1500);
+  localStorage.setItem("my_custom_db_v9", JSON.stringify(database));
+  const ind = document.getElementById("save-status-indicator");
+  ind.innerText = "Sparad " + new Date().toLocaleTimeString();
+  ind.style.color = "#90ee90";
+  setTimeout(() => { ind.style.color = "#fff"; }, 1500);
 }
 
-// Backup & Import
 function exportDatabaseFile() {
-  const jsonStr = JSON.stringify(database, null, 2);
-  const blob = new Blob([jsonStr], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(database, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -613,15 +588,12 @@ function handleFileImport(e) {
       const imported = JSON.parse(event.target.result);
       if (imported.categories && imported.properties && imported.objects) {
         database = imported;
+        if (!database.pinnedConfigs) database.pinnedConfigs = {};
         persistData();
         renderM1();
         alert("Biblioteket har lästs in och sparats!");
-      } else {
-        alert("Filen saknar giltig biblioteksstruktur.");
       }
-    } catch (err) {
-      alert("Kunde inte tolka JSON-filen.");
-    }
+    } catch(err) { alert("Felaktig fil."); }
   };
   reader.readAsText(file);
 }
@@ -666,7 +638,7 @@ function renderM1() {
   database.objects.forEach(obj => {
     const d = document.createElement("div");
     d.className = `list-item ${obj.id === selectedObjectId ? 'selected' : ''}`;
-    d.innerHTML = `<span>${obj.name}</span><span style="font-size:9px;">${Object.keys(obj.props).length} egenskaper</span>`;
+    d.innerHTML = `<span>${obj.name}</span><span style="font-size:9px;">${Object.keys(obj.props).length} taggar</span>`;
     d.onclick = () => { selectedObjectId = obj.id; renderM1(); };
     list.appendChild(d);
   });
@@ -679,7 +651,6 @@ function renderM1() {
   profCont.innerHTML = "";
 
   Object.keys(database.categories).forEach(cat => {
-    const isCatPinned = !!database.categories[cat]?.isPinned;
     let propsInCat = [];
     Object.entries(obj.props).forEach(([pName, pData]) => {
       if (database.properties[pName]?.category === cat) {
@@ -691,20 +662,18 @@ function renderM1() {
     if (isEmpty && hideEmptyCategories) return;
 
     const blk = document.createElement("div");
-    blk.className = `cat-block ${isEmpty ? 'empty-cat' : ''} ${isCatPinned ? 'pinned-cat' : ''}`;
+    blk.className = `cat-block ${isEmpty ? 'empty-cat' : ''}`;
 
     let tagsHtml = "";
     if (isEmpty) {
       tagsHtml = `<span style="color:#888; font-style:italic; font-size:10px;">[Inga egenskaper tilldelade]</span>`;
     } else {
-      tagsHtml = propsInCat.map(p => 
-        `<span class="tag-badge ${isCatPinned ? 'warn-badge' : ''}"><span>${isCatPinned ? '⚠️ ' : ''}${p.name}</span></span>`
-      ).join("");
+      tagsHtml = propsInCat.map(p => `<span class="tag-badge"><span>${p.name}</span></span>`).join("");
     }
 
     blk.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span class="cat-header ${isCatPinned ? 'pinned-header' : ''}">Kategori: ${cat} ${isCatPinned ? '[PINNAD]' : ''}</span>
+        <span class="cat-header">Kategori: ${cat}</span>
         <button style="font-size:9px; padding:1px 4px;" onclick="promptAddTagToSpecificCat('${cat}')">+ Lägg till i ${cat}</button>
       </div>
       <div class="tag-container" style="margin-top:4px;">${tagsHtml}</div>
@@ -726,9 +695,8 @@ function createNewObjectPrompt() {
 function m1AddCategoryPrompt() {
   const name = prompt("Ange ny global kategori:");
   if (!name) return;
-  const isPinned = confirm("Ska denna kategori vara en 'Pinnad varningskategori' (visas separat i formler utan poängräkning)?");
   if (!database.categories[name]) {
-    database.categories[name] = { system: "Generellt", desc: "", isPinned: isPinned };
+    database.categories[name] = { system: "Generellt", desc: "" };
     persistData();
   }
   renderM1();
@@ -740,7 +708,7 @@ function m1AddTagPrompt() {
   if (!database.properties[pName]) {
     const cat = prompt(`Egenskapen '${pName}' är ny. Ange kategori:`, Object.keys(database.categories)[0]) || "Generellt";
     database.properties[pName] = { category: cat, desc: "", opposite: "" };
-    if (!database.categories[cat]) database.categories[cat] = { system: "Generellt", desc: "", isPinned: false };
+    if (!database.categories[cat]) database.categories[cat] = { system: "Generellt", desc: "" };
   }
   const obj = database.objects.find(o => o.id === selectedObjectId);
   obj.props[pName] = {};
@@ -765,10 +733,9 @@ function renderM2() {
   const catList = document.getElementById("m2-cat-list");
   catList.innerHTML = "";
   Object.keys(database.categories).forEach(cName => {
-    const isPinned = !!database.categories[cName]?.isPinned;
     const d = document.createElement("div");
     d.className = `list-item ${cName === selectedCatName ? 'selected' : ''}`;
-    d.innerHTML = `<span>${cName}</span>${isPinned ? '<span style="color:#900; font-weight:bold; font-size:9px;">[PINNAD]</span>' : ''}`;
+    d.innerHTML = `<span>${cName}</span>`;
     d.onclick = () => {
       selectedCatName = cName;
       const first = Object.keys(database.properties).find(p => database.properties[p].category === cName);
@@ -855,8 +822,7 @@ function savePropDetails() {
 function createNewCategoryPrompt() {
   const name = prompt("Ange ny kategori:");
   if (!name) return;
-  const isPinned = confirm("Ska denna kategori vara en 'Pinnad varningskategori' (visas separat i formler utan poängräkning)?");
-  database.categories[name] = { system: "Generellt", desc: "", isPinned: isPinned };
+  database.categories[name] = { system: "Generellt", desc: "" };
   selectedCatName = name;
   persistData();
   renderM2();
@@ -941,13 +907,35 @@ function updateQty(idx, delta) {
   calculateFormula();
 }
 
+// Konfigurera vilka kategorier som är pinnade i Formeln
+function promptManagePins() {
+  const catNames = Object.keys(database.categories);
+  const choice = prompt("Välj kategori att pinna eller av-pinna:\n" + catNames.map((c, i) => `${i+1}. ${c} ${database.pinnedConfigs[c] ? '[' + database.pinnedConfigs[c] + ']' : ''}`).join("\n"));
+  if (!choice) return;
+  const idx = parseInt(choice) - 1;
+  const selectedCat = catNames[idx];
+  if (!selectedCat) return;
+
+  if (database.pinnedConfigs[selectedCat]) {
+    const action = confirm(`Kategorin '${selectedCat}' är redan pinnad med '${database.pinnedConfigs[selectedCat]}'. Vill du ta bort den från pinnade rutan?`);
+    if (action) {
+      delete database.pinnedConfigs[selectedCat];
+    }
+  } else {
+    const symbol = prompt(`Ange symbol/ikon/emoji för [${selectedCat}]:`, "📌") || "📌";
+    database.pinnedConfigs[selectedCat] = symbol;
+  }
+  persistData();
+  calculateFormula();
+}
+
 function calculateFormula() {
   renderFormulaTable();
   const totalQty = formulaRows.reduce((sum, r) => sum + r.qty, 0);
 
   let propWeightedSum = {};
   let propSynergy = {};
-  let pinnedWarnings = [];
+  let pinnedFindings = [];
 
   if (totalQty > 0) {
     formulaRows.forEach(row => {
@@ -957,19 +945,20 @@ function calculateFormula() {
 
       Object.entries(obj.props).forEach(([propName, pData]) => {
         const pMeta = database.properties[propName];
-        const catMeta = database.categories[pMeta?.category];
+        const cat = pMeta?.category;
 
-        // Frank: Pinnade kategorier lyfts ut till egen ruta och ingår ej i medelvärdet
-        if (catMeta && catMeta.isPinned) {
-          pinnedWarnings.push({
+        // Frank: Om kategorin är pinnad i Formelmodulen, lyft ut till pinnade rutan
+        if (database.pinnedConfigs && database.pinnedConfigs[cat]) {
+          pinnedFindings.push({
+            symbol: database.pinnedConfigs[cat],
+            category: cat,
             prop: propName,
-            sourceObj: obj.name,
-            desc: pMeta.desc || ""
+            source: obj.name
           });
           return;
         }
 
-        const weight = (pData && pData.value !== undefined) ? pData.value : 1;
+        const weight = 1;
         if (!propWeightedSum[propName]) propWeightedSum[propName] = 0;
         propWeightedSum[propName] += (row.qty * weight);
 
@@ -979,19 +968,21 @@ function calculateFormula() {
     });
   }
 
-  // 1. Rendera pinnade varningar
-  const warnBox = document.getElementById("formula-warning-box");
-  const warnItems = document.getElementById("formula-warning-items");
-  if (pinnedWarnings.length > 0) {
-    warnBox.style.display = "flex";
-    warnItems.innerHTML = pinnedWarnings.map(w => 
-      `<div class="warning-item"><b>${w.prop}</b> (orsakad av <i>${w.sourceObj}</i>)${w.desc ? ' – ' + w.desc : ''}</div>`
+  // 1. Rendera pinnade statuskategorier
+  const pinContainer = document.getElementById("formula-pinned-items");
+  if (pinnedFindings.length > 0) {
+    pinContainer.innerHTML = pinnedFindings.map(item => 
+      `<div class="pinned-status-item">
+        <span style="font-size:13px;">${item.symbol}</span>
+        <b>[${item.prop}]</b> 
+        <span style="color:#555;">(från ${item.source} • Kategori: ${item.category})</span>
+      </div>`
     ).join("");
   } else {
-    warnBox.style.display = "none";
+    pinContainer.innerHTML = `<span style="color:#888; font-style:italic; font-size:10px;">Inga aktiva träffar på pinnade kategorier i receptet.</span>`;
   }
 
-  // 2. Kvantitativ beräkning för ordinarie egenskaper
+  // 2. Kvantitativa egenskaper
   let effects = {};
   Object.keys(propWeightedSum).forEach(prop => {
     const rawEffect = propWeightedSum[prop] / totalQty;
@@ -1009,7 +1000,7 @@ function calculateFormula() {
   list.sort((a, b) => b.synergy - a.synergy || b.effectPercent - a.effectPercent);
 
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Inga aktiva beräkningsbara egenskaper</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Inga aktiva egenskaper</td></tr>`;
   } else {
     list.forEach((item, idx) => {
       const tr = document.createElement("tr");
@@ -1023,7 +1014,7 @@ function calculateFormula() {
     });
   }
 
-  // 3. Balansmätare
+  // 3. Balans
   const balContainer = document.getElementById("balance-ui-container");
   balContainer.innerHTML = "";
 
@@ -1123,7 +1114,7 @@ function renderSearchModule() {
       tr.innerHTML = `
         <td class="row-num">${idx + 1}</td>
         <td>
-          <span class="obj-link" onclick="jumpToObject('${res.id}')">${res.name}</span>
+          <span style="color:#0a246a; text-decoration:underline; cursor:pointer; font-weight:bold;" onclick="jumpToObject('${res.id}')">${res.name}</span>
           <div style="font-size:10px; color:#555;">${res.matchedProps.join(", ")}</div>
         </td>
         <td class="calculated-cell">${res.relevance} %</td>
@@ -1161,7 +1152,7 @@ function addToFormulaFromSearch(objId) {
   alert(`'${obj.name}' lades till i formeln!`);
 }
 
-// Starta
+// Start
 renderM1();
 </script>
 
