@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Multi-Biblioteks System v0.7</title>
+  <title>Multi-Biblioteks System v0.8</title>
   <style>
     :root {
       --bg: #d4d0c8;
@@ -14,6 +14,9 @@
       --grid-line: #c8c8c8;
       --tag-bg: #e8eef7;
       --tag-border: #5b7bb2;
+      --warn-bg: #fff0f0;
+      --warn-border: #d9534f;
+      --warn-text: #900;
     }
 
     * { box-sizing: border-box; }
@@ -21,7 +24,7 @@
       background-color: #2e5b88;
       font-family: Tahoma, "Segoe UI", sans-serif;
       font-size: 11px;
-      margin: 12px;
+      margin: 10px;
       user-select: none;
     }
 
@@ -32,7 +35,7 @@
       border-right: 2px solid var(--border-darker);
       border-bottom: 2px solid var(--border-darker);
       box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
-      max-width: 1220px;
+      max-width: 1240px;
       margin: 0 auto;
     }
 
@@ -43,12 +46,25 @@
       font-weight: bold;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Verktygsfält med Backup/Export */
+    .top-toolbar {
+      background: var(--bg);
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--border-dark);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
     }
 
     .tab-bar {
       display: flex;
       gap: 3px;
-      padding: 6px 8px 0 8px;
+      padding: 4px 8px 0 8px;
       background: var(--bg);
       border-bottom: 2px solid var(--border-dark);
     }
@@ -147,12 +163,17 @@
       background: var(--tag-bg);
       border: 1px solid var(--tag-border);
       border-radius: 3px;
-      padding: 2px 6px;
+      padding: 3px 7px;
       cursor: pointer;
       font-size: 11px;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 4px;
+    }
+    .tag-badge.warn-badge {
+      background: var(--warn-bg);
+      border-color: var(--warn-border);
+      color: var(--warn-text);
+      font-weight: bold;
     }
 
     /* Kategori-block i Objekthanteraren */
@@ -166,6 +187,10 @@
       background: #fdfdfd;
       border-style: dashed;
     }
+    .cat-block.pinned-cat {
+      background: #fff9f9;
+      border: 1px solid #e0b0b0;
+    }
     .cat-header {
       font-weight: bold;
       color: #0a246a;
@@ -176,6 +201,11 @@
       margin-bottom: 6px;
       font-size: 10px;
       text-transform: uppercase;
+    }
+    .cat-header.pinned-header {
+      color: #900;
+      background: #ffe6e6;
+      border-color: #d9534f;
     }
 
     table.grid-table {
@@ -222,6 +252,39 @@
       background: #fafafa;
     }
 
+    /* Varningsruta för pinnade kategorier i formeln */
+    .warning-alert-panel {
+      background: var(--warn-bg);
+      border: 2px solid var(--warn-border);
+      padding: 6px 10px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .warning-title {
+      font-weight: bold;
+      color: var(--warn-text);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+    .warning-item {
+      font-size: 11px;
+      color: #333;
+      padding-left: 14px;
+      position: relative;
+    }
+    .warning-item::before {
+      content: "•";
+      color: #900;
+      font-weight: bold;
+      position: absolute;
+      left: 4px;
+    }
+
     .balance-box {
       margin-top: 12px;
       background: #f4f4f4;
@@ -265,9 +328,6 @@
       margin-bottom: 10px;
       height: 360px;
     }
-    .history-card {
-      height: 240px;
-    }
     .search-chip {
       background: #e3ecfa;
       border: 1px solid #7092be;
@@ -295,8 +355,20 @@
 
 <div class="window">
   <div class="title-bar">
-    <span>Multi-Biblioteks Taggningssystem v0.7</span>
-    <span>[Offline Profiler]</span>
+    <span>Multi-Biblioteks Taggningssystem v0.8 [Lokal Lagring & Varningsstöd]</span>
+    <span id="save-status-indicator" style="font-size: 10px; font-weight: normal; color: #fff;">Autosparad lokalt ✓</span>
+  </div>
+
+  <!-- VERKTYGSFÄLT FÖR BACKUP OCH LOKAL FILHANTERING -->
+  <div class="top-toolbar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button onclick="exportDatabaseFile()">💾 Exportera bibliotek (.json)</button>
+      <button onclick="triggerImportFileInput()">📂 Importera bibliotek</button>
+      <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="handleFileImport(event)">
+    </div>
+    <div style="font-size:10px; color:#555;">
+      <span>All data sparas lokalt i telefonens minne. Inget skickas till servrar.</span>
+    </div>
   </div>
 
   <div class="tab-bar">
@@ -321,9 +393,9 @@
         <div class="section-card">
           <div class="section-title">
             <span id="m1-profile-title">Egenskapsprofil</span>
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
               <label style="font-size: 10px; font-weight: normal; cursor: pointer;">
-                <input type="checkbox" id="hide-empty-cats" onchange="toggleHideEmpty(this.checked)"> Dölj tomma kategorier
+                <input type="checkbox" id="hide-empty-cats" onchange="toggleHideEmpty(this.checked)"> Dölj tomma
               </label>
               <button onclick="m1AddCategoryPrompt()">+ Ny Kategori</button>
               <button onclick="m1AddTagPrompt()">+ Lägg till egenskap</button>
@@ -409,6 +481,14 @@
         </div>
 
         <div class="section-card" style="height: 100%;">
+          <!-- PINNADE VARNINGAR / FÖRSIKTIGHETSRUTA -->
+          <div id="formula-warning-box" class="warning-alert-panel" style="display: none;">
+            <div class="warning-title">
+              <span>⚠️ Särskild Försiktighet & Varningar (Pinnade taggar)</span>
+            </div>
+            <div id="formula-warning-items"></div>
+          </div>
+
           <div class="section-title">
             <span>Egenskaper</span>
             <span style="font-weight:normal; font-size:10px;">Endast display (Sorterat på synergi)</span>
@@ -467,14 +547,13 @@
 </div>
 
 <script>
-// ==================== DATABAS ====================
-const database = {
-  // Globala kategorier (synliga i hela systemet)
+// ==================== GRUNDDATA & LOKAL LAGRING ====================
+const defaultDatabase = {
   categories: {
-    "Temperatur": { system: "Energetik", desc: "Termiska kvaliteter" },
-    "Smak":       { system: "Sensorik", desc: "Grundsmaker" },
-    "Verkan":     { system: "Medicin", desc: "Fysiologisk verkan" },
-    "Ursprung":   { system: "Geografi", desc: "Varifrån råvaran härstammar" }
+    "Temperatur": { system: "Energetik", desc: "Termiska kvaliteter", isPinned: false },
+    "Smak":       { system: "Sensorik", desc: "Grundsmaker", isPinned: false },
+    "Verkan":     { system: "Medicin", desc: "Fysiologisk verkan", isPinned: false },
+    "Varningar":  { system: "Försiktighet", desc: "Toxicitet, kontraindikationer eller överdosrisker", isPinned: true }
   },
   properties: {
     "Varm":         { category: "Temperatur", desc: "Värmande energi", opposite: "Kall" },
@@ -483,15 +562,69 @@ const database = {
     "Sur":          { category: "Smak", desc: "Syrlig friskhet", opposite: "Söt" },
     "Stark":        { category: "Smak", desc: "Hetta och skärpa", opposite: "" },
     "Matsmältning": { category: "Verkan", desc: "Stödjer magen", opposite: "" },
-    "Lugnande":     { category: "Verkan", desc: "Sedativ verkan", opposite: "" }
+    "Lugnande":     { category: "Verkan", desc: "Sedativ verkan", opposite: "" },
+    "Toxisk vid överdos": { category: "Varningar", desc: "Bör ej konsumeras i stora mängder", opposite: "" }
   },
   objects: [
-    { id: "ingefara", name: "Ingefära", defaultRole: "Drivande rot", props: { "Varm": { grade: 4 }, "Stark": { grade: 3 }, "Matsmältning": { grade: 4 } } },
-    { id: "kamomill", name: "Kamomill", defaultRole: "Basört", props: { "Kall": { grade: 1 }, "Söt": { grade: 2 }, "Lugnande": { grade: 5 } } },
-    { id: "pepparmynta", name: "Pepparmynta", defaultRole: "Kylande balans", props: { "Kall": { grade: 4 }, "Matsmältning": { grade: 2 } } },
-    { id: "lakritsrot", name: "Lakritsrot", defaultRole: "Harmonisör", props: { "Varm": { grade: 2 }, "Söt": { grade: 4 }, "Matsmältning": { grade: 3 } } }
+    { id: "ingefara", name: "Ingefära", defaultRole: "Drivande rot", props: { "Varm": {}, "Stark": {}, "Matsmältning": {} } },
+    { id: "kamomill", name: "Kamomill", defaultRole: "Basört", props: { "Kall": {}, "Söt": {}, "Lugnande": {} } },
+    { id: "pepparmynta", name: "Pepparmynta", defaultRole: "Kylande balans", props: { "Kall": {}, "Matsmältning": {} } },
+    { id: "lakritsrot", name: "Lakritsrot", defaultRole: "Harmonisör", props: { "Varm": {}, "Söt": {}, "Matsmältning": {}, "Toxisk vid överdos": {} } }
   ]
 };
+
+// Ladda från LocalStorage eller kör grunddata
+let database = defaultDatabase;
+const storedData = localStorage.getItem("my_custom_db_v8");
+if (storedData) {
+  try { database = JSON.parse(storedData); } catch(e) { database = defaultDatabase; }
+}
+
+function persistData() {
+  localStorage.setItem("my_custom_db_v8", JSON.stringify(database));
+  const indicator = document.getElementById("save-status-indicator");
+  indicator.innerText = "Sparad " + new Date().toLocaleTimeString();
+  indicator.style.color = "#90ee90";
+  setTimeout(() => { indicator.style.color = "#fff"; }, 1500);
+}
+
+// Backup & Import
+function exportDatabaseFile() {
+  const jsonStr = JSON.stringify(database, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "bibliotek_backup_" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function triggerImportFileInput() {
+  document.getElementById("import-file-input").click();
+}
+
+function handleFileImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const imported = JSON.parse(event.target.result);
+      if (imported.categories && imported.properties && imported.objects) {
+        database = imported;
+        persistData();
+        renderM1();
+        alert("Biblioteket har lästs in och sparats!");
+      } else {
+        alert("Filen saknar giltig biblioteksstruktur.");
+      }
+    } catch (err) {
+      alert("Kunde inte tolka JSON-filen.");
+    }
+  };
+  reader.readAsText(file);
+}
 
 let selectedObjectId = "ingefara";
 let selectedCatName = "Temperatur";
@@ -526,14 +659,14 @@ function toggleHideEmpty(isChecked) {
   renderM1();
 }
 
-// ==================== 1. OBJEKTHANTERAREN (GLOBAL TAXONOMI) ====================
+// ==================== 1. OBJEKTHANTERAREN ====================
 function renderM1() {
   const list = document.getElementById("m1-obj-list");
   list.innerHTML = "";
   database.objects.forEach(obj => {
     const d = document.createElement("div");
     d.className = `list-item ${obj.id === selectedObjectId ? 'selected' : ''}`;
-    d.innerHTML = `<span>${obj.name}</span><span style="font-size:9px;">${Object.keys(obj.props).length} taggar</span>`;
+    d.innerHTML = `<span>${obj.name}</span><span style="font-size:9px;">${Object.keys(obj.props).length} egenskaper</span>`;
     d.onclick = () => { selectedObjectId = obj.id; renderM1(); };
     list.appendChild(d);
   });
@@ -545,38 +678,33 @@ function renderM1() {
   const profCont = document.getElementById("m1-profile-container");
   profCont.innerHTML = "";
 
-  // Frank: Alla kategorier finns globalt och visas alltid överst
   Object.keys(database.categories).forEach(cat => {
-    // Hitta vilka egenskaper detta objekt har inom kategorin
+    const isCatPinned = !!database.categories[cat]?.isPinned;
     let propsInCat = [];
     Object.entries(obj.props).forEach(([pName, pData]) => {
       if (database.properties[pName]?.category === cat) {
-        propsInCat.push({ name: pName, grade: pData.grade });
+        propsInCat.push({ name: pName, data: pData });
       }
     });
 
     const isEmpty = propsInCat.length === 0;
-
-    // Respektera "Dölj tomma kategorier"
-    if (isEmpty && hideEmptyCategories) {
-      return;
-    }
+    if (isEmpty && hideEmptyCategories) return;
 
     const blk = document.createElement("div");
-    blk.className = `cat-block ${isEmpty ? 'empty-cat' : ''}`;
+    blk.className = `cat-block ${isEmpty ? 'empty-cat' : ''} ${isCatPinned ? 'pinned-cat' : ''}`;
 
     let tagsHtml = "";
     if (isEmpty) {
       tagsHtml = `<span style="color:#888; font-style:italic; font-size:10px;">[Inga egenskaper tilldelade]</span>`;
     } else {
       tagsHtml = propsInCat.map(p => 
-        `<span class="tag-badge"><span>${p.name}</span><b>(${p.grade})</b></span>`
+        `<span class="tag-badge ${isCatPinned ? 'warn-badge' : ''}"><span>${isCatPinned ? '⚠️ ' : ''}${p.name}</span></span>`
       ).join("");
     }
 
     blk.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span class="cat-header">Kategori: ${cat}</span>
+        <span class="cat-header ${isCatPinned ? 'pinned-header' : ''}">Kategori: ${cat} ${isCatPinned ? '[PINNAD]' : ''}</span>
         <button style="font-size:9px; padding:1px 4px;" onclick="promptAddTagToSpecificCat('${cat}')">+ Lägg till i ${cat}</button>
       </div>
       <div class="tag-container" style="margin-top:4px;">${tagsHtml}</div>
@@ -591,14 +719,17 @@ function createNewObjectPrompt() {
   const id = name.toLowerCase().replace(/\s+/g, '_');
   database.objects.push({ id, name, defaultRole: "Ingrediens", props: {} });
   selectedObjectId = id;
+  persistData();
   renderM1();
 }
 
 function m1AddCategoryPrompt() {
-  const name = prompt("Ange ny global kategori (visas på alla objekt):");
+  const name = prompt("Ange ny global kategori:");
   if (!name) return;
+  const isPinned = confirm("Ska denna kategori vara en 'Pinnad varningskategori' (visas separat i formler utan poängräkning)?");
   if (!database.categories[name]) {
-    database.categories[name] = { system: "Generellt", desc: "" };
+    database.categories[name] = { system: "Generellt", desc: "", isPinned: isPinned };
+    persistData();
   }
   renderM1();
 }
@@ -609,10 +740,11 @@ function m1AddTagPrompt() {
   if (!database.properties[pName]) {
     const cat = prompt(`Egenskapen '${pName}' är ny. Ange kategori:`, Object.keys(database.categories)[0]) || "Generellt";
     database.properties[pName] = { category: cat, desc: "", opposite: "" };
-    if (!database.categories[cat]) database.categories[cat] = { system: "Generellt", desc: "" };
+    if (!database.categories[cat]) database.categories[cat] = { system: "Generellt", desc: "", isPinned: false };
   }
   const obj = database.objects.find(o => o.id === selectedObjectId);
-  obj.props[pName] = { grade: 3 };
+  obj.props[pName] = {};
+  persistData();
   renderM1();
 }
 
@@ -623,7 +755,8 @@ function promptAddTagToSpecificCat(cat) {
     database.properties[pName] = { category: cat, desc: "", opposite: "" };
   }
   const obj = database.objects.find(o => o.id === selectedObjectId);
-  obj.props[pName] = { grade: 3 };
+  obj.props[pName] = {};
+  persistData();
   renderM1();
 }
 
@@ -632,9 +765,10 @@ function renderM2() {
   const catList = document.getElementById("m2-cat-list");
   catList.innerHTML = "";
   Object.keys(database.categories).forEach(cName => {
+    const isPinned = !!database.categories[cName]?.isPinned;
     const d = document.createElement("div");
     d.className = `list-item ${cName === selectedCatName ? 'selected' : ''}`;
-    d.innerText = cName;
+    d.innerHTML = `<span>${cName}</span>${isPinned ? '<span style="color:#900; font-weight:bold; font-size:9px;">[PINNAD]</span>' : ''}`;
     d.onclick = () => {
       selectedCatName = cName;
       const first = Object.keys(database.properties).find(p => database.properties[p].category === cName);
@@ -679,13 +813,12 @@ function renderM2() {
   const matchingObjs = database.objects.filter(o => o.props[selectedPropName] !== undefined);
 
   if (matchingObjs.length === 0) {
-    objCont.innerHTML = `<div style="color:#777; font-style:italic; padding:6px;">Inga objekt tilldelade denna egenskap ännu.</div>`;
+    objCont.innerHTML = `<div style="color:#777; font-style:italic; padding:6px;">Inga objekt har denna egenskap tilldelad.</div>`;
   } else {
     matchingObjs.forEach(o => {
-      const grade = o.props[selectedPropName].grade;
       const d = document.createElement("div");
       d.className = "list-item";
-      d.innerHTML = `<span>${o.name}</span><b>Grad: ${grade}</b>`;
+      d.innerHTML = `<span>${o.name}</span><span style="font-size:10px; color:#555;">Kopplad</span>`;
       objCont.appendChild(d);
     });
   }
@@ -715,14 +848,17 @@ function savePropDetails() {
     });
     selectedPropName = newName;
   }
+  persistData();
   renderM2();
 }
 
 function createNewCategoryPrompt() {
   const name = prompt("Ange ny kategori:");
   if (!name) return;
-  database.categories[name] = { system: "Generellt", desc: "" };
+  const isPinned = confirm("Ska denna kategori vara en 'Pinnad varningskategori' (visas separat i formler utan poängräkning)?");
+  database.categories[name] = { system: "Generellt", desc: "", isPinned: isPinned };
   selectedCatName = name;
+  persistData();
   renderM2();
 }
 
@@ -731,6 +867,7 @@ function createNewPropPrompt() {
   if (!name) return;
   database.properties[name] = { category: selectedCatName, desc: "", opposite: "" };
   selectedPropName = name;
+  persistData();
   renderM2();
 }
 
@@ -810,6 +947,7 @@ function calculateFormula() {
 
   let propWeightedSum = {};
   let propSynergy = {};
+  let pinnedWarnings = [];
 
   if (totalQty > 0) {
     formulaRows.forEach(row => {
@@ -818,8 +956,22 @@ function calculateFormula() {
       if (!obj) return;
 
       Object.entries(obj.props).forEach(([propName, pData]) => {
+        const pMeta = database.properties[propName];
+        const catMeta = database.categories[pMeta?.category];
+
+        // Frank: Pinnade kategorier lyfts ut till egen ruta och ingår ej i medelvärdet
+        if (catMeta && catMeta.isPinned) {
+          pinnedWarnings.push({
+            prop: propName,
+            sourceObj: obj.name,
+            desc: pMeta.desc || ""
+          });
+          return;
+        }
+
+        const weight = (pData && pData.value !== undefined) ? pData.value : 1;
         if (!propWeightedSum[propName]) propWeightedSum[propName] = 0;
-        propWeightedSum[propName] += (row.qty * pData.grade);
+        propWeightedSum[propName] += (row.qty * weight);
 
         if (!propSynergy[propName]) propSynergy[propName] = 0;
         propSynergy[propName] += 1;
@@ -827,10 +979,23 @@ function calculateFormula() {
     });
   }
 
+  // 1. Rendera pinnade varningar
+  const warnBox = document.getElementById("formula-warning-box");
+  const warnItems = document.getElementById("formula-warning-items");
+  if (pinnedWarnings.length > 0) {
+    warnBox.style.display = "flex";
+    warnItems.innerHTML = pinnedWarnings.map(w => 
+      `<div class="warning-item"><b>${w.prop}</b> (orsakad av <i>${w.sourceObj}</i>)${w.desc ? ' – ' + w.desc : ''}</div>`
+    ).join("");
+  } else {
+    warnBox.style.display = "none";
+  }
+
+  // 2. Kvantitativ beräkning för ordinarie egenskaper
   let effects = {};
   Object.keys(propWeightedSum).forEach(prop => {
     const rawEffect = propWeightedSum[prop] / totalQty;
-    effects[prop] = { raw: rawEffect, percent: Math.round((rawEffect / 5) * 100) };
+    effects[prop] = { raw: rawEffect, percent: Math.round(rawEffect * 100) };
   });
 
   const tbody = document.getElementById("display-props-tbody");
@@ -844,7 +1009,7 @@ function calculateFormula() {
   list.sort((a, b) => b.synergy - a.synergy || b.effectPercent - a.effectPercent);
 
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Inga aktiva egenskaper</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Inga aktiva beräkningsbara egenskaper</td></tr>`;
   } else {
     list.forEach((item, idx) => {
       const tr = document.createElement("tr");
@@ -858,6 +1023,7 @@ function calculateFormula() {
     });
   }
 
+  // 3. Balansmätare
   const balContainer = document.getElementById("balance-ui-container");
   balContainer.innerHTML = "";
 
@@ -878,7 +1044,7 @@ function calculateFormula() {
         const effB = effects[opp] ? effects[opp].raw : 0;
         const diff = effA - effB;
 
-        const maxScale = 4.0;
+        const maxScale = 1.0;
         let widthPct = Math.min(50, (Math.abs(diff) / maxScale) * 50);
         let leftPos = 50;
         let color = "#888";
@@ -937,7 +1103,7 @@ function renderSearchModule() {
     let matchedProps = [];
     activeSearchTerms.forEach(term => {
       if (obj.props[term] !== undefined) {
-        matchedProps.push(`${term} (${obj.props[term].grade})`);
+        matchedProps.push(term);
       }
     });
 
@@ -995,7 +1161,7 @@ function addToFormulaFromSearch(objId) {
   alert(`'${obj.name}' lades till i formeln!`);
 }
 
-// Start
+// Starta
 renderM1();
 </script>
 
