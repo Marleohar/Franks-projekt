@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Multi-Biblioteks System v0.6</title>
+  <title>Multi-Biblioteks System v0.7</title>
   <style>
     :root {
       --bg: #d4d0c8;
@@ -155,6 +155,29 @@
       gap: 4px;
     }
 
+    /* Kategori-block i Objekthanteraren */
+    .cat-block {
+      background: #fafafa;
+      border: 1px solid #ccc;
+      margin-bottom: 8px;
+      padding: 6px;
+    }
+    .cat-block.empty-cat {
+      background: #fdfdfd;
+      border-style: dashed;
+    }
+    .cat-header {
+      font-weight: bold;
+      color: #0a246a;
+      padding: 2px 4px;
+      background: #eaeaea;
+      display: inline-block;
+      border: 1px solid #bbb;
+      margin-bottom: 6px;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
     table.grid-table {
       width: 100%;
       border-collapse: collapse;
@@ -199,7 +222,6 @@
       background: #fafafa;
     }
 
-    /* Balans med nollcentrering */
     .balance-box {
       margin-top: 12px;
       background: #f4f4f4;
@@ -236,7 +258,6 @@
       transition: all 0.1s ease;
     }
 
-    /* Filtersök specifik stil */
     .search-grid {
       display: grid;
       grid-template-columns: 1fr 1.25fr;
@@ -268,47 +289,16 @@
       cursor: pointer;
       font-weight: bold;
     }
-    .obj-link:hover {
-      color: #0055ea;
-    }
-
-    /* Modal / Popups */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.4);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .modal-window {
-      background: var(--bg);
-      border-top: 2px solid var(--border-light);
-      border-left: 2px solid var(--border-light);
-      border-right: 2px solid var(--border-darker);
-      border-bottom: 2px solid var(--border-darker);
-      width: 500px;
-      box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
-    }
-    .modal-body {
-      padding: 12px;
-      background: var(--panel);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
   </style>
 </head>
 <body>
 
 <div class="window">
   <div class="title-bar">
-    <span>Multi-Biblioteks Taggningssystem v0.6 [Pedagogisk Plattform]</span>
+    <span>Multi-Biblioteks Taggningssystem v0.7</span>
     <span>[Offline Profiler]</span>
   </div>
 
-  <!-- FLIKAR -->
   <div class="tab-bar">
     <button class="tab-btn active" id="tab-btn-obj" onclick="switchTab('obj-tab', this)">1. Objekthanteraren</button>
     <button class="tab-btn" id="tab-btn-prop" onclick="switchTab('prop-tab', this)">2. Egenskapshanteraren</button>
@@ -331,7 +321,13 @@
         <div class="section-card">
           <div class="section-title">
             <span id="m1-profile-title">Egenskapsprofil</span>
-            <button onclick="m1AddTagPrompt()">+ Lägg till egenskap</button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <label style="font-size: 10px; font-weight: normal; cursor: pointer;">
+                <input type="checkbox" id="hide-empty-cats" onchange="toggleHideEmpty(this.checked)"> Dölj tomma kategorier
+              </label>
+              <button onclick="m1AddCategoryPrompt()">+ Ny Kategori</button>
+              <button onclick="m1AddTagPrompt()">+ Lägg till egenskap</button>
+            </div>
           </div>
           <div class="list-box" style="padding: 6px;" id="m1-profile-container"></div>
         </div>
@@ -380,10 +376,7 @@
         <div class="section-card">
           <div class="section-title">
             <span>Formel</span>
-            <div style="display: flex; gap: 4px;">
-              <button onclick="openFormulaSearchModal()">🔍 Hitta via filter</button>
-              <button onclick="addFormulaRow()">+ Ny Rad</button>
-            </div>
+            <button onclick="addFormulaRow()">+ Ny Rad</button>
           </div>
           <table class="grid-table">
             <thead>
@@ -435,10 +428,9 @@
       </div>
     </div>
 
-    <!-- ==================== 4. FILTERSÖK (MED HOPP & TILL FORMEL) ==================== -->
+    <!-- ==================== 4. FILTERSÖK ==================== -->
     <div id="search-tab" style="display: none;">
       <div class="search-grid">
-        <!-- VÄNSTER: SÖKTERMER -->
         <div class="section-card">
           <div class="section-title">
             <span>Söktermer</span>
@@ -447,16 +439,10 @@
               <button onclick="addSearchTerm()">+ Lägg till</button>
             </div>
           </div>
-          <div style="font-size:10px; color:#666; margin-bottom:6px;">Valda egenskaper att matcha:</div>
+          <div style="font-size:10px; color:#666; margin-bottom:6px;">Valda egenskaper:</div>
           <div class="tag-container" id="search-terms-container" style="min-height: 140px; align-content: flex-start;"></div>
-          
-          <div style="margin-top:auto; padding-top:8px; border-top:1px solid #ccc; display:flex; gap:6px;">
-            <button onclick="saveSearchProfile()">💾 Spara sökning...</button>
-            <button onclick="openSearchProfile()">📂 Öppna sökning</button>
-          </div>
         </div>
 
-        <!-- HÖGER: RESULTATLISTA MED HOPP & TILL FORMEL -->
         <div class="section-card">
           <div class="section-title">
             <span>Resultat</span>
@@ -475,59 +461,20 @@
           </table>
         </div>
       </div>
-
-      <!-- TIDIGARE SÖKNINGAR -->
-      <div class="section-card history-card">
-        <div class="section-title">
-          <span>Tidigare Sökningar</span>
-          <button onclick="clearSearchHistory()">Rensa sökhistorik</button>
-        </div>
-        <table class="grid-table">
-          <thead>
-            <tr>
-              <th class="row-num">#</th>
-              <th style="width: 140px;">Datum / Tid</th>
-              <th>Söktermer</th>
-              <th style="width: 80px; text-align:center;">Åtgärd</th>
-            </tr>
-          </thead>
-          <tbody id="search-history-tbody"></tbody>
-        </table>
-      </div>
     </div>
 
-  </div>
-</div>
-
-<!-- ==================== MODAL: HITTA KOMPONENT TILL FORMEL ==================== -->
-<div class="modal-overlay" id="formula-search-modal">
-  <div class="modal-window">
-    <div class="title-bar">
-      <span>Filtersök komponent till formeln</span>
-      <span style="cursor:pointer;" onclick="closeModal('formula-search-modal')">✕</span>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:10px; color:#444;">Välj önskade egenskaper för att hitta lämpliga komponenter:</div>
-      <div style="display:flex; gap:6px;">
-        <select id="modal-filter-picker" style="flex-grow:1;"></select>
-        <button onclick="modalAddFilter()">+ Filtrera</button>
-      </div>
-      <div id="modal-filter-chips" class="tag-container" style="min-height:24px;"></div>
-      <div class="list-box" style="height: 180px;" id="modal-filter-results"></div>
-      <div style="display:flex; justify-content:flex-end;">
-        <button onclick="closeModal('formula-search-modal')">Stäng</button>
-      </div>
-    </div>
   </div>
 </div>
 
 <script>
 // ==================== DATABAS ====================
 const database = {
+  // Globala kategorier (synliga i hela systemet)
   categories: {
     "Temperatur": { system: "Energetik", desc: "Termiska kvaliteter" },
     "Smak":       { system: "Sensorik", desc: "Grundsmaker" },
-    "Verkan":     { system: "Medicin", desc: "Fysiologisk verkan" }
+    "Verkan":     { system: "Medicin", desc: "Fysiologisk verkan" },
+    "Ursprung":   { system: "Geografi", desc: "Varifrån råvaran härstammar" }
   },
   properties: {
     "Varm":         { category: "Temperatur", desc: "Värmande energi", opposite: "Kall" },
@@ -546,10 +493,10 @@ const database = {
   ]
 };
 
-// Tillstånd
 let selectedObjectId = "ingefara";
 let selectedCatName = "Temperatur";
 let selectedPropName = "Varm";
+let hideEmptyCategories = false;
 
 let formulaRows = [
   { objId: "kamomill", role: "Basört", qty: 3 },
@@ -558,11 +505,6 @@ let formulaRows = [
 ];
 
 let activeSearchTerms = ["Varm", "Matsmältning"];
-let savedProfiles = {};
-let searchHistory = [
-  { timestamp: "2026-09-20 10:15", terms: ["Varm", "Stark"] },
-  { timestamp: "2026-09-20 11:02", terms: ["Kall", "Lugnande"] }
-];
 
 function switchTab(tabId, btn) {
   document.getElementById("obj-tab").style.display = (tabId === 'obj-tab') ? 'block' : 'none';
@@ -579,29 +521,12 @@ function switchTab(tabId, btn) {
   if (tabId === 'search-tab') renderSearchModule();
 }
 
-// HOPPA DIREKT TILL OBJEKT I OBJEKTHANTERAREN (Från Sök)
-function jumpToObject(objId) {
-  selectedObjectId = objId;
-  const btn = document.getElementById("tab-btn-obj");
-  switchTab('obj-tab', btn);
+function toggleHideEmpty(isChecked) {
+  hideEmptyCategories = isChecked;
+  renderM1();
 }
 
-// LÄGG TILL OBJEKT I FORMELN DIREKT FRÅN SÖK
-function addComponentToFormulaFromSearch(objId) {
-  const obj = database.objects.find(o => o.id === objId);
-  if (!obj) return;
-  
-  const existing = formulaRows.find(r => r.objId === objId);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    formulaRows.push({ objId: obj.id, role: obj.defaultRole, qty: 1 });
-  }
-
-  alert(`'${obj.name}' har lagts till i Formeln!`);
-}
-
-// ==================== 1. OBJEKTHANTERAREN ====================
+// ==================== 1. OBJEKTHANTERAREN (GLOBAL TAXONOMI) ====================
 function renderM1() {
   const list = document.getElementById("m1-obj-list");
   list.innerHTML = "";
@@ -620,18 +545,42 @@ function renderM1() {
   const profCont = document.getElementById("m1-profile-container");
   profCont.innerHTML = "";
 
-  const grouped = {};
-  Object.entries(obj.props).forEach(([pName, pData]) => {
-    const cat = database.properties[pName]?.category || "Övrigt";
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push({ name: pName, grade: pData.grade });
-  });
+  // Frank: Alla kategorier finns globalt och visas alltid överst
+  Object.keys(database.categories).forEach(cat => {
+    // Hitta vilka egenskaper detta objekt har inom kategorin
+    let propsInCat = [];
+    Object.entries(obj.props).forEach(([pName, pData]) => {
+      if (database.properties[pName]?.category === cat) {
+        propsInCat.push({ name: pName, grade: pData.grade });
+      }
+    });
 
-  Object.entries(grouped).forEach(([cat, props]) => {
+    const isEmpty = propsInCat.length === 0;
+
+    // Respektera "Dölj tomma kategorier"
+    if (isEmpty && hideEmptyCategories) {
+      return;
+    }
+
     const blk = document.createElement("div");
-    blk.className = "cat-block";
-    let tags = props.map(p => `<span class="tag-badge"><span>${p.name}</span><b>(${p.grade})</b></span>`).join("");
-    blk.innerHTML = `<span style="font-weight:bold; color:#0a246a;">Kategori: ${cat}</span><div class="tag-container" style="margin-top:4px;">${tags}</div>`;
+    blk.className = `cat-block ${isEmpty ? 'empty-cat' : ''}`;
+
+    let tagsHtml = "";
+    if (isEmpty) {
+      tagsHtml = `<span style="color:#888; font-style:italic; font-size:10px;">[Inga egenskaper tilldelade]</span>`;
+    } else {
+      tagsHtml = propsInCat.map(p => 
+        `<span class="tag-badge"><span>${p.name}</span><b>(${p.grade})</b></span>`
+      ).join("");
+    }
+
+    blk.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="cat-header">Kategori: ${cat}</span>
+        <button style="font-size:9px; padding:1px 4px;" onclick="promptAddTagToSpecificCat('${cat}')">+ Lägg till i ${cat}</button>
+      </div>
+      <div class="tag-container" style="margin-top:4px;">${tagsHtml}</div>
+    `;
     profCont.appendChild(blk);
   });
 }
@@ -645,13 +594,33 @@ function createNewObjectPrompt() {
   renderM1();
 }
 
+function m1AddCategoryPrompt() {
+  const name = prompt("Ange ny global kategori (visas på alla objekt):");
+  if (!name) return;
+  if (!database.categories[name]) {
+    database.categories[name] = { system: "Generellt", desc: "" };
+  }
+  renderM1();
+}
+
 function m1AddTagPrompt() {
   const pName = prompt("Ange egenskap att koppla till objektet:");
   if (!pName) return;
   if (!database.properties[pName]) {
-    const cat = prompt(`Egenskapen '${pName}' är ny. Ange kategori:`, "Allmänt") || "Allmänt";
+    const cat = prompt(`Egenskapen '${pName}' är ny. Ange kategori:`, Object.keys(database.categories)[0]) || "Generellt";
     database.properties[pName] = { category: cat, desc: "", opposite: "" };
-    if (!database.categories[cat]) database.categories[cat] = { system: "Allmänt", desc: "" };
+    if (!database.categories[cat]) database.categories[cat] = { system: "Generellt", desc: "" };
+  }
+  const obj = database.objects.find(o => o.id === selectedObjectId);
+  obj.props[pName] = { grade: 3 };
+  renderM1();
+}
+
+function promptAddTagToSpecificCat(cat) {
+  const pName = prompt(`Ange ny egenskap under kategorin [${cat}]:`);
+  if (!pName) return;
+  if (!database.properties[pName]) {
+    database.properties[pName] = { category: cat, desc: "", opposite: "" };
   }
   const obj = database.objects.find(o => o.id === selectedObjectId);
   obj.props[pName] = { grade: 3 };
@@ -942,90 +911,7 @@ function calculateFormula() {
   }
 }
 
-// ==================== MODAL: SÖK KOMPONENT TILL FORMELN ====================
-let modalSelectedFilters = [];
-
-function openFormulaSearchModal() {
-  modalSelectedFilters = [];
-  renderModalFilterPicker();
-  renderModalFilterResults();
-  document.getElementById("formula-search-modal").style.display = "flex";
-}
-
-function renderModalFilterPicker() {
-  const picker = document.getElementById("modal-filter-picker");
-  picker.innerHTML = Object.keys(database.properties)
-    .filter(p => !modalSelectedFilters.includes(p))
-    .map(p => `<option value="${p}">${p}</option>`).join("");
-
-  const chips = document.getElementById("modal-filter-chips");
-  chips.innerHTML = modalSelectedFilters.map(f => 
-    `<span class="tag-badge"><span>${f}</span><b style="color:red; cursor:pointer;" onclick="modalRemoveFilter('${f}')">✕</b></span>`
-  ).join("");
-}
-
-function modalAddFilter() {
-  const picker = document.getElementById("modal-filter-picker");
-  const val = picker.value;
-  if (val && !modalSelectedFilters.includes(val)) {
-    modalSelectedFilters.push(val);
-    renderModalFilterPicker();
-    renderModalFilterResults();
-  }
-}
-
-function modalRemoveFilter(f) {
-  modalSelectedFilters = modalSelectedFilters.filter(x => x !== f);
-  renderModalFilterPicker();
-  renderModalFilterResults();
-}
-
-function renderModalFilterResults() {
-  const resCont = document.getElementById("modal-filter-results");
-  resCont.innerHTML = "";
-
-  let matched = [];
-  database.objects.forEach(obj => {
-    let count = 0;
-    modalSelectedFilters.forEach(f => {
-      if (obj.props[f] !== undefined) count++;
-    });
-
-    if (modalSelectedFilters.length === 0 || count > 0) {
-      let pct = modalSelectedFilters.length > 0 ? Math.round((count / modalSelectedFilters.length) * 100) : 100;
-      matched.push({ obj, pct });
-    }
-  });
-
-  matched.sort((a, b) => b.pct - a.pct);
-
-  matched.forEach(item => {
-    const row = document.createElement("div");
-    row.className = "list-item";
-    row.innerHTML = `
-      <div>
-        <b>${item.obj.name}</b> 
-        <span style="font-size:10px; color:#555;">(${item.pct}% match)</span>
-      </div>
-      <button onclick="addObjToFormulaDirectly('${item.obj.id}')">+ Välj till formel</button>
-    `;
-    resCont.appendChild(row);
-  });
-}
-
-function addObjToFormulaDirectly(objId) {
-  const obj = database.objects.find(o => o.id === objId);
-  if (!obj) return;
-  formulaRows.push({ objId: obj.id, role: obj.defaultRole, qty: 1 });
-  calculateFormula();
-  closeModal('formula-search-modal');
-}
-
-function closeModal(id) {
-  document.getElementById(id).style.display = "none";
-}
-
-// ==================== 4. FILTERSÖK (LOGIK & RENDERING) ====================
+// ==================== 4. FILTERSÖK ====================
 function renderSearchModule() {
   const picker = document.getElementById("search-prop-picker");
   picker.innerHTML = Object.keys(database.properties)
@@ -1034,77 +920,60 @@ function renderSearchModule() {
 
   const termsCont = document.getElementById("search-terms-container");
   termsCont.innerHTML = "";
-  if (activeSearchTerms.length === 0) {
-    termsCont.innerHTML = `<span style="color:#888; font-style:italic;">Inga filter aktiva. Välj en egenskap ovan.</span>`;
-  } else {
-    activeSearchTerms.forEach(term => {
-      const chip = document.createElement("div");
-      chip.className = "search-chip";
-      chip.innerHTML = `<span>${term}</span><span class="remove-chip" onclick="removeSearchTerm('${term}')">✕</span>`;
-      termsCont.appendChild(chip);
-    });
-  }
+  activeSearchTerms.forEach(term => {
+    const chip = document.createElement("div");
+    chip.className = "search-chip";
+    chip.innerHTML = `<span>${term}</span><span class="remove-chip" onclick="removeSearchTerm('${term}')">✕</span>`;
+    termsCont.appendChild(chip);
+  });
 
   const resultsTbody = document.getElementById("search-results-tbody");
   resultsTbody.innerHTML = "";
 
-  if (activeSearchTerms.length === 0) {
-    resultsTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Lägg till söktermer för att filtrera databasen.</td></tr>`;
-  } else {
-    let results = [];
-    const totalTerms = activeSearchTerms.length;
+  let results = [];
+  const totalTerms = activeSearchTerms.length;
 
-    database.objects.forEach(obj => {
-      let matchedProps = [];
-      activeSearchTerms.forEach(term => {
-        if (obj.props[term] !== undefined) {
-          matchedProps.push(`${term} (${obj.props[term].grade})`);
-        }
-      });
-
-      if (matchedProps.length > 0) {
-        const relevance = Math.round((matchedProps.length / totalTerms) * 100);
-        results.push({
-          id: obj.id,
-          name: obj.name,
-          relevance: relevance,
-          matchedProps: matchedProps
-        });
+  database.objects.forEach(obj => {
+    let matchedProps = [];
+    activeSearchTerms.forEach(term => {
+      if (obj.props[term] !== undefined) {
+        matchedProps.push(`${term} (${obj.props[term].grade})`);
       }
     });
 
-    results.sort((a, b) => b.relevance - a.relevance);
-
-    if (results.length === 0) {
-      resultsTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Inga objekt matchar dina valda egenskaper.</td></tr>`;
-    } else {
-      results.forEach((res, idx) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="row-num">${idx + 1}</td>
-          <td>
-            <span class="obj-link" onclick="jumpToObject('${res.id}')" title="Klicka för att granska i Objekthanteraren">${res.name}</span>
-            <div style="font-size:10px; color:#555;">${res.matchedProps.join(", ")}</div>
-          </td>
-          <td class="calculated-cell" style="color: ${res.relevance === 100 ? '#0a246a' : '#333'};">${res.relevance} %</td>
-          <td style="text-align:center;">
-            <button onclick="addComponentToFormulaFromSearch('${res.id}')">+ Till formel</button>
-          </td>
-        `;
-        resultsTbody.appendChild(tr);
-      });
+    if (matchedProps.length > 0) {
+      const relevance = Math.round((matchedProps.length / totalTerms) * 100);
+      results.push({ id: obj.id, name: obj.name, relevance, matchedProps });
     }
-  }
+  });
 
-  renderSearchHistory();
+  results.sort((a, b) => b.relevance - a.relevance);
+
+  if (results.length === 0) {
+    resultsTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Inga objekt matchar.</td></tr>`;
+  } else {
+    results.forEach((res, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="row-num">${idx + 1}</td>
+        <td>
+          <span class="obj-link" onclick="jumpToObject('${res.id}')">${res.name}</span>
+          <div style="font-size:10px; color:#555;">${res.matchedProps.join(", ")}</div>
+        </td>
+        <td class="calculated-cell">${res.relevance} %</td>
+        <td style="text-align:center;">
+          <button onclick="addToFormulaFromSearch('${res.id}')">+ Till formel</button>
+        </td>
+      `;
+      resultsTbody.appendChild(tr);
+    });
+  }
 }
 
 function addSearchTerm() {
-  const picker = document.getElementById("search-prop-picker");
-  const val = picker.value;
+  const val = document.getElementById("search-prop-picker").value;
   if (val && !activeSearchTerms.includes(val)) {
     activeSearchTerms.push(val);
-    logSearchHistory();
     renderSearchModule();
   }
 }
@@ -1114,76 +983,16 @@ function removeSearchTerm(term) {
   renderSearchModule();
 }
 
-function logSearchHistory() {
-  if (activeSearchTerms.length === 0) return;
-  const now = new Date();
-  const timeStr = now.toISOString().slice(0, 16).replace("T", " ");
-  
-  searchHistory.unshift({
-    timestamp: timeStr,
-    terms: [...activeSearchTerms]
-  });
-  if (searchHistory.length > 10) searchHistory.pop();
+function jumpToObject(objId) {
+  selectedObjectId = objId;
+  switchTab('obj-tab', document.getElementById("tab-btn-obj"));
 }
 
-function renderSearchHistory() {
-  const tbody = document.getElementById("search-history-tbody");
-  tbody.innerHTML = "";
-
-  if (searchHistory.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:8px;">Ingen sökhistorik loggad.</td></tr>`;
-    return;
-  }
-
-  searchHistory.forEach((h, idx) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="row-num">${idx + 1}</td>
-      <td style="font-size:10px; color:#555;">${h.timestamp}</td>
-      <td><b>${h.terms.join(", ")}</b></td>
-      <td style="text-align:center;">
-        <button onclick="restoreSearchHistory(${idx})">Återställ</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function restoreSearchHistory(idx) {
-  activeSearchTerms = [...searchHistory[idx].terms];
-  renderSearchModule();
-}
-
-function clearSearchHistory() {
-  searchHistory = [];
-  renderSearchHistory();
-}
-
-function saveSearchProfile() {
-  if (activeSearchTerms.length === 0) {
-    alert("Inga aktiva söktermer att spara!");
-    return;
-  }
-  const name = prompt("Ange ett namn på sökprofilen (t.ex. 'Värmande magörter'):");
-  if (!name) return;
-  savedProfiles[name] = [...activeSearchTerms];
-  alert(`Sökningen '${name}' har sparats!`);
-}
-
-function openSearchProfile() {
-  const keys = Object.keys(savedProfiles);
-  if (keys.length === 0) {
-    alert("Det finns inga sparade profiler ännu.");
-    return;
-  }
-  const choice = prompt("Välj profil att öppna:\n" + keys.map((k, i) => `${i + 1}. ${k}`).join("\n"));
-  if (!choice) return;
-  const idx = parseInt(choice) - 1;
-  if (keys[idx]) {
-    activeSearchTerms = [...savedProfiles[keys[idx]]];
-    logSearchHistory();
-    renderSearchModule();
-  }
+function addToFormulaFromSearch(objId) {
+  const obj = database.objects.find(o => o.id === objId);
+  if (!obj) return;
+  formulaRows.push({ objId: obj.id, role: obj.defaultRole, qty: 1 });
+  alert(`'${obj.name}' lades till i formeln!`);
 }
 
 // Start
