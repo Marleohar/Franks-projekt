@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>Multi-Biblioteks System v0.6</title>
+  <style>
+    :root {
+      --bg: #d4d0c8;
+      --panel: #ece9d8;
+      --border-light: #ffffff;
+      --border-dark: #808080;
+      --border-darker: #404040;
+      --win-blue: #0a246a;
+      --grid-line: #c8c8c8;
+      --tag-bg: #e8eef7;
+      --tag-border: #5b7bb2;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      background-color: #2e5b88;
+      font-family: Tahoma, "Segoe UI", sans-serif;
+      font-size: 11px;
+      margin: 12px;
+      user-select: none;
+    }
+
+    .window {
+      background: var(--bg);
+      border-top: 2px solid var(--border-light);
+      border-left: 2px solid var(--border-light);
+      border-right: 2px solid var(--border-darker);
+      border-bottom: 2px solid var(--border-darker);
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+      max-width: 1220px;
+      margin: 0 auto;
+    }
+
+    .title-bar {
+      background: linear-gradient(90deg, var(--win-blue), #5c8fc2);
+      padding: 3px 6px;
+      color: #fff;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 3px;
+      padding: 6px 8px 0 8px;
+      background: var(--bg);
+      border-bottom: 2px solid var(--border-dark);
+    }
+    .tab-btn {
+      padding: 5px 12px;
+      background: #c0c0c0;
+      border-top: 2px solid var(--border-light);
+      border-left: 2px solid var(--border-light);
+      border-right: 2px solid var(--border-darker);
+      border-bottom: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 11px;
+      border-radius: 3px 3px 0 0;
+    }
+    .tab-btn.active {
+      background: var(--panel);
+      padding-bottom: 7px;
+      margin-bottom: -2px;
+      border-bottom: 2px solid var(--panel);
+      z-index: 10;
+    }
+
+    .module-content {
+      padding: 10px;
+      background: var(--panel);
+      min-height: 640px;
+    }
+
+    .section-card {
+      background: #ffffff;
+      border-top: 2px solid var(--border-dark);
+      border-left: 2px solid var(--border-dark);
+      border-right: 2px solid var(--border-light);
+      border-bottom: 2px solid var(--border-light);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+    }
+    .section-title {
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 11px;
+      margin-bottom: 6px;
+      padding-bottom: 3px;
+      border-bottom: 1px solid #aaa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 11px;
+      background: var(--bg);
+      border-top: 1px solid var(--border-light);
+      border-left: 1px solid var(--border-light);
+      border-right: 1px solid var(--border-darker);
+      border-bottom: 1px solid var(--border-darker);
+      padding: 2px 6px;
+      cursor: pointer;
+    }
+    button:active {
+      border-top: 1px solid var(--border-darker);
+      border-left: 1px solid var(--border-darker);
+      border-right: 1px solid var(--border-light);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .list-box {
+      overflow-y: auto;
+      border: 1px solid #999;
+      background: #fff;
+      flex-grow: 1;
+    }
+    .list-item {
+      padding: 5px 8px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+    }
+    .list-item:hover { background: #e8f0fe; }
+    .list-item.selected {
+      background: var(--win-blue);
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .tag-badge {
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      border-radius: 3px;
+      padding: 2px 6px;
+      cursor: pointer;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    table.grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    table.grid-table th {
+      background: #e8e8e8;
+      border: 1px solid var(--border-dark);
+      padding: 4px 6px;
+      font-size: 10px;
+      text-align: left;
+    }
+    table.grid-table td {
+      border: 1px solid var(--grid-line);
+      padding: 3px 6px;
+      font-size: 11px;
+    }
+    .row-num {
+      width: 24px;
+      text-align: center;
+      background: #f0f0f0;
+      color: #666;
+      font-weight: bold;
+    }
+    .cell-input {
+      width: 100%;
+      border: 1px solid transparent;
+      padding: 2px 4px;
+      font-family: inherit;
+      font-size: 11px;
+      background: transparent;
+    }
+    .cell-input:focus {
+      border: 1px solid #0055ea;
+      background: #fff;
+      outline: none;
+    }
+    .calculated-cell {
+      font-family: monospace;
+      text-align: right;
+      font-weight: bold;
+      background: #fafafa;
+    }
+
+    /* Balans med nollcentrering */
+    .balance-box {
+      margin-top: 12px;
+      background: #f4f4f4;
+      border: 1px solid var(--border-dark);
+      padding: 8px;
+    }
+    .balance-row {
+      display: grid;
+      grid-template-columns: 85px 1fr 85px;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 10px;
+    }
+    .balance-track {
+      height: 18px;
+      background: #e0e0e0;
+      border: 1px solid #777;
+      position: relative;
+    }
+    .center-zero {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #000;
+      z-index: 2;
+    }
+    .balance-bar {
+      position: absolute;
+      top: 2px;
+      bottom: 2px;
+      transition: all 0.1s ease;
+    }
+
+    /* Filtersök specifik stil */
+    .search-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap: 10px;
+      margin-bottom: 10px;
+      height: 360px;
+    }
+    .history-card {
+      height: 240px;
+    }
+    .search-chip {
+      background: #e3ecfa;
+      border: 1px solid #7092be;
+      padding: 3px 8px;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: bold;
+    }
+    .search-chip span.remove-chip {
+      color: red;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .obj-link {
+      color: #0a246a;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .obj-link:hover {
+      color: #0055ea;
+    }
+
+    /* Modal / Popups */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-window {
+      background: var(--bg);
+      border-top: 2px solid var(--border-light);
+      border-left: 2px solid var(--border-light);
+      border-right: 2px solid var(--border-darker);
+      border-bottom: 2px solid var(--border-darker);
+      width: 500px;
+      box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
+    }
+    .modal-body {
+      padding: 12px;
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="window">
+  <div class="title-bar">
+    <span>Multi-Biblioteks Taggningssystem v0.6 [Pedagogisk Plattform]</span>
+    <span>[Offline Profiler]</span>
+  </div>
+
+  <!-- FLIKAR -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-btn-obj" onclick="switchTab('obj-tab', this)">1. Objekthanteraren</button>
+    <button class="tab-btn" id="tab-btn-prop" onclick="switchTab('prop-tab', this)">2. Egenskapshanteraren</button>
+    <button class="tab-btn" id="tab-btn-form" onclick="switchTab('form-tab', this)">3. Formelmodulen</button>
+    <button class="tab-btn" id="tab-btn-search" onclick="switchTab('search-tab', this)">4. Filtersök</button>
+  </div>
+
+  <div class="module-content">
+
+    <!-- ==================== 1. OBJEKTHANTERAREN ==================== -->
+    <div id="obj-tab">
+      <div style="display: grid; grid-template-columns: 280px 1fr; gap: 10px; height: 610px;">
+        <div class="section-card">
+          <div class="section-title">
+            <span>Objekt</span>
+            <button onclick="createNewObjectPrompt()">+ Nytt Objekt</button>
+          </div>
+          <div class="list-box" id="m1-obj-list"></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">
+            <span id="m1-profile-title">Egenskapsprofil</span>
+            <button onclick="m1AddTagPrompt()">+ Lägg till egenskap</button>
+          </div>
+          <div class="list-box" style="padding: 6px;" id="m1-profile-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. EGENSKAPSHANTERAREN ==================== -->
+    <div id="prop-tab" style="display: none;">
+      <div style="display: grid; grid-template-columns: 200px 220px 1fr; gap: 8px; height: 610px;">
+        <div class="section-card">
+          <div class="section-title">
+            <span>Kategorier</span>
+            <button onclick="createNewCategoryPrompt()">+ Ny</button>
+          </div>
+          <div class="list-box" id="m2-cat-list"></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">
+            <span>Egenskaper</span>
+            <button onclick="createNewPropPrompt()">+ Ny</button>
+          </div>
+          <div class="list-box" id="m2-prop-list"></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">
+            <span id="m2-detail-title">Egenskapsdetaljer</span>
+            <button onclick="savePropDetails()">Spara Ändringar</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;" id="m2-form-container">
+            <div><label><b>Egenskapsnamn:</b></label><input type="text" id="m2-prop-name" style="width:100%; border:1px solid #888; padding:3px;"></div>
+            <div><label><b>Kategori:</b></label><select id="m2-prop-category" style="width:100%; border:1px solid #888; padding:3px;"></select></div>
+            <div><label><b>Beskrivning:</b></label><textarea id="m2-prop-desc" rows="2" style="width:100%; border:1px solid #888; padding:3px;"></textarea></div>
+            <div><label><b>Paregenskap (Motsats):</b></label><select id="m2-prop-opposite" style="width:100%; border:1px solid #888; padding:3px;"></select></div>
+            <div class="section-title" style="margin-top: 6px;">
+              <span>Kopplade Objekt</span>
+            </div>
+            <div class="list-box" style="height: 150px;" id="m2-assigned-objects"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. FORMELMODULEN ==================== -->
+    <div id="form-tab" style="display: none;">
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px;">
+        <div class="section-card">
+          <div class="section-title">
+            <span>Formel</span>
+            <div style="display: flex; gap: 4px;">
+              <button onclick="openFormulaSearchModal()">🔍 Hitta via filter</button>
+              <button onclick="addFormulaRow()">+ Ny Rad</button>
+            </div>
+          </div>
+          <table class="grid-table">
+            <thead>
+              <tr>
+                <th class="row-num">#</th>
+                <th>Komponent</th>
+                <th>Roll</th>
+                <th style="width: 75px;">Mängd</th>
+                <th style="width: 65px;">Andel [%]</th>
+                <th style="width: 24px;"></th>
+              </tr>
+            </thead>
+            <tbody id="formula-tbody"></tbody>
+            <tfoot>
+              <tr style="background:#e8e8e8; font-weight:bold;">
+                <td colspan="3" style="text-align:right;">Total Mängd:</td>
+                <td id="formula-total-qty" class="calculated-cell">0</td>
+                <td class="calculated-cell">100 %</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+          <div class="balance-box">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:6px;">
+              <span>BALANS</span>
+              <span style="font-size:10px; color:#555;">[ju närmare noll, desto bättre]</span>
+            </div>
+            <div id="balance-ui-container"></div>
+          </div>
+        </div>
+
+        <div class="section-card" style="height: 100%;">
+          <div class="section-title">
+            <span>Egenskaper</span>
+            <span style="font-weight:normal; font-size:10px;">Endast display (Sorterat på synergi)</span>
+          </div>
+          <table class="grid-table">
+            <thead>
+              <tr>
+                <th class="row-num">#</th>
+                <th>Egenskap</th>
+                <th style="width: 90px; text-align:center;">Synergivärde</th>
+                <th style="width: 80px; text-align:right;">Effekt [%]</th>
+              </tr>
+            </thead>
+            <tbody id="display-props-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. FILTERSÖK (MED HOPP & TILL FORMEL) ==================== -->
+    <div id="search-tab" style="display: none;">
+      <div class="search-grid">
+        <!-- VÄNSTER: SÖKTERMER -->
+        <div class="section-card">
+          <div class="section-title">
+            <span>Söktermer</span>
+            <div style="display:flex; gap:4px;">
+              <select id="search-prop-picker" style="font-family:inherit; font-size:11px;"></select>
+              <button onclick="addSearchTerm()">+ Lägg till</button>
+            </div>
+          </div>
+          <div style="font-size:10px; color:#666; margin-bottom:6px;">Valda egenskaper att matcha:</div>
+          <div class="tag-container" id="search-terms-container" style="min-height: 140px; align-content: flex-start;"></div>
+          
+          <div style="margin-top:auto; padding-top:8px; border-top:1px solid #ccc; display:flex; gap:6px;">
+            <button onclick="saveSearchProfile()">💾 Spara sökning...</button>
+            <button onclick="openSearchProfile()">📂 Öppna sökning</button>
+          </div>
+        </div>
+
+        <!-- HÖGER: RESULTATLISTA MED HOPP & TILL FORMEL -->
+        <div class="section-card">
+          <div class="section-title">
+            <span>Resultat</span>
+            <span style="font-size:10px; font-weight:normal;">Sorterat efter relevans</span>
+          </div>
+          <table class="grid-table">
+            <thead>
+              <tr>
+                <th class="row-num">#</th>
+                <th>Objekt (Klicka för att granska)</th>
+                <th style="width: 80px; text-align:right;">Relevans</th>
+                <th style="width: 90px; text-align:center;">Åtgärd</th>
+              </tr>
+            </thead>
+            <tbody id="search-results-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TIDIGARE SÖKNINGAR -->
+      <div class="section-card history-card">
+        <div class="section-title">
+          <span>Tidigare Sökningar</span>
+          <button onclick="clearSearchHistory()">Rensa sökhistorik</button>
+        </div>
+        <table class="grid-table">
+          <thead>
+            <tr>
+              <th class="row-num">#</th>
+              <th style="width: 140px;">Datum / Tid</th>
+              <th>Söktermer</th>
+              <th style="width: 80px; text-align:center;">Åtgärd</th>
+            </tr>
+          </thead>
+          <tbody id="search-history-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== MODAL: HITTA KOMPONENT TILL FORMEL ==================== -->
+<div class="modal-overlay" id="formula-search-modal">
+  <div class="modal-window">
+    <div class="title-bar">
+      <span>Filtersök komponent till formeln</span>
+      <span style="cursor:pointer;" onclick="closeModal('formula-search-modal')">✕</span>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:10px; color:#444;">Välj önskade egenskaper för att hitta lämpliga komponenter:</div>
+      <div style="display:flex; gap:6px;">
+        <select id="modal-filter-picker" style="flex-grow:1;"></select>
+        <button onclick="modalAddFilter()">+ Filtrera</button>
+      </div>
+      <div id="modal-filter-chips" class="tag-container" style="min-height:24px;"></div>
+      <div class="list-box" style="height: 180px;" id="modal-filter-results"></div>
+      <div style="display:flex; justify-content:flex-end;">
+        <button onclick="closeModal('formula-search-modal')">Stäng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DATABAS ====================
+const database = {
+  categories: {
+    "Temperatur": { system: "Energetik", desc: "Termiska kvaliteter" },
+    "Smak":       { system: "Sensorik", desc: "Grundsmaker" },
+    "Verkan":     { system: "Medicin", desc: "Fysiologisk verkan" }
+  },
+  properties: {
+    "Varm":         { category: "Temperatur", desc: "Värmande energi", opposite: "Kall" },
+    "Kall":         { category: "Temperatur", desc: "Kylande energi", opposite: "Varm" },
+    "Söt":          { category: "Smak", desc: "Sockrig sötma", opposite: "Sur" },
+    "Sur":          { category: "Smak", desc: "Syrlig friskhet", opposite: "Söt" },
+    "Stark":        { category: "Smak", desc: "Hetta och skärpa", opposite: "" },
+    "Matsmältning": { category: "Verkan", desc: "Stödjer magen", opposite: "" },
+    "Lugnande":     { category: "Verkan", desc: "Sedativ verkan", opposite: "" }
+  },
+  objects: [
+    { id: "ingefara", name: "Ingefära", defaultRole: "Drivande rot", props: { "Varm": { grade: 4 }, "Stark": { grade: 3 }, "Matsmältning": { grade: 4 } } },
+    { id: "kamomill", name: "Kamomill", defaultRole: "Basört", props: { "Kall": { grade: 1 }, "Söt": { grade: 2 }, "Lugnande": { grade: 5 } } },
+    { id: "pepparmynta", name: "Pepparmynta", defaultRole: "Kylande balans", props: { "Kall": { grade: 4 }, "Matsmältning": { grade: 2 } } },
+    { id: "lakritsrot", name: "Lakritsrot", defaultRole: "Harmonisör", props: { "Varm": { grade: 2 }, "Söt": { grade: 4 }, "Matsmältning": { grade: 3 } } }
+  ]
+};
+
+// Tillstånd
+let selectedObjectId = "ingefara";
+let selectedCatName = "Temperatur";
+let selectedPropName = "Varm";
+
+let formulaRows = [
+  { objId: "kamomill", role: "Basört", qty: 3 },
+  { objId: "ingefara", role: "Drivande rot", qty: 2 },
+  { objId: "lakritsrot", role: "Harmonisör", qty: 1 }
+];
+
+let activeSearchTerms = ["Varm", "Matsmältning"];
+let savedProfiles = {};
+let searchHistory = [
+  { timestamp: "2026-09-20 10:15", terms: ["Varm", "Stark"] },
+  { timestamp: "2026-09-20 11:02", terms: ["Kall", "Lugnande"] }
+];
+
+function switchTab(tabId, btn) {
+  document.getElementById("obj-tab").style.display = (tabId === 'obj-tab') ? 'block' : 'none';
+  document.getElementById("prop-tab").style.display = (tabId === 'prop-tab') ? 'block' : 'none';
+  document.getElementById("form-tab").style.display = (tabId === 'form-tab') ? 'block' : 'none';
+  document.getElementById("search-tab").style.display = (tabId === 'search-tab') ? 'block' : 'none';
+  
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (tabId === 'obj-tab') renderM1();
+  if (tabId === 'prop-tab') renderM2();
+  if (tabId === 'form-tab') calculateFormula();
+  if (tabId === 'search-tab') renderSearchModule();
+}
+
+// HOPPA DIREKT TILL OBJEKT I OBJEKTHANTERAREN (Från Sök)
+function jumpToObject(objId) {
+  selectedObjectId = objId;
+  const btn = document.getElementById("tab-btn-obj");
+  switchTab('obj-tab', btn);
+}
+
+// LÄGG TILL OBJEKT I FORMELN DIREKT FRÅN SÖK
+function addComponentToFormulaFromSearch(objId) {
+  const obj = database.objects.find(o => o.id === objId);
+  if (!obj) return;
+  
+  const existing = formulaRows.find(r => r.objId === objId);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    formulaRows.push({ objId: obj.id, role: obj.defaultRole, qty: 1 });
+  }
+
+  alert(`'${obj.name}' har lagts till i Formeln!`);
+}
+
+// ==================== 1. OBJEKTHANTERAREN ====================
+function renderM1() {
+  const list = document.getElementById("m1-obj-list");
+  list.innerHTML = "";
+  database.objects.forEach(obj => {
+    const d = document.createElement("div");
+    d.className = `list-item ${obj.id === selectedObjectId ? 'selected' : ''}`;
+    d.innerHTML = `<span>${obj.name}</span><span style="font-size:9px;">${Object.keys(obj.props).length} taggar</span>`;
+    d.onclick = () => { selectedObjectId = obj.id; renderM1(); };
+    list.appendChild(d);
+  });
+
+  const obj = database.objects.find(o => o.id === selectedObjectId);
+  if (!obj) return;
+  document.getElementById("m1-profile-title").innerText = `Egenskapsprofil: ${obj.name}`;
+
+  const profCont = document.getElementById("m1-profile-container");
+  profCont.innerHTML = "";
+
+  const grouped = {};
+  Object.entries(obj.props).forEach(([pName, pData]) => {
+    const cat = database.properties[pName]?.category || "Övrigt";
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push({ name: pName, grade: pData.grade });
+  });
+
+  Object.entries(grouped).forEach(([cat, props]) => {
+    const blk = document.createElement("div");
+    blk.className = "cat-block";
+    let tags = props.map(p => `<span class="tag-badge"><span>${p.name}</span><b>(${p.grade})</b></span>`).join("");
+    blk.innerHTML = `<span style="font-weight:bold; color:#0a246a;">Kategori: ${cat}</span><div class="tag-container" style="margin-top:4px;">${tags}</div>`;
+    profCont.appendChild(blk);
+  });
+}
+
+function createNewObjectPrompt() {
+  const name = prompt("Ange namn på det nya objektet:");
+  if (!name) return;
+  const id = name.toLowerCase().replace(/\s+/g, '_');
+  database.objects.push({ id, name, defaultRole: "Ingrediens", props: {} });
+  selectedObjectId = id;
+  renderM1();
+}
+
+function m1AddTagPrompt() {
+  const pName = prompt("Ange egenskap att koppla till objektet:");
+  if (!pName) return;
+  if (!database.properties[pName]) {
+    const cat = prompt(`Egenskapen '${pName}' är ny. Ange kategori:`, "Allmänt") || "Allmänt";
+    database.properties[pName] = { category: cat, desc: "", opposite: "" };
+    if (!database.categories[cat]) database.categories[cat] = { system: "Allmänt", desc: "" };
+  }
+  const obj = database.objects.find(o => o.id === selectedObjectId);
+  obj.props[pName] = { grade: 3 };
+  renderM1();
+}
+
+// ==================== 2. EGENSKAPSHANTERAREN ====================
+function renderM2() {
+  const catList = document.getElementById("m2-cat-list");
+  catList.innerHTML = "";
+  Object.keys(database.categories).forEach(cName => {
+    const d = document.createElement("div");
+    d.className = `list-item ${cName === selectedCatName ? 'selected' : ''}`;
+    d.innerText = cName;
+    d.onclick = () => {
+      selectedCatName = cName;
+      const first = Object.keys(database.properties).find(p => database.properties[p].category === cName);
+      if (first) selectedPropName = first;
+      renderM2();
+    };
+    catList.appendChild(d);
+  });
+
+  const propList = document.getElementById("m2-prop-list");
+  propList.innerHTML = "";
+  Object.entries(database.properties)
+    .filter(([pName, pData]) => pData.category === selectedCatName)
+    .forEach(([pName, pData]) => {
+      const d = document.createElement("div");
+      d.className = `list-item ${pName === selectedPropName ? 'selected' : ''}`;
+      d.innerHTML = `<span>${pName}</span>${pData.opposite ? '<span style="font-size:9px; color:#5b7bb2;">[Polär]</span>' : ''}`;
+      d.onclick = () => { selectedPropName = pName; renderM2(); };
+      propList.appendChild(d);
+    });
+
+  const pMeta = database.properties[selectedPropName];
+  if (!pMeta) return;
+
+  document.getElementById("m2-detail-title").innerText = `Egenskapsdetaljer: [${selectedPropName}]`;
+  document.getElementById("m2-prop-name").value = selectedPropName;
+  document.getElementById("m2-prop-desc").value = pMeta.desc || "";
+
+  const catSel = document.getElementById("m2-prop-category");
+  catSel.innerHTML = Object.keys(database.categories).map(c => 
+    `<option value="${c}" ${c === pMeta.category ? 'selected' : ''}>${c}</option>`
+  ).join("");
+
+  const oppSel = document.getElementById("m2-prop-opposite");
+  oppSel.innerHTML = `<option value="">-- Ingen motsatspol --</option>` + 
+    Object.keys(database.properties).filter(p => p !== selectedPropName).map(p => 
+      `<option value="${p}" ${p === pMeta.opposite ? 'selected' : ''}>${p}</option>`
+    ).join("");
+
+  const objCont = document.getElementById("m2-assigned-objects");
+  objCont.innerHTML = "";
+  const matchingObjs = database.objects.filter(o => o.props[selectedPropName] !== undefined);
+
+  if (matchingObjs.length === 0) {
+    objCont.innerHTML = `<div style="color:#777; font-style:italic; padding:6px;">Inga objekt tilldelade denna egenskap ännu.</div>`;
+  } else {
+    matchingObjs.forEach(o => {
+      const grade = o.props[selectedPropName].grade;
+      const d = document.createElement("div");
+      d.className = "list-item";
+      d.innerHTML = `<span>${o.name}</span><b>Grad: ${grade}</b>`;
+      objCont.appendChild(d);
+    });
+  }
+}
+
+function savePropDetails() {
+  const newName = document.getElementById("m2-prop-name").value.trim();
+  const newCat = document.getElementById("m2-prop-category").value;
+  const newDesc = document.getElementById("m2-prop-desc").value;
+  const newOpp = document.getElementById("m2-prop-opposite").value;
+  if (!newName) return;
+
+  const oldName = selectedPropName;
+  const pMeta = database.properties[oldName];
+  pMeta.category = newCat;
+  pMeta.desc = newDesc;
+  pMeta.opposite = newOpp;
+
+  if (newName !== oldName) {
+    database.properties[newName] = pMeta;
+    delete database.properties[oldName];
+    database.objects.forEach(o => {
+      if (o.props[oldName]) {
+        o.props[newName] = o.props[oldName];
+        delete o.props[oldName];
+      }
+    });
+    selectedPropName = newName;
+  }
+  renderM2();
+}
+
+function createNewCategoryPrompt() {
+  const name = prompt("Ange ny kategori:");
+  if (!name) return;
+  database.categories[name] = { system: "Generellt", desc: "" };
+  selectedCatName = name;
+  renderM2();
+}
+
+function createNewPropPrompt() {
+  const name = prompt(`Ange ny egenskap under [${selectedCatName}]:`);
+  if (!name) return;
+  database.properties[name] = { category: selectedCatName, desc: "", opposite: "" };
+  selectedPropName = name;
+  renderM2();
+}
+
+// ==================== 3. FORMELMODULEN ====================
+function renderFormulaTable() {
+  const tbody = document.getElementById("formula-tbody");
+  tbody.innerHTML = "";
+  const totalQty = formulaRows.reduce((sum, r) => sum + r.qty, 0);
+
+  formulaRows.forEach((row, idx) => {
+    const tr = document.createElement("tr");
+    const share = totalQty > 0 ? Math.round((row.qty / totalQty) * 100) : 0;
+
+    let objOptions = database.objects.map(o => 
+      `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${o.name}</option>`
+    ).join("");
+
+    tr.innerHTML = `
+      <td class="row-num">${idx + 1}</td>
+      <td>
+        <select class="cell-input" onchange="updateFormulaRow(${idx}, 'objId', this.value)">
+          ${objOptions}
+        </select>
+      </td>
+      <td>
+        <input type="text" class="cell-input" value="${row.role}" onchange="updateFormulaRow(${idx}, 'role', this.value)">
+      </td>
+      <td>
+        <div style="display:flex; align-items:center; gap:2px;">
+          <button onclick="updateQty(${idx}, -1)">-</button>
+          <input type="text" class="cell-input" style="text-align:center; font-weight:bold;" value="${row.qty}" readonly>
+          <button onclick="updateQty(${idx}, 1)">+</button>
+        </div>
+      </td>
+      <td class="calculated-cell">${share} %</td>
+      <td style="text-align:center; color:red; cursor:pointer;" onclick="removeFormulaRow(${idx})">✕</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("formula-total-qty").innerText = totalQty;
+}
+
+function addFormulaRow() {
+  if (database.objects.length === 0) return;
+  const def = database.objects[0];
+  formulaRows.push({ objId: def.id, role: def.defaultRole, qty: 1 });
+  renderFormulaTable();
+  calculateFormula();
+}
+
+function removeFormulaRow(idx) {
+  formulaRows.splice(idx, 1);
+  renderFormulaTable();
+  calculateFormula();
+}
+
+function updateFormulaRow(idx, field, val) {
+  formulaRows[idx][field] = val;
+  if (field === 'objId') {
+    const obj = database.objects.find(o => o.id === val);
+    if (obj) formulaRows[idx].role = obj.defaultRole;
+    renderFormulaTable();
+  }
+  calculateFormula();
+}
+
+function updateQty(idx, delta) {
+  formulaRows[idx].qty = Math.max(0, formulaRows[idx].qty + delta);
+  renderFormulaTable();
+  calculateFormula();
+}
+
+function calculateFormula() {
+  renderFormulaTable();
+  const totalQty = formulaRows.reduce((sum, r) => sum + r.qty, 0);
+
+  let propWeightedSum = {};
+  let propSynergy = {};
+
+  if (totalQty > 0) {
+    formulaRows.forEach(row => {
+      if (row.qty <= 0) return;
+      const obj = database.objects.find(o => o.id === row.objId);
+      if (!obj) return;
+
+      Object.entries(obj.props).forEach(([propName, pData]) => {
+        if (!propWeightedSum[propName]) propWeightedSum[propName] = 0;
+        propWeightedSum[propName] += (row.qty * pData.grade);
+
+        if (!propSynergy[propName]) propSynergy[propName] = 0;
+        propSynergy[propName] += 1;
+      });
+    });
+  }
+
+  let effects = {};
+  Object.keys(propWeightedSum).forEach(prop => {
+    const rawEffect = propWeightedSum[prop] / totalQty;
+    effects[prop] = { raw: rawEffect, percent: Math.round((rawEffect / 5) * 100) };
+  });
+
+  const tbody = document.getElementById("display-props-tbody");
+  tbody.innerHTML = "";
+
+  let list = Object.keys(effects).map(p => ({
+    name: p,
+    synergy: propSynergy[p] || 0,
+    effectPercent: effects[p].percent
+  }));
+  list.sort((a, b) => b.synergy - a.synergy || b.effectPercent - a.effectPercent);
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Inga aktiva egenskaper</td></tr>`;
+  } else {
+    list.forEach((item, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="row-num">${idx + 1}</td>
+        <td style="font-weight:bold;">${item.name}</td>
+        <td style="text-align:center; color:#0a246a; font-weight:bold;">${item.synergy}</td>
+        <td class="calculated-cell">${item.effectPercent} %</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  const balContainer = document.getElementById("balance-ui-container");
+  balContainer.innerHTML = "";
+
+  const evaluated = new Set();
+  let foundPairs = false;
+
+  Object.keys(effects).forEach(prop => {
+    const meta = database.properties[prop];
+    if (meta && meta.opposite) {
+      const opp = meta.opposite;
+      const key = [prop, opp].sort().join("::");
+
+      if (!evaluated.has(key)) {
+        evaluated.add(key);
+        foundPairs = true;
+
+        const effA = effects[prop] ? effects[prop].raw : 0;
+        const effB = effects[opp] ? effects[opp].raw : 0;
+        const diff = effA - effB;
+
+        const maxScale = 4.0;
+        let widthPct = Math.min(50, (Math.abs(diff) / maxScale) * 50);
+        let leftPos = 50;
+        let color = "#888";
+
+        if (diff > 0) {
+          leftPos = 50;
+          color = "#c0392b";
+        } else if (diff < 0) {
+          leftPos = 50 - widthPct;
+          color = "#2980b9";
+        }
+
+        const row = document.createElement("div");
+        row.className = "balance-row";
+        row.innerHTML = `
+          <div style="text-align:right; font-weight:bold;">[${opp}]</div>
+          <div class="balance-track">
+            <div class="center-zero"></div>
+            <div class="balance-bar" style="left:${leftPos}%; width:${widthPct}%; background:${color};"></div>
+          </div>
+          <div style="font-weight:bold;">[${prop}]</div>
+        `;
+        balContainer.appendChild(row);
+      }
+    }
+  });
+
+  if (!foundPairs) {
+    balContainer.innerHTML = `<div style="font-size:10px; color:#777; text-align:center;">Inga polära motsatspar aktiva i nuvarande formel.</div>`;
+  }
+}
+
+// ==================== MODAL: SÖK KOMPONENT TILL FORMELN ====================
+let modalSelectedFilters = [];
+
+function openFormulaSearchModal() {
+  modalSelectedFilters = [];
+  renderModalFilterPicker();
+  renderModalFilterResults();
+  document.getElementById("formula-search-modal").style.display = "flex";
+}
+
+function renderModalFilterPicker() {
+  const picker = document.getElementById("modal-filter-picker");
+  picker.innerHTML = Object.keys(database.properties)
+    .filter(p => !modalSelectedFilters.includes(p))
+    .map(p => `<option value="${p}">${p}</option>`).join("");
+
+  const chips = document.getElementById("modal-filter-chips");
+  chips.innerHTML = modalSelectedFilters.map(f => 
+    `<span class="tag-badge"><span>${f}</span><b style="color:red; cursor:pointer;" onclick="modalRemoveFilter('${f}')">✕</b></span>`
+  ).join("");
+}
+
+function modalAddFilter() {
+  const picker = document.getElementById("modal-filter-picker");
+  const val = picker.value;
+  if (val && !modalSelectedFilters.includes(val)) {
+    modalSelectedFilters.push(val);
+    renderModalFilterPicker();
+    renderModalFilterResults();
+  }
+}
+
+function modalRemoveFilter(f) {
+  modalSelectedFilters = modalSelectedFilters.filter(x => x !== f);
+  renderModalFilterPicker();
+  renderModalFilterResults();
+}
+
+function renderModalFilterResults() {
+  const resCont = document.getElementById("modal-filter-results");
+  resCont.innerHTML = "";
+
+  let matched = [];
+  database.objects.forEach(obj => {
+    let count = 0;
+    modalSelectedFilters.forEach(f => {
+      if (obj.props[f] !== undefined) count++;
+    });
+
+    if (modalSelectedFilters.length === 0 || count > 0) {
+      let pct = modalSelectedFilters.length > 0 ? Math.round((count / modalSelectedFilters.length) * 100) : 100;
+      matched.push({ obj, pct });
+    }
+  });
+
+  matched.sort((a, b) => b.pct - a.pct);
+
+  matched.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "list-item";
+    row.innerHTML = `
+      <div>
+        <b>${item.obj.name}</b> 
+        <span style="font-size:10px; color:#555;">(${item.pct}% match)</span>
+      </div>
+      <button onclick="addObjToFormulaDirectly('${item.obj.id}')">+ Välj till formel</button>
+    `;
+    resCont.appendChild(row);
+  });
+}
+
+function addObjToFormulaDirectly(objId) {
+  const obj = database.objects.find(o => o.id === objId);
+  if (!obj) return;
+  formulaRows.push({ objId: obj.id, role: obj.defaultRole, qty: 1 });
+  calculateFormula();
+  closeModal('formula-search-modal');
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = "none";
+}
+
+// ==================== 4. FILTERSÖK (LOGIK & RENDERING) ====================
+function renderSearchModule() {
+  const picker = document.getElementById("search-prop-picker");
+  picker.innerHTML = Object.keys(database.properties)
+    .filter(p => !activeSearchTerms.includes(p))
+    .map(p => `<option value="${p}">${p}</option>`).join("");
+
+  const termsCont = document.getElementById("search-terms-container");
+  termsCont.innerHTML = "";
+  if (activeSearchTerms.length === 0) {
+    termsCont.innerHTML = `<span style="color:#888; font-style:italic;">Inga filter aktiva. Välj en egenskap ovan.</span>`;
+  } else {
+    activeSearchTerms.forEach(term => {
+      const chip = document.createElement("div");
+      chip.className = "search-chip";
+      chip.innerHTML = `<span>${term}</span><span class="remove-chip" onclick="removeSearchTerm('${term}')">✕</span>`;
+      termsCont.appendChild(chip);
+    });
+  }
+
+  const resultsTbody = document.getElementById("search-results-tbody");
+  resultsTbody.innerHTML = "";
+
+  if (activeSearchTerms.length === 0) {
+    resultsTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Lägg till söktermer för att filtrera databasen.</td></tr>`;
+  } else {
+    let results = [];
+    const totalTerms = activeSearchTerms.length;
+
+    database.objects.forEach(obj => {
+      let matchedProps = [];
+      activeSearchTerms.forEach(term => {
+        if (obj.props[term] !== undefined) {
+          matchedProps.push(`${term} (${obj.props[term].grade})`);
+        }
+      });
+
+      if (matchedProps.length > 0) {
+        const relevance = Math.round((matchedProps.length / totalTerms) * 100);
+        results.push({
+          id: obj.id,
+          name: obj.name,
+          relevance: relevance,
+          matchedProps: matchedProps
+        });
+      }
+    });
+
+    results.sort((a, b) => b.relevance - a.relevance);
+
+    if (results.length === 0) {
+      resultsTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Inga objekt matchar dina valda egenskaper.</td></tr>`;
+    } else {
+      results.forEach((res, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="row-num">${idx + 1}</td>
+          <td>
+            <span class="obj-link" onclick="jumpToObject('${res.id}')" title="Klicka för att granska i Objekthanteraren">${res.name}</span>
+            <div style="font-size:10px; color:#555;">${res.matchedProps.join(", ")}</div>
+          </td>
+          <td class="calculated-cell" style="color: ${res.relevance === 100 ? '#0a246a' : '#333'};">${res.relevance} %</td>
+          <td style="text-align:center;">
+            <button onclick="addComponentToFormulaFromSearch('${res.id}')">+ Till formel</button>
+          </td>
+        `;
+        resultsTbody.appendChild(tr);
+      });
+    }
+  }
+
+  renderSearchHistory();
+}
+
+function addSearchTerm() {
+  const picker = document.getElementById("search-prop-picker");
+  const val = picker.value;
+  if (val && !activeSearchTerms.includes(val)) {
+    activeSearchTerms.push(val);
+    logSearchHistory();
+    renderSearchModule();
+  }
+}
+
+function removeSearchTerm(term) {
+  activeSearchTerms = activeSearchTerms.filter(t => t !== term);
+  renderSearchModule();
+}
+
+function logSearchHistory() {
+  if (activeSearchTerms.length === 0) return;
+  const now = new Date();
+  const timeStr = now.toISOString().slice(0, 16).replace("T", " ");
+  
+  searchHistory.unshift({
+    timestamp: timeStr,
+    terms: [...activeSearchTerms]
+  });
+  if (searchHistory.length > 10) searchHistory.pop();
+}
+
+function renderSearchHistory() {
+  const tbody = document.getElementById("search-history-tbody");
+  tbody.innerHTML = "";
+
+  if (searchHistory.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:8px;">Ingen sökhistorik loggad.</td></tr>`;
+    return;
+  }
+
+  searchHistory.forEach((h, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="row-num">${idx + 1}</td>
+      <td style="font-size:10px; color:#555;">${h.timestamp}</td>
+      <td><b>${h.terms.join(", ")}</b></td>
+      <td style="text-align:center;">
+        <button onclick="restoreSearchHistory(${idx})">Återställ</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function restoreSearchHistory(idx) {
+  activeSearchTerms = [...searchHistory[idx].terms];
+  renderSearchModule();
+}
+
+function clearSearchHistory() {
+  searchHistory = [];
+  renderSearchHistory();
+}
+
+function saveSearchProfile() {
+  if (activeSearchTerms.length === 0) {
+    alert("Inga aktiva söktermer att spara!");
+    return;
+  }
+  const name = prompt("Ange ett namn på sökprofilen (t.ex. 'Värmande magörter'):");
+  if (!name) return;
+  savedProfiles[name] = [...activeSearchTerms];
+  alert(`Sökningen '${name}' har sparats!`);
+}
+
+function openSearchProfile() {
+  const keys = Object.keys(savedProfiles);
+  if (keys.length === 0) {
+    alert("Det finns inga sparade profiler ännu.");
+    return;
+  }
+  const choice = prompt("Välj profil att öppna:\n" + keys.map((k, i) => `${i + 1}. ${k}`).join("\n"));
+  if (!choice) return;
+  const idx = parseInt(choice) - 1;
+  if (keys[idx]) {
+    activeSearchTerms = [...savedProfiles[keys[idx]]];
+    logSearchHistory();
+    renderSearchModule();
+  }
+}
+
+// Start
+renderM1();
+</script>
+
+</body>
+</html>
