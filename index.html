@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Universal Taxonomy & Multi-Library System v0.10</title>
+  <title>Universal Multi-Library Taxonomy System v0.11</title>
   <style>
     :root {
       --bg: #d4d0c8;
@@ -112,9 +112,12 @@
       align-items: center;
     }
 
-    button {
+    button, select, input {
       font-family: inherit;
       font-size: 11px;
+    }
+
+    button {
       background: var(--bg);
       border-top: 1px solid var(--border-light);
       border-left: 1px solid var(--border-light);
@@ -184,7 +187,6 @@
       text-transform: uppercase;
     }
 
-    /* Tabell */
     table.grid-table {
       width: 100%;
       border-collapse: collapse;
@@ -213,8 +215,6 @@
       width: 100%;
       border: 1px solid transparent;
       padding: 2px;
-      font-family: inherit;
-      font-size: 11px;
       background: transparent;
     }
     .cell-input:focus {
@@ -229,7 +229,16 @@
       background: #fafafa;
     }
 
-    /* Modal */
+    .pinned-status-panel {
+      background: #fdf8e2;
+      border: 1px solid #c9b36d;
+      padding: 6px 10px;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -256,10 +265,7 @@
       gap: 6px;
     }
 
-    /* Auto-suggest dropdown */
-    .suggest-box {
-      position: relative;
-    }
+    .suggest-box { position: relative; }
     .suggest-list {
       position: absolute;
       top: 100%;
@@ -271,49 +277,52 @@
       z-index: 2000;
       display: none;
     }
-    .suggest-item {
-      padding: 4px 6px;
-      cursor: pointer;
-    }
-    .suggest-item:hover {
-      background: var(--win-blue);
-      color: #fff;
-    }
+    .suggest-item { padding: 4px 6px; cursor: pointer; }
+    .suggest-item:hover { background: var(--win-blue); color: #fff; }
   </style>
 </head>
 <body>
 
 <div class="window">
   <div class="title-bar">
-    <span>Universal Multi-Library Taxonomy System v0.10</span>
-    <span id="save-status" style="font-size:10px; font-weight:normal;">Local Store Ready ✓</span>
+    <span id="txt-app-title">Universal Multi-Library System v0.11</span>
+    <span id="save-status" style="font-size:10px; font-weight:normal;">Lokal lagring redo ✓</span>
   </div>
 
   <div class="top-toolbar">
-    <div style="display:flex; gap:6px;">
-      <button onclick="loadMasterTemplate()">🌿 Load "Herbal Master Tag Index" Template</button>
-      <button onclick="exportDatabaseFile()">💾 Export JSON</button>
-      <button onclick="document.getElementById('import-file').click()">📂 Import JSON</button>
+    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+      <!-- SPRÅKVÄXLARE -->
+      <div style="display:flex; align-items:center; gap:4px; margin-right:8px;">
+        <label for="lang-select" style="font-weight:bold;">🌐 Språk / Language:</label>
+        <select id="lang-select" onchange="changeLanguage(this.value)">
+          <option value="sv">Svenska</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+
+      <button onclick="loadMasterTemplate()" id="btn-load-template">🌿 Läs in "Herbal Master Index"</button>
+      <button onclick="exportDatabaseFile()" id="btn-export">💾 Exportera JSON</button>
+      <button onclick="document.getElementById('import-file').click()" id="btn-import">📂 Importera JSON</button>
       <input type="file" id="import-file" style="display:none;" accept=".json" onchange="importDatabaseFile(event)">
     </div>
-    <div style="font-size:10px; color:#555;">Local-first Database Engine</div>
+    <div style="font-size:10px; color:#555;" id="txt-local-subtext">Lokal databas utan serverlagring</div>
   </div>
 
   <div class="tab-bar">
-    <button class="tab-btn active" id="tab-obj" onclick="switchTab('obj-view', this)">1. Object Manager</button>
-    <button class="tab-btn" id="tab-prop" onclick="switchTab('prop-view', this)">2. Property Manager</button>
-    <button class="tab-btn" id="tab-form" onclick="switchTab('form-view', this)">3. Formula Module</button>
-    <button class="tab-btn" id="tab-search" onclick="switchTab('search-view', this)">4. Filter Search</button>
+    <button class="tab-btn active" id="tab-obj" onclick="switchTab('obj-view', this)">1. Objekthanteraren</button>
+    <button class="tab-btn" id="tab-prop" onclick="switchTab('prop-view', this)">2. Egenskapshanteraren</button>
+    <button class="tab-btn" id="tab-form" onclick="switchTab('form-view', this)">3. Formelmodulen</button>
+    <button class="tab-btn" id="tab-search" onclick="switchTab('search-view', this)">4. Filtersök</button>
   </div>
 
   <div class="module-content">
-    <!-- MODUL 1: OBJEKTHANTERAREN (Frank: Nu döpt till "Objektprofil") -->
+    <!-- 1. OBJEKTHANTERAREN -->
     <div id="obj-view">
       <div style="display:grid; grid-template-columns: 280px 1fr; gap: 8px; height: 600px;">
         <div class="section-card">
           <div class="section-title">
-            <span>Objects</span>
-            <button onclick="createObjectPrompt()">+ New Object</button>
+            <span id="lbl-objects">Objekt</span>
+            <button onclick="createObjectPrompt()" id="btn-new-obj">+ Nytt Objekt</button>
           </div>
           <div class="list-box" id="obj-list-ui"></div>
         </div>
@@ -323,9 +332,9 @@
             <span id="obj-profile-title">Objektprofil</span>
             <div style="display:flex; gap:6px; align-items:center;">
               <label style="font-size:10px; font-weight:normal;">
-                <input type="checkbox" id="hide-empty" onchange="toggleHideEmpty(this.checked)"> Hide empty
+                <input type="checkbox" id="hide-empty" onchange="toggleHideEmpty(this.checked)"> <span id="lbl-hide-empty">Dölj tomma</span>
               </label>
-              <button onclick="openAddTagModal()">+ Assign Property</button>
+              <button onclick="openAddTagModal()" id="btn-assign-prop">+ Tilldela egenskap</button>
             </div>
           </div>
           <div class="list-box" style="padding: 6px;" id="profile-cats-ui"></div>
@@ -333,55 +342,65 @@
       </div>
     </div>
 
-    <!-- MODUL 2: EGENSKAPSHANTERAREN -->
+    <!-- 2. EGENSKAPSHANTERAREN -->
     <div id="prop-view" style="display:none;">
       <div style="display:grid; grid-template-columns: 200px 220px 1fr; gap: 8px; height: 600px;">
         <div class="section-card">
-          <div class="section-title">Categories</div>
+          <div class="section-title" id="lbl-categories">Kategorier</div>
           <div class="list-box" id="cat-list-ui"></div>
         </div>
         <div class="section-card">
-          <div class="section-title">Properties</div>
+          <div class="section-title" id="lbl-properties">Egenskaper</div>
           <div class="list-box" id="prop-list-ui"></div>
         </div>
         <div class="section-card">
-          <div class="section-title">Metadata & Synonyms</div>
+          <div class="section-title" id="lbl-prop-details">Metadata & Synonymer</div>
           <div style="display:flex; flex-direction:column; gap:6px;" id="prop-details-form">
-            <div><label><b>Property Name:</b></label><input type="text" id="det-name" style="width:100%;"></div>
-            <div><label><b>Category:</b></label><select id="det-cat" style="width:100%;"></select></div>
-            <div><label><b>Synonyms (comma separated):</b></label><input type="text" id="det-synonyms" style="width:100%;" placeholder="e.g. Cold, Chill, Cool"></div>
-            <div><label><b>Description:</b></label><textarea id="det-desc" rows="2" style="width:100%;"></textarea></div>
-            <div><label><b>Opposite / Polarity:</b></label><select id="det-opposite" style="width:100%;"></select></div>
-            <button onclick="savePropertyDetails()">Save Metadata</button>
+            <div><label><b id="lbl-prop-name">Egenskapsnamn:</b></label><input type="text" id="det-name" style="width:100%;"></div>
+            <div><label><b id="lbl-prop-cat">Kategori:</b></label><select id="det-cat" style="width:100%;"></select></div>
+            <div><label><b id="lbl-prop-syn">Synonymer (kommaseparerade):</b></label><input type="text" id="det-synonyms" style="width:100%;" placeholder="t.ex. Kall, Kylande, Kyla"></div>
+            <div><label><b id="lbl-prop-desc">Beskrivning:</b></label><textarea id="det-desc" rows="2" style="width:100%;"></textarea></div>
+            <div><label><b id="lbl-prop-opp">Motsatspol (Balans):</b></label><select id="det-opposite" style="width:100%;"></select></div>
+            <button onclick="savePropertyDetails()" id="btn-save-prop">Spara Metadata</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- MODUL 3: FORMELMODULEN -->
+    <!-- 3. FORMELMODULEN -->
     <div id="form-view" style="display:none;">
       <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap: 8px;">
         <div class="section-card">
           <div class="section-title">
-            <span>Formula</span>
-            <button onclick="addFormulaRow()">+ Add Row</button>
+            <span id="lbl-formula">Formel</span>
+            <button onclick="addFormulaRow()" id="btn-add-row">+ Ny Rad</button>
           </div>
           <table class="grid-table">
             <thead>
-              <tr><th class="row-num">#</th><th>Component</th><th>Role (Slot)</th><th style="width:70px;">Qty</th><th style="width:60px;">Share</th><th></th></tr>
+              <tr><th class="row-num">#</th><th id="th-comp">Komponent</th><th id="th-role">Roll</th><th style="width:70px;" id="th-qty">Mängd</th><th style="width:60px;" id="th-share">Andel</th><th></th></tr>
             </thead>
             <tbody id="formula-body"></tbody>
           </table>
           <div style="margin-top:10px; padding:6px; background:#f0f0f0; border:1px solid #999;">
-            <b>Polarity Balance (Opposites):</b>
+            <b id="lbl-polarity">Polaritetsbalans (Motsatspar):</b>
             <div id="balance-meter-ui" style="margin-top:4px;"></div>
           </div>
         </div>
+
         <div class="section-card">
-          <div class="section-title">Cumulative Effects (Sorted by Synergy)</div>
+          <!-- PINNADE KATEGORIER -->
+          <div class="pinned-status-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; font-size:10px;">
+              <span id="lbl-pinned-panel">📌 Pinnade Status- & Varningskategorier</span>
+              <button onclick="promptManagePins()" style="font-size:9px; padding:1px 4px;" id="btn-manage-pins">⚙ Hantera pinnar</button>
+            </div>
+            <div id="formula-pinned-items" style="margin-top:4px; font-size:11px;"></div>
+          </div>
+
+          <div class="section-title" id="lbl-cumulative-eff">Egenskapssynergi & Effekt</div>
           <table class="grid-table">
             <thead>
-              <tr><th class="row-num">#</th><th>Property</th><th style="width:80px; text-align:center;">Synergy</th><th style="width:70px; text-align:right;">Effect</th></tr>
+              <tr><th class="row-num">#</th><th id="th-prop">Egenskap</th><th style="width:80px; text-align:center;" id="th-syn">Synergi</th><th style="width:70px; text-align:right;" id="th-eff">Effekt</th></tr>
             </thead>
             <tbody id="formula-props-body"></tbody>
           </table>
@@ -389,17 +408,17 @@
       </div>
     </div>
 
-    <!-- MODUL 4: FILTERSÖK -->
+    <!-- 4. FILTERSÖK -->
     <div id="search-view" style="display:none;">
       <div class="section-card" style="height:580px;">
-        <div class="section-title">Filter Search by Property Match</div>
+        <div class="section-title" id="lbl-search-title">Filtersök efter gemensamma egenskaper</div>
         <div style="display:flex; gap:6px; margin-bottom:8px;">
-          <input type="text" id="search-input" placeholder="Type property..." oninput="autoSuggestSearch(this.value)" style="width:250px;">
-          <button onclick="addSearchFilter()">Add Filter</button>
+          <input type="text" id="search-input" placeholder="Skriv egenskap..." style="width:250px;">
+          <button onclick="addSearchFilter()" id="btn-add-filter">+ Lägg till filter</button>
         </div>
         <div id="active-filters" class="tag-container" style="margin-bottom:8px;"></div>
         <table class="grid-table">
-          <thead><tr><th class="row-num">#</th><th>Object</th><th>Match %</th><th>Shared Properties</th></tr></thead>
+          <thead><tr><th class="row-num">#</th><th id="th-res-obj">Objekt</th><th id="th-res-match">Matchning</th><th id="th-res-shared">Matchade egenskaper</th></tr></thead>
           <tbody id="search-results-body"></tbody>
         </table>
       </div>
@@ -407,15 +426,15 @@
   </div>
 </div>
 
-<!-- MODAL: TILLDELA EGENSKAP MED AUTO-SUGGEST & SYNONYM-KOLL (2 & 2B) -->
+<!-- MODAL FÖR AUTO-SUGGEST & SYNONYMER -->
 <div class="modal-overlay" id="add-tag-modal">
   <div class="modal-window">
     <div class="title-bar">
-      <span>Assign Property to: <span id="modal-obj-title"></span></span>
+      <span><span id="lbl-modal-assign">Tilldela egenskap till:</span> <span id="modal-obj-title"></span></span>
       <span style="cursor:pointer;" onclick="closeTagModal()">✕</span>
     </div>
     <div class="modal-body">
-      <label>Type Property Name (min 2 chars for suggestions):</label>
+      <label id="lbl-modal-prompt">Skriv egenskapsnamn (minst 2 tecken för förslag):</label>
       <div class="suggest-box">
         <input type="text" id="tag-autocomplete-input" style="width:100%; padding:3px;" 
                autocomplete="off" oninput="handleTagInput(this.value)">
@@ -425,15 +444,223 @@
       <div id="synonym-alert" style="display:none; background:#fff3cd; border:1px solid #ffeeba; padding:6px; font-size:10px; color:#856404; margin-top:4px;"></div>
 
       <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:10px;">
-        <button onclick="submitAssignTag()">Assign to Object</button>
-        <button onclick="closeTagModal()">Cancel</button>
+        <button onclick="submitAssignTag()" id="btn-modal-assign">Tilldela</button>
+        <button onclick="closeTagModal()" id="btn-modal-cancel">Avbryt</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// ==================== DATABAS & MASTER TAXONOMY INDEX (FRANKS PDF) ====================
+// ==================== SPRÅKDEFINITIONER (I18N) ====================
+const i18n = {
+  sv: {
+    appTitle: "Universal Multi-Biblioteks System v0.11",
+    saveStatusReady: "Lokal lagring redo ✓",
+    saveStatusSaved: "Autosparad: ",
+    btnLoadTemplate: "🌿 Läs in 'Herbal Master Index'",
+    btnExport: "💾 Exportera JSON",
+    btnImport: "📂 Importera JSON",
+    txtLocalSubtext: "Lokal databas utan serverlagring",
+    tabObj: "1. Objekthanteraren",
+    tabProp: "2. Egenskapshanteraren",
+    tabForm: "3. Formelmodulen",
+    tabSearch: "4. Filtersök",
+    lblObjects: "Objekt",
+    btnNewObj: "+ Nytt Objekt",
+    objProfilePrefix: "Objektprofil: ",
+    lblHideEmpty: "Dölj tomma",
+    btnAssignProp: "+ Tilldela egenskap",
+    noPropsAssigned: "[Inga egenskaper tilldelade]",
+    btnAddTagShort: "+ Lägg till",
+    lblCategories: "Kategorier",
+    lblProperties: "Egenskaper",
+    lblPropDetails: "Metadata & Synonymer",
+    lblPropName: "Egenskapsnamn:",
+    lblPropCat: "Kategori:",
+    lblPropSyn: "Synonymer (kommaseparerade):",
+    lblPropDesc: "Beskrivning:",
+    lblPropOpp: "Motsatspol (Balans):",
+    noOpp: "-- Ingen motsatspol --",
+    btnSaveProp: "Spara Metadata",
+    lblFormula: "Formel",
+    btnAddRow: "+ Ny Rad",
+    thComp: "Komponent",
+    thRole: "Roll",
+    thQty: "Mängd",
+    thShare: "Andel",
+    lblPolarity: "Polaritetsbalans (Motsatspar):",
+    lblPinnedPanel: "📌 Pinnade Status- & Varningskategorier",
+    btnManagePins: "⚙ Hantera pinnar",
+    noPinnedHits: "Inga aktiva träffar på pinnade kategorier i receptet.",
+    lblCumulativeEff: "Egenskapssynergi & Effekt",
+    thProp: "Egenskap",
+    thSyn: "Synergi",
+    thEff: "Effekt",
+    noFormulaProps: "Inga aktiva beräkningsbara egenskaper",
+    lblSearchTitle: "Filtersök efter gemensamma egenskaper",
+    searchPlaceholder: "Skriv egenskap...",
+    btnAddFilter: "+ Lägg till filter",
+    thResObj: "Objekt",
+    thResMatch: "Matchning",
+    thResShared: "Matchade egenskaper",
+    searchNoFilterPrompt: "Lägg till egenskaper ovan för att filtrera databasen",
+    lblModalAssign: "Tilldela egenskap till:",
+    lblModalPrompt: "Skriv egenskapsnamn (minst 2 tecken för förslag):",
+    btnModalAssign: "Tilldela",
+    btnModalCancel: "Avbryt",
+    promptNewObj: "Ange namn på det nya objektet:",
+    promptNewPropCat: "Ange kategori för ny egenskap '{0}':",
+    confirmLoadTemplate: "Vill du läsa in kategorier och egenskaper från 'Herbal Master Tag Index'? (Dina egna objekt sparas)",
+    templateLoaded: "Herbal Master Tag Index har lästs in!",
+    dbImported: "Biblioteket har lästs in och sparats!",
+    synonymHit: '💡 <b>Synonymträff:</b> "{0}" är en registrerad synonym till <b>{1}</b>. <br><a href="#" style="color:#0055ea;" onclick="applySynonymTarget(\'{1}\')">Använd \'{1}\' istället?</a>',
+    fromText: "från",
+    categoryText: "Kategori"
+  },
+  en: {
+    appTitle: "Universal Multi-Library System v0.11",
+    saveStatusReady: "Local Store Ready ✓",
+    saveStatusSaved: "Autosaved: ",
+    btnLoadTemplate: "🌿 Load 'Herbal Master Index'",
+    btnExport: "💾 Export JSON",
+    btnImport: "📂 Import JSON",
+    txtLocalSubtext: "Local-first Database Engine",
+    tabObj: "1. Object Manager",
+    tabProp: "2. Property Manager",
+    tabForm: "3. Formula Module",
+    tabSearch: "4. Filter Search",
+    lblObjects: "Objects",
+    btnNewObj: "+ New Object",
+    objProfilePrefix: "Object Profile: ",
+    lblHideEmpty: "Hide empty",
+    btnAssignProp: "+ Assign Property",
+    noPropsAssigned: "[No properties assigned]",
+    btnAddTagShort: "+ Add",
+    lblCategories: "Categories",
+    lblProperties: "Properties",
+    lblPropDetails: "Metadata & Synonyms",
+    lblPropName: "Property Name:",
+    lblPropCat: "Category:",
+    lblPropSyn: "Synonyms (comma separated):",
+    lblPropDesc: "Description:",
+    lblPropOpp: "Opposite (Polarity):",
+    noOpp: "-- No Polarity --",
+    btnSaveProp: "Save Metadata",
+    lblFormula: "Formula",
+    btnAddRow: "+ Add Row",
+    thComp: "Component",
+    thRole: "Role",
+    thQty: "Qty",
+    thShare: "Share",
+    lblPolarity: "Polarity Balance (Opposites):",
+    lblPinnedPanel: "📌 Pinned Status & Warning Categories",
+    btnManagePins: "⚙ Manage Pins",
+    noPinnedHits: "No active hits on pinned categories in this formula.",
+    lblCumulativeEff: "Cumulative Effects & Synergy",
+    thProp: "Property",
+    thSyn: "Synergy",
+    thEff: "Effect",
+    noFormulaProps: "No active formula properties",
+    lblSearchTitle: "Filter Search by Property Match",
+    searchPlaceholder: "Type property...",
+    btnAddFilter: "+ Add Filter",
+    thResObj: "Object",
+    thResMatch: "Match",
+    thResShared: "Matched Properties",
+    searchNoFilterPrompt: "Add properties above to filter the database",
+    lblModalAssign: "Assign Property to:",
+    lblModalPrompt: "Type property name (min 2 chars for suggestions):",
+    btnModalAssign: "Assign",
+    btnModalCancel: "Cancel",
+    promptNewObj: "Enter new Object name:",
+    promptNewPropCat: "Assign category for new property '{0}':",
+    confirmLoadTemplate: "Load complete 'Herbal Master Tag Index' categories & properties? (Existing objects remain)",
+    templateLoaded: "Herbal Master Tag Index loaded successfully!",
+    dbImported: "Database imported successfully!",
+    synonymHit: '💡 <b>Synonym match:</b> "{0}" is a registered synonym of <b>{1}</b>. <br><a href="#" style="color:#0055ea;" onclick="applySynonymTarget(\'{1}\')">Use \'{1}\' instead?</a>',
+    fromText: "from",
+    categoryText: "Category"
+  }
+};
+
+let currentLang = localStorage.getItem("app_lang") || "sv";
+
+function t(key, ...args) {
+  let str = i18n[currentLang][key] || key;
+  args.forEach((val, idx) => {
+    str = str.replace(`{${idx}}`, val);
+  });
+  return str;
+}
+
+function changeLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem("app_lang", lang);
+  updateUILanguage();
+  renderM1();
+  renderM2();
+  renderFormula();
+  renderSearch();
+}
+
+function updateUILanguage() {
+  document.documentElement.lang = currentLang;
+  document.getElementById("lang-select").value = currentLang;
+  document.getElementById("txt-app-title").innerText = t("appTitle");
+  document.getElementById("btn-load-template").innerText = t("btnLoadTemplate");
+  document.getElementById("btn-export").innerText = t("btnExport");
+  document.getElementById("btn-import").innerText = t("btnImport");
+  document.getElementById("txt-local-subtext").innerText = t("txtLocalSubtext");
+  
+  document.getElementById("tab-obj").innerText = t("tabObj");
+  document.getElementById("tab-prop").innerText = t("tabProp");
+  document.getElementById("tab-form").innerText = t("tabForm");
+  document.getElementById("tab-search").innerText = t("tabSearch");
+
+  document.getElementById("lbl-objects").innerText = t("lblObjects");
+  document.getElementById("btn-new-obj").innerText = t("btnNewObj");
+  document.getElementById("lbl-hide-empty").innerText = t("lblHideEmpty");
+  document.getElementById("btn-assign-prop").innerText = t("btnAssignProp");
+
+  document.getElementById("lbl-categories").innerText = t("lblCategories");
+  document.getElementById("lbl-properties").innerText = t("lblProperties");
+  document.getElementById("lbl-prop-details").innerText = t("lblPropDetails");
+  document.getElementById("lbl-prop-name").innerText = t("lblPropName");
+  document.getElementById("lbl-prop-cat").innerText = t("lblPropCat");
+  document.getElementById("lbl-prop-syn").innerText = t("lblPropSyn");
+  document.getElementById("lbl-prop-desc").innerText = t("lblPropDesc");
+  document.getElementById("lbl-prop-opp").innerText = t("lblPropOpp");
+  document.getElementById("btn-save-prop").innerText = t("btnSaveProp");
+
+  document.getElementById("lbl-formula").innerText = t("lblFormula");
+  document.getElementById("btn-add-row").innerText = t("btnAddRow");
+  document.getElementById("th-comp").innerText = t("thComp");
+  document.getElementById("th-role").innerText = t("thRole");
+  document.getElementById("th-qty").innerText = t("thQty");
+  document.getElementById("th-share").innerText = t("thShare");
+  document.getElementById("lbl-polarity").innerText = t("lblPolarity");
+  document.getElementById("lbl-pinned-panel").innerText = t("lblPinnedPanel");
+  document.getElementById("btn-manage-pins").innerText = t("btnManagePins");
+  document.getElementById("lbl-cumulative-eff").innerText = t("lblCumulativeEff");
+  document.getElementById("th-prop").innerText = t("thProp");
+  document.getElementById("th-syn").innerText = t("thSyn");
+  document.getElementById("th-eff").innerText = t("thEff");
+
+  document.getElementById("lbl-search-title").innerText = t("lblSearchTitle");
+  document.getElementById("search-input").placeholder = t("searchPlaceholder");
+  document.getElementById("btn-add-filter").innerText = t("btnAddFilter");
+  document.getElementById("th-res-obj").innerText = t("thResObj");
+  document.getElementById("th-res-match").innerText = t("thResMatch");
+  document.getElementById("th-res-shared").innerText = t("thResShared");
+
+  document.getElementById("lbl-modal-assign").innerText = t("lblModalAssign");
+  document.getElementById("lbl-modal-prompt").innerText = t("lblModalPrompt");
+  document.getElementById("btn-modal-assign").innerText = t("btnModalAssign");
+  document.getElementById("btn-modal-cancel").innerText = t("btnModalCancel");
+}
+
+// ==================== DATABAS & MASTER TAXONOMY ====================
 const defaultDatabase = {
   categories: {
     "Part Used": { system: "Botany" },
@@ -441,75 +668,69 @@ const defaultDatabase = {
     "Western Actions": { system: "Herbalism" },
     "Western Energetics": { system: "Energetics" },
     "Ayurveda Gunas": { system: "Ayurveda" },
-    "TCM Actions": { system: "TCM" },
-    "Nutrients": { system: "Biochemistry" },
     "Symptoms": { system: "Pathology" },
     "Precautions": { system: "Safety" }
   },
+  pinnedConfigs: {
+    "Precautions": "⚠️"
+  },
   properties: {
-    // Exempel med synonymer (Frank Steg 2B)
-    "Sheeta (Cold)": { category: "Ayurveda Gunas", synonyms: ["Cold", "Cooling", "Chilly"], opposite: "Ushna (Hot)" },
-    "Ushna (Hot)":   { category: "Ayurveda Gunas", synonyms: ["Hot", "Warming", "Heat"], opposite: "Sheeta (Cold)" },
-    "Adaptogen":     { category: "Western Actions", synonyms: ["Stress support", "Resilience"] },
-    "Bitter Tonic":  { category: "Western Actions", synonyms: ["Digestive bitter", "Aperient"] },
-    "Roots":         { category: "Part Used", synonyms: ["Rhizome", "Rootstock"] },
-    "Tea":           { category: "Ingestion forms", synonyms: ["Infusion", "Decoction"] },
-    "Digestion":     { category: "Symptoms", synonyms: ["Stomach ache", "Acid reflux", "Dyspepsia"] }
+    "Sheeta (Cold)": { category: "Ayurveda Gunas", synonyms: ["Cold", "Cooling", "Kall", "Kylande"], opposite: "Ushna (Hot)" },
+    "Ushna (Hot)":   { category: "Ayurveda Gunas", synonyms: ["Hot", "Warming", "Varm", "Värmande"], opposite: "Sheeta (Cold)" },
+    "Adaptogen":     { category: "Western Actions", synonyms: ["Stress support"] },
+    "Bitter Tonic":  { category: "Western Actions", synonyms: ["Digestive bitter"] },
+    "Roots":         { category: "Part Used", synonyms: ["Rot", "Rhizome"] },
+    "Tea":           { category: "Ingestion forms", synonyms: ["Te", "Infusion"] },
+    "Digestion":     { category: "Symptoms", synonyms: ["Matsmältning", "Acid reflux"] }
   },
   objects: [
-    { id: "ginger", name: "Zingiber officinale (Ginger)", defaultRole: "Circulatory Catalyst", props: { "Ushna (Hot)": {}, "Roots": {}, "Tea": {} } },
-    { id: "peppermint", name: "Mentha x piperita (Peppermint)", defaultRole: "Cooling Carminative", props: { "Sheeta (Cold)": {}, "Tea": {}, "Digestion": {} } }
+    { id: "ginger", name: "Ingefära (Zingiber officinale)", defaultRole: "Drivande rot", props: { "Ushna (Hot)": {}, "Roots": {}, "Tea": {} } },
+    { id: "peppermint", name: "Pepparmynta (Mentha x piperita)", defaultRole: "Kylande balans", props: { "Sheeta (Cold)": {}, "Tea": {}, "Digestion": {} } }
   ]
 };
 
 let database = defaultDatabase;
-const stored = localStorage.getItem("master_db_v10");
+const stored = localStorage.getItem("master_db_v11");
 if (stored) {
   try { database = JSON.parse(stored); } catch(e) { database = defaultDatabase; }
 }
+if (!database.pinnedConfigs) database.pinnedConfigs = { "Precautions": "⚠️" };
 
 function persist() {
-  localStorage.setItem("master_db_v10", JSON.stringify(database));
+  localStorage.setItem("master_db_v11", JSON.stringify(database));
   const el = document.getElementById("save-status");
-  el.innerText = "Autosaved: " + new Date().toLocaleTimeString();
+  el.innerText = t("saveStatusSaved") + new Date().toLocaleTimeString();
 }
 
-// Ladda Franks Master Tag Index från PDF
 function loadMasterTemplate() {
-  if (!confirm("Load the complete 'Herbal Master Tag Index' categories & properties from PDF? (Existing custom objects remain)")) return;
+  if (!confirm(t("confirmLoadTemplate"))) return;
 
   const masterCats = [
-    "Part Used", "Ingestion forms", "External Forms of Use", "Taxonomical structure",
-    "Evidence of Effectiveness", "Adverse Effects", "Conservation Status", "Diets",
-    "Remedy Classifications", "Ayurveda & Doshas", "Gunas (Metabolic Qualities)",
-    "Traditional Chinese Medicine (TCM)", "TCM Actions", "Six Tissue States", "Tastes",
+    "Part Used", "Ingestion forms", "External Forms of Use", "Evidence of Effectiveness",
+    "Adverse Effects", "Conservation Status", "Diets", "Remedy Classifications",
+    "Ayurveda & Doshas", "Gunas (Metabolic Qualities)", "TCM Actions", "Six Tissue States",
     "Western Energetics", "Western Actions", "Nutritional Actions", "Phytochemical Constituents",
-    "Nutrients", "Planetary Rulers", "Magical & Spiritual Uses", "Symptoms"
+    "Nutrients", "Planetary Rulers", "Magical & Spiritual Uses", "Symptoms", "Precautions"
   ];
 
   masterCats.forEach(c => {
     if (!database.categories[c]) database.categories[c] = { system: "Master Taxonomy" };
   });
 
-  // Urval av nyckelegenskaper från PDF med inbyggd polaritet
   const masterProps = {
-    "Warming": { category: "Western Energetics", opposite: "Cooling", synonyms: ["Hot"] },
-    "Cooling": { category: "Western Energetics", opposite: "Warming", synonyms: ["Cold"] },
-    "Drying":  { category: "Western Energetics", opposite: "Moistening" },
-    "Moistening": { category: "Western Energetics", opposite: "Drying" },
-    "Toning":  { category: "Western Energetics", opposite: "Relaxing" },
-    "Relaxing":{ category: "Western Energetics", opposite: "Toning" },
-    "Roots":   { category: "Part Used", synonyms: ["Rhizome"] },
-    "Leaves":  { category: "Part Used", synonyms: ["Foliage"] },
-    "Flowers": { category: "Part Used", synonyms: ["Blossom"] },
-    "Bark":    { category: "Part Used" },
-    "Seeds":   { category: "Part Used" },
-    "Tincture":{ category: "Ingestion forms", synonyms: ["Extract"] },
-    "Tea":     { category: "Ingestion forms", synonyms: ["Infusion"] },
-    "Anti-inflammatory": { category: "Western Actions" },
-    "Antimicrobial":     { category: "Western Actions" },
-    "Carminative":       { category: "Western Actions" },
-    "Nervine Relaxant":  { category: "Western Actions" }
+    "Warming": { category: "Western Energetics", opposite: "Cooling", synonyms: ["Varm", "Hot"] },
+    "Cooling": { category: "Western Energetics", opposite: "Warming", synonyms: ["Kall", "Cold"] },
+    "Drying":  { category: "Western Energetics", opposite: "Moistening", synonyms: ["Torr"] },
+    "Moistening": { category: "Western Energetics", opposite: "Drying", synonyms: ["Fuktande"] },
+    "Roots":   { category: "Part Used", synonyms: ["Rot", "Rhizome"] },
+    "Leaves":  { category: "Part Used", synonyms: ["Blad"] },
+    "Flowers": { category: "Part Used", synonyms: ["Blommor"] },
+    "Tea":     { category: "Ingestion forms", synonyms: ["Te"] },
+    "Tincture":{ category: "Ingestion forms", synonyms: ["Tinktur"] },
+    "Anti-inflammatory": { category: "Western Actions", synonyms: ["Antiinflammatorisk"] },
+    "Antimicrobial":     { category: "Western Actions", synonyms: ["Antimikrobiell"] },
+    "Carminative":       { category: "Western Actions", synonyms: ["Väderdrivande"] },
+    "Nervine Relaxant":  { category: "Western Actions", synonyms: ["Lugnande"] }
   };
 
   Object.entries(masterProps).forEach(([p, data]) => {
@@ -518,7 +739,7 @@ function loadMasterTemplate() {
 
   persist();
   renderM1();
-  alert("Herbal Master Tag Index loaded successfully!");
+  alert(t("templateLoaded"));
 }
 
 let selectedObjId = "ginger";
@@ -551,21 +772,21 @@ function toggleHideEmpty(val) {
   renderM1();
 }
 
-// ==================== MODUL 1: OBJEKTPROFIL ====================
+// ==================== 1. OBJEKTHANTERAREN ====================
 function renderM1() {
   const list = document.getElementById("obj-list-ui");
   list.innerHTML = "";
   database.objects.forEach(o => {
     const d = document.createElement("div");
     d.className = `list-item ${o.id === selectedObjId ? 'selected' : ''}`;
-    d.innerHTML = `<span>${o.name}</span><span style="font-size:9px;">${Object.keys(o.props).length} tags</span>`;
+    d.innerHTML = `<span>${o.name}</span><span style="font-size:9px;">${Object.keys(o.props).length}</span>`;
     d.onclick = () => { selectedObjId = o.id; renderM1(); };
     list.appendChild(d);
   });
 
   const obj = database.objects.find(o => o.id === selectedObjId);
   if (!obj) return;
-  document.getElementById("obj-profile-title").innerText = `Objektprofil: ${obj.name}`;
+  document.getElementById("obj-profile-title").innerText = t("objProfilePrefix") + obj.name;
 
   const cont = document.getElementById("profile-cats-ui");
   cont.innerHTML = "";
@@ -582,13 +803,13 @@ function renderM1() {
     const blk = document.createElement("div");
     blk.className = "cat-block";
     let tagsHtml = isEmpty 
-      ? `<span style="color:#888; font-style:italic; font-size:10px;">[No properties assigned]</span>`
+      ? `<span style="color:#888; font-style:italic; font-size:10px;">${t("noPropsAssigned")}</span>`
       : propsInCat.map(p => `<span class="tag-badge"><span>${p}</span></span>`).join("");
 
     blk.innerHTML = `
-      <div style="display:flex; justify-content:space-between;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
         <span class="cat-header">${cat}</span>
-        <button style="font-size:9px;" onclick="openAddTagModal('${cat}')">+ Add</button>
+        <button style="font-size:9px;" onclick="openAddTagModal('${cat}')">${t("btnAddTagShort")}</button>
       </div>
       <div class="tag-container" style="margin-top:4px;">${tagsHtml}</div>
     `;
@@ -597,16 +818,16 @@ function renderM1() {
 }
 
 function createObjectPrompt() {
-  const name = prompt("Enter new Object name:");
+  const name = prompt(t("promptNewObj"));
   if (!name) return;
   const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-  database.objects.push({ id, name, defaultRole: "Component", props: {} });
+  database.objects.push({ id, name, defaultRole: "Komponent", props: {} });
   selectedObjId = id;
   persist();
   renderM1();
 }
 
-// ==================== AUTO-SUGGESTION & SYNONYMER (2 & 2B) ====================
+// ==================== AUTO-SUGGEST & SYNONYMER ====================
 let activeTargetCat = "";
 function openAddTagModal(catName = "") {
   activeTargetCat = catName;
@@ -635,7 +856,7 @@ function handleTagInput(query) {
     return;
   }
 
-  // 1. Matcha mot existerande egenskaper
+  // 1. Existerande egenskaper
   const propMatches = Object.keys(database.properties).filter(p => p.toLowerCase().includes(q));
   if (propMatches.length > 0) {
     sugBox.style.display = "block";
@@ -653,7 +874,7 @@ function handleTagInput(query) {
     sugBox.style.display = "none";
   }
 
-  // 2. Steg 2B: Synonym-skanning
+  // 2. Synonym-skanning (Frank Steg 2B)
   let matchedSynonymTarget = null;
   Object.entries(database.properties).forEach(([pName, meta]) => {
     if (meta.synonyms && meta.synonyms.some(s => s.toLowerCase() === q)) {
@@ -663,8 +884,7 @@ function handleTagInput(query) {
 
   if (matchedSynonymTarget) {
     synAlert.style.display = "block";
-    synAlert.innerHTML = `💡 <b>Synonym match:</b> "${query}" is a recognized synonym of <b>${matchedSynonymTarget}</b>. 
-      <br><a href="#" style="color:#0055ea;" onclick="applySynonymTarget('${matchedSynonymTarget}')">Use '${matchedSynonymTarget}' instead?</a>`;
+    synAlert.innerHTML = t("synonymHit", query, matchedSynonymTarget);
   }
 }
 
@@ -678,9 +898,8 @@ function submitAssignTag() {
   if (!val) return;
 
   const obj = database.objects.find(o => o.id === selectedObjId);
-  // Om taggen inte finns alls, registrera den
   if (!database.properties[val]) {
-    const cat = activeTargetCat || prompt(`Assign category for new property '${val}':`, "General") || "General";
+    const cat = activeTargetCat || prompt(t("promptNewPropCat", val), "General") || "General";
     if (!database.categories[cat]) database.categories[cat] = { system: "General" };
     database.properties[val] = { category: cat, synonyms: [] };
   }
@@ -691,7 +910,7 @@ function submitAssignTag() {
   renderM1();
 }
 
-// ==================== MODUL 2: EGENSKAPSHANTERAREN ====================
+// ==================== 2. EGENSKAPSHANTERAREN ====================
 function renderM2() {
   const cList = document.getElementById("cat-list-ui");
   cList.innerHTML = "";
@@ -707,10 +926,10 @@ function renderM2() {
   pList.innerHTML = "";
   Object.entries(database.properties)
     .filter(([_, data]) => data.category === selectedCat)
-    .forEach(([p, _]) => {
+    .forEach(([p, data]) => {
       const d = document.createElement("div");
       d.className = `list-item ${p === selectedProp ? 'selected' : ''}`;
-      d.innerText = p;
+      d.innerHTML = `<span>${p}</span>${data.opposite ? '<span style="font-size:9px; color:#5b7bb2;">[Polär]</span>' : ''}`;
       d.onclick = () => { selectedProp = p; renderM2(); };
       pList.appendChild(d);
     });
@@ -726,7 +945,7 @@ function renderM2() {
   catSel.innerHTML = Object.keys(database.categories).map(c => `<option value="${c}" ${c === meta.category ? 'selected' : ''}>${c}</option>`).join("");
 
   const oppSel = document.getElementById("det-opposite");
-  oppSel.innerHTML = `<option value="">-- No Polarity --</option>` + Object.keys(database.properties).filter(p => p !== selectedProp).map(p => 
+  oppSel.innerHTML = `<option value="">${t("noOpp")}</option>` + Object.keys(database.properties).filter(p => p !== selectedProp).map(p => 
     `<option value="${p}" ${p === meta.opposite ? 'selected' : ''}>${p}</option>`).join("");
 }
 
@@ -756,7 +975,7 @@ function savePropertyDetails() {
   renderM2();
 }
 
-// ==================== MODUL 3: FORMELMODULEN ====================
+// ==================== 3. FORMELMODULEN ====================
 function renderFormula() {
   const tbody = document.getElementById("formula-body");
   tbody.innerHTML = "";
@@ -788,32 +1007,75 @@ function renderFormula() {
 function updateRow(i, f, v) { formula[i][f] = v; renderFormula(); }
 function updateQty(i, delta) { formula[i].qty = Math.max(0, formula[i].qty + delta); renderFormula(); }
 function deleteRow(i) { formula.splice(i, 1); renderFormula(); }
-function addFormulaRow() { if (database.objects[0]) formula.push({ objId: database.objects[0].id, role: "Component", qty: 1 }); renderFormula(); }
+function addFormulaRow() { if (database.objects[0]) formula.push({ objId: database.objects[0].id, role: "Komponent", qty: 1 }); renderFormula(); }
+
+function promptManagePins() {
+  const catNames = Object.keys(database.categories);
+  const choice = prompt("Välj kategori / Select category:\n" + catNames.map((c, i) => `${i+1}. ${c} ${database.pinnedConfigs[c] ? '[' + database.pinnedConfigs[c] + ']' : ''}`).join("\n"));
+  if (!choice) return;
+  const idx = parseInt(choice) - 1;
+  const selectedCat = catNames[idx];
+  if (!selectedCat) return;
+
+  if (database.pinnedConfigs[selectedCat]) {
+    if (confirm(`Ta bort / Remove pin '${selectedCat}'?`)) delete database.pinnedConfigs[selectedCat];
+  } else {
+    const symbol = prompt(`Ange symbol/emoji / Enter symbol:`, "📌") || "📌";
+    database.pinnedConfigs[selectedCat] = symbol;
+  }
+  persist();
+  renderFormula();
+}
 
 function calculateEffects(total) {
   let pSum = {};
   let pSyn = {};
+  let pinnedItems = [];
 
   if (total > 0) {
     formula.forEach(r => {
       if (r.qty <= 0) return;
       const obj = database.objects.find(o => o.id === r.objId);
       if (!obj) return;
+
       Object.keys(obj.props).forEach(p => {
+        const cat = database.properties[p]?.category;
+        if (database.pinnedConfigs && database.pinnedConfigs[cat]) {
+          pinnedItems.push({ symbol: database.pinnedConfigs[cat], prop: p, source: obj.name, cat: cat });
+          return;
+        }
         pSum[p] = (pSum[p] || 0) + r.qty;
         pSyn[p] = (pSyn[p] || 0) + 1;
       });
     });
   }
 
+  // Pinnade rutan
+  const pinDiv = document.getElementById("formula-pinned-items");
+  if (pinnedItems.length > 0) {
+    pinDiv.innerHTML = pinnedItems.map(it => `
+      <div style="padding:2px 0;">
+        <span>${it.symbol}</span> <b>[${it.prop}]</b> 
+        <span style="color:#555;">(${t("fromText")} ${it.source} • ${t("categoryText")}: ${it.cat})</span>
+      </div>
+    `).join("");
+  } else {
+    pinDiv.innerHTML = `<span style="color:#888; font-style:italic; font-size:10px;">${t("noPinnedHits")}</span>`;
+  }
+
+  // Kvantitativ lista
   const tbody = document.getElementById("formula-props-body");
   tbody.innerHTML = "";
   let list = Object.keys(pSum).map(p => ({ name: p, syn: pSyn[p], eff: Math.round((pSum[p] / total) * 100) }));
   list.sort((a, b) => b.syn - a.syn || b.eff - a.eff);
 
-  list.forEach((it, i) => {
-    tbody.innerHTML += `<tr><td class="row-num">${i+1}</td><td><b>${it.name}</b></td><td style="text-align:center;">${it.syn}</td><td class="calculated-cell">${it.eff}%</td></tr>`;
-  });
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:12px;">${t("noFormulaProps")}</td></tr>`;
+  } else {
+    list.forEach((it, i) => {
+      tbody.innerHTML += `<tr><td class="row-num">${i+1}</td><td><b>${it.name}</b></td><td style="text-align:center;">${it.syn}</td><td class="calculated-cell">${it.eff}%</td></tr>`;
+    });
+  }
 
   renderBalance(pSum, total);
 }
@@ -833,7 +1095,7 @@ function renderBalance(pSum, total) {
   });
 }
 
-// ==================== MODUL 4: FILTERSÖK ====================
+// ==================== 4. FILTERSÖK ====================
 let searchFilters = [];
 function addSearchFilter() {
   const val = document.getElementById("search-input").value.trim();
@@ -857,7 +1119,7 @@ function renderSearch() {
   tbody.innerHTML = "";
 
   if (searchFilters.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Add properties to filter database</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">${t("searchNoFilterPrompt")}</td></tr>`;
     return;
   }
 
@@ -875,11 +1137,12 @@ function renderSearch() {
   });
 }
 
+// Filhantering
 function exportDatabaseFile() {
   const blob = new Blob([JSON.stringify(database, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "master_taxonomy_backup.json";
+  a.download = "taxonomy_backup_" + new Date().toISOString().slice(0,10) + ".json";
   a.click();
 }
 
@@ -891,12 +1154,13 @@ function importDatabaseFile(e) {
     database = JSON.parse(ev.target.result);
     persist();
     renderM1();
-    alert("Database imported!");
+    alert(t("dbImported"));
   };
   r.readAsText(file);
 }
 
-// Init
+// Start
+updateUILanguage();
 renderM1();
 </script>
 
