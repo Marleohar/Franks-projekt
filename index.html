@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Multi-Biblioteks System v0.9</title>
+  <title>Universal Taxonomy & Multi-Library System v0.10</title>
   <style>
     :root {
       --bg: #d4d0c8;
@@ -21,7 +21,7 @@
       background-color: #2e5b88;
       font-family: Tahoma, "Segoe UI", sans-serif;
       font-size: 11px;
-      margin: 10px;
+      margin: 8px;
       user-select: none;
     }
 
@@ -54,6 +54,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     .tab-bar {
@@ -84,9 +85,9 @@
     }
 
     .module-content {
-      padding: 10px;
+      padding: 8px;
       background: var(--panel);
-      min-height: 640px;
+      min-height: 620px;
     }
 
     .section-card {
@@ -136,7 +137,7 @@
       flex-grow: 1;
     }
     .list-item {
-      padding: 5px 8px;
+      padding: 4px 6px;
       cursor: pointer;
       border-bottom: 1px solid #eee;
       display: flex;
@@ -152,13 +153,13 @@
     .tag-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
+      gap: 4px;
     }
     .tag-badge {
       background: var(--tag-bg);
       border: 1px solid var(--tag-border);
       border-radius: 3px;
-      padding: 3px 7px;
+      padding: 2px 6px;
       cursor: pointer;
       font-size: 11px;
       display: inline-flex;
@@ -168,12 +169,8 @@
     .cat-block {
       background: #fafafa;
       border: 1px solid #ccc;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       padding: 6px;
-    }
-    .cat-block.empty-cat {
-      background: #fdfdfd;
-      border-style: dashed;
     }
     .cat-header {
       font-weight: bold;
@@ -182,11 +179,12 @@
       background: #eaeaea;
       display: inline-block;
       border: 1px solid #bbb;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       font-size: 10px;
       text-transform: uppercase;
     }
 
+    /* Tabell */
     table.grid-table {
       width: 100%;
       border-collapse: collapse;
@@ -195,17 +193,17 @@
     table.grid-table th {
       background: #e8e8e8;
       border: 1px solid var(--border-dark);
-      padding: 4px 6px;
+      padding: 4px;
       font-size: 10px;
       text-align: left;
     }
     table.grid-table td {
       border: 1px solid var(--grid-line);
-      padding: 3px 6px;
+      padding: 2px 4px;
       font-size: 11px;
     }
     .row-num {
-      width: 24px;
+      width: 22px;
       text-align: center;
       background: #f0f0f0;
       color: #666;
@@ -214,7 +212,7 @@
     .cell-input {
       width: 100%;
       border: 1px solid transparent;
-      padding: 2px 4px;
+      padding: 2px;
       font-family: inherit;
       font-size: 11px;
       background: transparent;
@@ -231,91 +229,55 @@
       background: #fafafa;
     }
 
-    /* Pinnade kategorier i Formeln */
-    .pinned-status-panel {
-      background: #fdf8e2;
-      border: 1px solid #c9b36d;
-      padding: 6px 10px;
-      margin-bottom: 10px;
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-window {
+      background: var(--bg);
+      border-top: 2px solid var(--border-light);
+      border-left: 2px solid var(--border-light);
+      border-right: 2px solid var(--border-darker);
+      border-bottom: 2px solid var(--border-darker);
+      width: 440px;
+      box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
+    }
+    .modal-body {
+      padding: 10px;
+      background: var(--panel);
       display: flex;
       flex-direction: column;
-      gap: 4px;
-    }
-    .pinned-status-header {
-      font-weight: bold;
-      color: #5c4b12;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 10px;
-      text-transform: uppercase;
-    }
-    .pinned-status-item {
-      font-size: 11px;
-      color: #222;
-      padding: 2px 0;
-      display: flex;
-      align-items: center;
       gap: 6px;
     }
 
-    .balance-box {
-      margin-top: 12px;
-      background: #f4f4f4;
-      border: 1px solid var(--border-dark);
-      padding: 8px;
-    }
-    .balance-row {
-      display: grid;
-      grid-template-columns: 85px 1fr 85px;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-      font-size: 10px;
-    }
-    .balance-track {
-      height: 18px;
-      background: #e0e0e0;
-      border: 1px solid #777;
+    /* Auto-suggest dropdown */
+    .suggest-box {
       position: relative;
     }
-    .center-zero {
+    .suggest-list {
       position: absolute;
-      left: 50%;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: #000;
-      z-index: 2;
+      top: 100%;
+      left: 0; right: 0;
+      background: #fff;
+      border: 1px solid #000;
+      max-height: 120px;
+      overflow-y: auto;
+      z-index: 2000;
+      display: none;
     }
-    .balance-bar {
-      position: absolute;
-      top: 2px;
-      bottom: 2px;
-      transition: all 0.1s ease;
-    }
-
-    .search-grid {
-      display: grid;
-      grid-template-columns: 1fr 1.25fr;
-      gap: 10px;
-      margin-bottom: 10px;
-      height: 360px;
-    }
-    .search-chip {
-      background: #e3ecfa;
-      border: 1px solid #7092be;
-      padding: 3px 8px;
-      border-radius: 2px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: bold;
-    }
-    .search-chip span.remove-chip {
-      color: red;
+    .suggest-item {
+      padding: 4px 6px;
       cursor: pointer;
-      font-weight: bold;
+    }
+    .suggest-item:hover {
+      background: var(--win-blue);
+      color: #fff;
     }
   </style>
 </head>
@@ -323,836 +285,618 @@
 
 <div class="window">
   <div class="title-bar">
-    <span>Multi-Biblioteks Taggningssystem v0.9 [Dynamiska Pinnar & Ren Taxonomi]</span>
-    <span id="save-status-indicator" style="font-size: 10px; font-weight: normal; color: #fff;">Autosparad lokalt ✓</span>
+    <span>Universal Multi-Library Taxonomy System v0.10</span>
+    <span id="save-status" style="font-size:10px; font-weight:normal;">Local Store Ready ✓</span>
   </div>
 
   <div class="top-toolbar">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <button onclick="exportDatabaseFile()">💾 Exportera bibliotek (.json)</button>
-      <button onclick="triggerImportFileInput()">📂 Importera bibliotek</button>
-      <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="handleFileImport(event)">
+    <div style="display:flex; gap:6px;">
+      <button onclick="loadMasterTemplate()">🌿 Load "Herbal Master Tag Index" Template</button>
+      <button onclick="exportDatabaseFile()">💾 Export JSON</button>
+      <button onclick="document.getElementById('import-file').click()">📂 Import JSON</button>
+      <input type="file" id="import-file" style="display:none;" accept=".json" onchange="importDatabaseFile(event)">
     </div>
-    <div style="font-size:10px; color:#555;">
-      <span>Lokal, säker och serverlös lagring direkt i webbläsaren.</span>
-    </div>
+    <div style="font-size:10px; color:#555;">Local-first Database Engine</div>
   </div>
 
   <div class="tab-bar">
-    <button class="tab-btn active" id="tab-btn-obj" onclick="switchTab('obj-tab', this)">1. Objekthanteraren</button>
-    <button class="tab-btn" id="tab-btn-prop" onclick="switchTab('prop-tab', this)">2. Egenskapshanteraren</button>
-    <button class="tab-btn" id="tab-btn-form" onclick="switchTab('form-tab', this)">3. Formelmodulen</button>
-    <button class="tab-btn" id="tab-btn-search" onclick="switchTab('search-tab', this)">4. Filtersök</button>
+    <button class="tab-btn active" id="tab-obj" onclick="switchTab('obj-view', this)">1. Object Manager</button>
+    <button class="tab-btn" id="tab-prop" onclick="switchTab('prop-view', this)">2. Property Manager</button>
+    <button class="tab-btn" id="tab-form" onclick="switchTab('form-view', this)">3. Formula Module</button>
+    <button class="tab-btn" id="tab-search" onclick="switchTab('search-view', this)">4. Filter Search</button>
   </div>
 
   <div class="module-content">
-
-    <!-- ==================== 1. OBJEKTHANTERAREN ==================== -->
-    <div id="obj-tab">
-      <div style="display: grid; grid-template-columns: 280px 1fr; gap: 10px; height: 610px;">
+    <!-- MODUL 1: OBJEKTHANTERAREN (Frank: Nu döpt till "Objektprofil") -->
+    <div id="obj-view">
+      <div style="display:grid; grid-template-columns: 280px 1fr; gap: 8px; height: 600px;">
         <div class="section-card">
           <div class="section-title">
-            <span>Objekt</span>
-            <button onclick="createNewObjectPrompt()">+ Nytt Objekt</button>
+            <span>Objects</span>
+            <button onclick="createObjectPrompt()">+ New Object</button>
           </div>
-          <div class="list-box" id="m1-obj-list"></div>
+          <div class="list-box" id="obj-list-ui"></div>
         </div>
+
         <div class="section-card">
           <div class="section-title">
-            <span id="m1-profile-title">Egenskapsprofil</span>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <label style="font-size: 10px; font-weight: normal; cursor: pointer;">
-                <input type="checkbox" id="hide-empty-cats" onchange="toggleHideEmpty(this.checked)"> Dölj tomma
+            <span id="obj-profile-title">Objektprofil</span>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <label style="font-size:10px; font-weight:normal;">
+                <input type="checkbox" id="hide-empty" onchange="toggleHideEmpty(this.checked)"> Hide empty
               </label>
-              <button onclick="m1AddCategoryPrompt()">+ Ny Kategori</button>
-              <button onclick="m1AddTagPrompt()">+ Lägg till egenskap</button>
+              <button onclick="openAddTagModal()">+ Assign Property</button>
             </div>
           </div>
-          <div class="list-box" style="padding: 6px;" id="m1-profile-container"></div>
+          <div class="list-box" style="padding: 6px;" id="profile-cats-ui"></div>
         </div>
       </div>
     </div>
 
-    <!-- ==================== 2. EGENSKAPSHANTERAREN ==================== -->
-    <div id="prop-tab" style="display: none;">
-      <div style="display: grid; grid-template-columns: 200px 220px 1fr; gap: 8px; height: 610px;">
+    <!-- MODUL 2: EGENSKAPSHANTERAREN -->
+    <div id="prop-view" style="display:none;">
+      <div style="display:grid; grid-template-columns: 200px 220px 1fr; gap: 8px; height: 600px;">
         <div class="section-card">
-          <div class="section-title">
-            <span>Kategorier</span>
-            <button onclick="createNewCategoryPrompt()">+ Ny</button>
-          </div>
-          <div class="list-box" id="m2-cat-list"></div>
+          <div class="section-title">Categories</div>
+          <div class="list-box" id="cat-list-ui"></div>
         </div>
         <div class="section-card">
-          <div class="section-title">
-            <span>Egenskaper</span>
-            <button onclick="createNewPropPrompt()">+ Ny</button>
-          </div>
-          <div class="list-box" id="m2-prop-list"></div>
+          <div class="section-title">Properties</div>
+          <div class="list-box" id="prop-list-ui"></div>
         </div>
         <div class="section-card">
-          <div class="section-title">
-            <span id="m2-detail-title">Egenskapsdetaljer</span>
-            <button onclick="savePropDetails()">Spara Ändringar</button>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px;" id="m2-form-container">
-            <div><label><b>Egenskapsnamn:</b></label><input type="text" id="m2-prop-name" style="width:100%; border:1px solid #888; padding:3px;"></div>
-            <div><label><b>Kategori:</b></label><select id="m2-prop-category" style="width:100%; border:1px solid #888; padding:3px;"></select></div>
-            <div><label><b>Beskrivning:</b></label><textarea id="m2-prop-desc" rows="2" style="width:100%; border:1px solid #888; padding:3px;"></textarea></div>
-            <div><label><b>Paregenskap (Motsats):</b></label><select id="m2-prop-opposite" style="width:100%; border:1px solid #888; padding:3px;"></select></div>
-            <div class="section-title" style="margin-top: 6px;">
-              <span>Kopplade Objekt</span>
-            </div>
-            <div class="list-box" style="height: 150px;" id="m2-assigned-objects"></div>
+          <div class="section-title">Metadata & Synonyms</div>
+          <div style="display:flex; flex-direction:column; gap:6px;" id="prop-details-form">
+            <div><label><b>Property Name:</b></label><input type="text" id="det-name" style="width:100%;"></div>
+            <div><label><b>Category:</b></label><select id="det-cat" style="width:100%;"></select></div>
+            <div><label><b>Synonyms (comma separated):</b></label><input type="text" id="det-synonyms" style="width:100%;" placeholder="e.g. Cold, Chill, Cool"></div>
+            <div><label><b>Description:</b></label><textarea id="det-desc" rows="2" style="width:100%;"></textarea></div>
+            <div><label><b>Opposite / Polarity:</b></label><select id="det-opposite" style="width:100%;"></select></div>
+            <button onclick="savePropertyDetails()">Save Metadata</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ==================== 3. FORMELMODULEN ==================== -->
-    <div id="form-tab" style="display: none;">
-      <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px;">
+    <!-- MODUL 3: FORMELMODULEN -->
+    <div id="form-view" style="display:none;">
+      <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap: 8px;">
         <div class="section-card">
           <div class="section-title">
-            <span>Formel</span>
-            <button onclick="addFormulaRow()">+ Ny Rad</button>
+            <span>Formula</span>
+            <button onclick="addFormulaRow()">+ Add Row</button>
           </div>
           <table class="grid-table">
             <thead>
-              <tr>
-                <th class="row-num">#</th>
-                <th>Komponent</th>
-                <th>Roll</th>
-                <th style="width: 75px;">Mängd</th>
-                <th style="width: 65px;">Andel [%]</th>
-                <th style="width: 24px;"></th>
-              </tr>
+              <tr><th class="row-num">#</th><th>Component</th><th>Role (Slot)</th><th style="width:70px;">Qty</th><th style="width:60px;">Share</th><th></th></tr>
             </thead>
-            <tbody id="formula-tbody"></tbody>
-            <tfoot>
-              <tr style="background:#e8e8e8; font-weight:bold;">
-                <td colspan="3" style="text-align:right;">Total Mängd:</td>
-                <td id="formula-total-qty" class="calculated-cell">0</td>
-                <td class="calculated-cell">100 %</td>
-                <td></td>
-              </tr>
-            </tfoot>
+            <tbody id="formula-body"></tbody>
           </table>
-          <div class="balance-box">
-            <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:6px;">
-              <span>BALANS</span>
-              <span style="font-size:10px; color:#555;">[ju närmare noll, desto bättre]</span>
-            </div>
-            <div id="balance-ui-container"></div>
+          <div style="margin-top:10px; padding:6px; background:#f0f0f0; border:1px solid #999;">
+            <b>Polarity Balance (Opposites):</b>
+            <div id="balance-meter-ui" style="margin-top:4px;"></div>
           </div>
         </div>
-
-        <div class="section-card" style="height: 100%;">
-          <!-- PINNADE KATEGORIER: DYNAMISK & ANPASSNINGSBAR -->
-          <div class="pinned-status-panel">
-            <div class="pinned-status-header">
-              <span>📌 Pinnade Status- & Varningskategorier</span>
-              <button onclick="promptManagePins()" style="font-size:9px; padding:1px 4px;">⚙ Hantera pinnar</button>
-            </div>
-            <div id="formula-pinned-items" style="margin-top:4px;">
-              <span style="color:#888; font-style:italic; font-size:10px;">Inga aktiva träffar på pinnade kategorier i receptet.</span>
-            </div>
-          </div>
-
-          <div class="section-title">
-            <span>Egenskaper</span>
-            <span style="font-weight:normal; font-size:10px;">Endast display (Sorterat på synergi)</span>
-          </div>
+        <div class="section-card">
+          <div class="section-title">Cumulative Effects (Sorted by Synergy)</div>
           <table class="grid-table">
             <thead>
-              <tr>
-                <th class="row-num">#</th>
-                <th>Egenskap</th>
-                <th style="width: 90px; text-align:center;">Synergivärde</th>
-                <th style="width: 80px; text-align:right;">Effekt [%]</th>
-              </tr>
+              <tr><th class="row-num">#</th><th>Property</th><th style="width:80px; text-align:center;">Synergy</th><th style="width:70px; text-align:right;">Effect</th></tr>
             </thead>
-            <tbody id="display-props-tbody"></tbody>
+            <tbody id="formula-props-body"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ==================== 4. FILTERSÖK ==================== -->
-    <div id="search-tab" style="display: none;">
-      <div class="search-grid">
-        <div class="section-card">
-          <div class="section-title">
-            <span>Söktermer</span>
-            <div style="display:flex; gap:4px;">
-              <select id="search-prop-picker" style="font-family:inherit; font-size:11px;"></select>
-              <button onclick="addSearchTerm()">+ Lägg till</button>
-            </div>
-          </div>
-          <div style="font-size:10px; color:#666; margin-bottom:6px;">Valda egenskaper:</div>
-          <div class="tag-container" id="search-terms-container" style="min-height: 140px; align-content: flex-start;"></div>
+    <!-- MODUL 4: FILTERSÖK -->
+    <div id="search-view" style="display:none;">
+      <div class="section-card" style="height:580px;">
+        <div class="section-title">Filter Search by Property Match</div>
+        <div style="display:flex; gap:6px; margin-bottom:8px;">
+          <input type="text" id="search-input" placeholder="Type property..." oninput="autoSuggestSearch(this.value)" style="width:250px;">
+          <button onclick="addSearchFilter()">Add Filter</button>
         </div>
-
-        <div class="section-card">
-          <div class="section-title">
-            <span>Resultat</span>
-            <span style="font-size:10px; font-weight:normal;">Sorterat efter relevans</span>
-          </div>
-          <table class="grid-table">
-            <thead>
-              <tr>
-                <th class="row-num">#</th>
-                <th>Objekt (Klicka för att granska)</th>
-                <th style="width: 80px; text-align:right;">Relevans</th>
-                <th style="width: 90px; text-align:center;">Åtgärd</th>
-              </tr>
-            </thead>
-            <tbody id="search-results-tbody"></tbody>
-          </table>
-        </div>
+        <div id="active-filters" class="tag-container" style="margin-bottom:8px;"></div>
+        <table class="grid-table">
+          <thead><tr><th class="row-num">#</th><th>Object</th><th>Match %</th><th>Shared Properties</th></tr></thead>
+          <tbody id="search-results-body"></tbody>
+        </table>
       </div>
     </div>
+  </div>
+</div>
 
+<!-- MODAL: TILLDELA EGENSKAP MED AUTO-SUGGEST & SYNONYM-KOLL (2 & 2B) -->
+<div class="modal-overlay" id="add-tag-modal">
+  <div class="modal-window">
+    <div class="title-bar">
+      <span>Assign Property to: <span id="modal-obj-title"></span></span>
+      <span style="cursor:pointer;" onclick="closeTagModal()">✕</span>
+    </div>
+    <div class="modal-body">
+      <label>Type Property Name (min 2 chars for suggestions):</label>
+      <div class="suggest-box">
+        <input type="text" id="tag-autocomplete-input" style="width:100%; padding:3px;" 
+               autocomplete="off" oninput="handleTagInput(this.value)">
+        <div class="suggest-list" id="tag-suggestions"></div>
+      </div>
+
+      <div id="synonym-alert" style="display:none; background:#fff3cd; border:1px solid #ffeeba; padding:6px; font-size:10px; color:#856404; margin-top:4px;"></div>
+
+      <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:10px;">
+        <button onclick="submitAssignTag()">Assign to Object</button>
+        <button onclick="closeTagModal()">Cancel</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-// ==================== GRUNDDATA ====================
+// ==================== DATABAS & MASTER TAXONOMY INDEX (FRANKS PDF) ====================
 const defaultDatabase = {
   categories: {
-    "Temperatur": { system: "Energetik", desc: "Termiska kvaliteter" },
-    "Smak":       { system: "Sensorik", desc: "Grundsmaker" },
-    "Verkan":     { system: "Medicin", desc: "Fysiologisk verkan" },
-    "Tryckstatus":{ system: "Logistik", desc: "Boklager & tillgänglighet" },
-    "Varningar":  { system: "Säkerhet", desc: "Kontraindikationer eller överdosrisker" }
-  },
-  // Valfria pinnar i formeln: kategori -> symbol
-  pinnedConfigs: {
-    "Varningar": "⚠️",
-    "Tryckstatus": "📚"
+    "Part Used": { system: "Botany" },
+    "Ingestion forms": { system: "Pharmacology" },
+    "Western Actions": { system: "Herbalism" },
+    "Western Energetics": { system: "Energetics" },
+    "Ayurveda Gunas": { system: "Ayurveda" },
+    "TCM Actions": { system: "TCM" },
+    "Nutrients": { system: "Biochemistry" },
+    "Symptoms": { system: "Pathology" },
+    "Precautions": { system: "Safety" }
   },
   properties: {
-    "Varm":         { category: "Temperatur", desc: "Värmande energi", opposite: "Kall" },
-    "Kall":         { category: "Temperatur", desc: "Kylande energi", opposite: "Varm" },
-    "Söt":          { category: "Smak", desc: "Sockrig sötma", opposite: "Sur" },
-    "Sur":          { category: "Smak", desc: "Syrlig friskhet", opposite: "Söt" },
-    "Stark":        { category: "Smak", desc: "Hetta och skärpa", opposite: "" },
-    "Matsmältning": { category: "Verkan", desc: "Stödjer magen", opposite: "" },
-    "Lugnande":     { category: "Verkan", desc: "Sedativ verkan", opposite: "" },
-    "Slut på förlag":{ category: "Tryckstatus", desc: "Går ej att beställa", opposite: "" },
-    "Toxisk dos":   { category: "Varningar", desc: "Farlig vid hög konsumtion", opposite: "" }
+    // Exempel med synonymer (Frank Steg 2B)
+    "Sheeta (Cold)": { category: "Ayurveda Gunas", synonyms: ["Cold", "Cooling", "Chilly"], opposite: "Ushna (Hot)" },
+    "Ushna (Hot)":   { category: "Ayurveda Gunas", synonyms: ["Hot", "Warming", "Heat"], opposite: "Sheeta (Cold)" },
+    "Adaptogen":     { category: "Western Actions", synonyms: ["Stress support", "Resilience"] },
+    "Bitter Tonic":  { category: "Western Actions", synonyms: ["Digestive bitter", "Aperient"] },
+    "Roots":         { category: "Part Used", synonyms: ["Rhizome", "Rootstock"] },
+    "Tea":           { category: "Ingestion forms", synonyms: ["Infusion", "Decoction"] },
+    "Digestion":     { category: "Symptoms", synonyms: ["Stomach ache", "Acid reflux", "Dyspepsia"] }
   },
   objects: [
-    { id: "ingefara", name: "Ingefära", defaultRole: "Drivande rot", props: { "Varm": {}, "Stark": {}, "Matsmältning": {} } },
-    { id: "kamomill", name: "Kamomill", defaultRole: "Basört", props: { "Kall": {}, "Söt": {}, "Lugnande": {} } },
-    { id: "pepparmynta", name: "Pepparmynta", defaultRole: "Kylande balans", props: { "Kall": {}, "Matsmältning": {} } },
-    { id: "lakritsrot", name: "Lakritsrot", defaultRole: "Harmonisör", props: { "Varm": {}, "Söt": {}, "Matsmältning": {}, "Toxisk dos": {} } }
+    { id: "ginger", name: "Zingiber officinale (Ginger)", defaultRole: "Circulatory Catalyst", props: { "Ushna (Hot)": {}, "Roots": {}, "Tea": {} } },
+    { id: "peppermint", name: "Mentha x piperita (Peppermint)", defaultRole: "Cooling Carminative", props: { "Sheeta (Cold)": {}, "Tea": {}, "Digestion": {} } }
   ]
 };
 
 let database = defaultDatabase;
-const storedData = localStorage.getItem("my_custom_db_v9");
-if (storedData) {
-  try { database = JSON.parse(storedData); } catch(e) { database = defaultDatabase; }
-}
-if (!database.pinnedConfigs) database.pinnedConfigs = { "Varningar": "⚠️" };
-
-function persistData() {
-  localStorage.setItem("my_custom_db_v9", JSON.stringify(database));
-  const ind = document.getElementById("save-status-indicator");
-  ind.innerText = "Sparad " + new Date().toLocaleTimeString();
-  ind.style.color = "#90ee90";
-  setTimeout(() => { ind.style.color = "#fff"; }, 1500);
+const stored = localStorage.getItem("master_db_v10");
+if (stored) {
+  try { database = JSON.parse(stored); } catch(e) { database = defaultDatabase; }
 }
 
-function exportDatabaseFile() {
-  const blob = new Blob([JSON.stringify(database, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "bibliotek_backup_" + new Date().toISOString().slice(0,10) + ".json";
-  a.click();
-  URL.revokeObjectURL(url);
+function persist() {
+  localStorage.setItem("master_db_v10", JSON.stringify(database));
+  const el = document.getElementById("save-status");
+  el.innerText = "Autosaved: " + new Date().toLocaleTimeString();
 }
 
-function triggerImportFileInput() {
-  document.getElementById("import-file-input").click();
-}
+// Ladda Franks Master Tag Index från PDF
+function loadMasterTemplate() {
+  if (!confirm("Load the complete 'Herbal Master Tag Index' categories & properties from PDF? (Existing custom objects remain)")) return;
 
-function handleFileImport(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    try {
-      const imported = JSON.parse(event.target.result);
-      if (imported.categories && imported.properties && imported.objects) {
-        database = imported;
-        if (!database.pinnedConfigs) database.pinnedConfigs = {};
-        persistData();
-        renderM1();
-        alert("Biblioteket har lästs in och sparats!");
-      }
-    } catch(err) { alert("Felaktig fil."); }
+  const masterCats = [
+    "Part Used", "Ingestion forms", "External Forms of Use", "Taxonomical structure",
+    "Evidence of Effectiveness", "Adverse Effects", "Conservation Status", "Diets",
+    "Remedy Classifications", "Ayurveda & Doshas", "Gunas (Metabolic Qualities)",
+    "Traditional Chinese Medicine (TCM)", "TCM Actions", "Six Tissue States", "Tastes",
+    "Western Energetics", "Western Actions", "Nutritional Actions", "Phytochemical Constituents",
+    "Nutrients", "Planetary Rulers", "Magical & Spiritual Uses", "Symptoms"
+  ];
+
+  masterCats.forEach(c => {
+    if (!database.categories[c]) database.categories[c] = { system: "Master Taxonomy" };
+  });
+
+  // Urval av nyckelegenskaper från PDF med inbyggd polaritet
+  const masterProps = {
+    "Warming": { category: "Western Energetics", opposite: "Cooling", synonyms: ["Hot"] },
+    "Cooling": { category: "Western Energetics", opposite: "Warming", synonyms: ["Cold"] },
+    "Drying":  { category: "Western Energetics", opposite: "Moistening" },
+    "Moistening": { category: "Western Energetics", opposite: "Drying" },
+    "Toning":  { category: "Western Energetics", opposite: "Relaxing" },
+    "Relaxing":{ category: "Western Energetics", opposite: "Toning" },
+    "Roots":   { category: "Part Used", synonyms: ["Rhizome"] },
+    "Leaves":  { category: "Part Used", synonyms: ["Foliage"] },
+    "Flowers": { category: "Part Used", synonyms: ["Blossom"] },
+    "Bark":    { category: "Part Used" },
+    "Seeds":   { category: "Part Used" },
+    "Tincture":{ category: "Ingestion forms", synonyms: ["Extract"] },
+    "Tea":     { category: "Ingestion forms", synonyms: ["Infusion"] },
+    "Anti-inflammatory": { category: "Western Actions" },
+    "Antimicrobial":     { category: "Western Actions" },
+    "Carminative":       { category: "Western Actions" },
+    "Nervine Relaxant":  { category: "Western Actions" }
   };
-  reader.readAsText(file);
+
+  Object.entries(masterProps).forEach(([p, data]) => {
+    if (!database.properties[p]) database.properties[p] = data;
+  });
+
+  persist();
+  renderM1();
+  alert("Herbal Master Tag Index loaded successfully!");
 }
 
-let selectedObjectId = "ingefara";
-let selectedCatName = "Temperatur";
-let selectedPropName = "Varm";
-let hideEmptyCategories = false;
+let selectedObjId = "ginger";
+let selectedCat = "Western Energetics";
+let selectedProp = "Warming";
+let hideEmpty = false;
 
-let formulaRows = [
-  { objId: "kamomill", role: "Basört", qty: 3 },
-  { objId: "ingefara", role: "Drivande rot", qty: 2 },
-  { objId: "lakritsrot", role: "Harmonisör", qty: 1 }
+let formula = [
+  { objId: "ginger", role: "Catalyst", qty: 2 },
+  { objId: "peppermint", role: "Cooling Balance", qty: 3 }
 ];
 
-let activeSearchTerms = ["Varm", "Matsmältning"];
+function switchTab(viewId, btn) {
+  document.getElementById("obj-view").style.display = (viewId === 'obj-view') ? 'block' : 'none';
+  document.getElementById("prop-view").style.display = (viewId === 'prop-view') ? 'block' : 'none';
+  document.getElementById("form-view").style.display = (viewId === 'form-view') ? 'block' : 'none';
+  document.getElementById("search-view").style.display = (viewId === 'search-view') ? 'block' : 'none';
 
-function switchTab(tabId, btn) {
-  document.getElementById("obj-tab").style.display = (tabId === 'obj-tab') ? 'block' : 'none';
-  document.getElementById("prop-tab").style.display = (tabId === 'prop-tab') ? 'block' : 'none';
-  document.getElementById("form-tab").style.display = (tabId === 'form-tab') ? 'block' : 'none';
-  document.getElementById("search-tab").style.display = (tabId === 'search-tab') ? 'block' : 'none';
-  
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 
-  if (tabId === 'obj-tab') renderM1();
-  if (tabId === 'prop-tab') renderM2();
-  if (tabId === 'form-tab') calculateFormula();
-  if (tabId === 'search-tab') renderSearchModule();
+  if (viewId === 'obj-view') renderM1();
+  if (viewId === 'prop-view') renderM2();
+  if (viewId === 'form-view') renderFormula();
+  if (viewId === 'search-view') renderSearch();
 }
 
-function toggleHideEmpty(isChecked) {
-  hideEmptyCategories = isChecked;
+function toggleHideEmpty(val) {
+  hideEmpty = val;
   renderM1();
 }
 
-// ==================== 1. OBJEKTHANTERAREN ====================
+// ==================== MODUL 1: OBJEKTPROFIL ====================
 function renderM1() {
-  const list = document.getElementById("m1-obj-list");
+  const list = document.getElementById("obj-list-ui");
   list.innerHTML = "";
-  database.objects.forEach(obj => {
+  database.objects.forEach(o => {
     const d = document.createElement("div");
-    d.className = `list-item ${obj.id === selectedObjectId ? 'selected' : ''}`;
-    d.innerHTML = `<span>${obj.name}</span><span style="font-size:9px;">${Object.keys(obj.props).length} taggar</span>`;
-    d.onclick = () => { selectedObjectId = obj.id; renderM1(); };
+    d.className = `list-item ${o.id === selectedObjId ? 'selected' : ''}`;
+    d.innerHTML = `<span>${o.name}</span><span style="font-size:9px;">${Object.keys(o.props).length} tags</span>`;
+    d.onclick = () => { selectedObjId = o.id; renderM1(); };
     list.appendChild(d);
   });
 
-  const obj = database.objects.find(o => o.id === selectedObjectId);
+  const obj = database.objects.find(o => o.id === selectedObjId);
   if (!obj) return;
-  document.getElementById("m1-profile-title").innerText = `Egenskapsprofil: ${obj.name}`;
+  document.getElementById("obj-profile-title").innerText = `Objektprofil: ${obj.name}`;
 
-  const profCont = document.getElementById("m1-profile-container");
-  profCont.innerHTML = "";
+  const cont = document.getElementById("profile-cats-ui");
+  cont.innerHTML = "";
 
   Object.keys(database.categories).forEach(cat => {
     let propsInCat = [];
-    Object.entries(obj.props).forEach(([pName, pData]) => {
-      if (database.properties[pName]?.category === cat) {
-        propsInCat.push({ name: pName, data: pData });
-      }
+    Object.keys(obj.props).forEach(pName => {
+      if (database.properties[pName]?.category === cat) propsInCat.push(pName);
     });
 
     const isEmpty = propsInCat.length === 0;
-    if (isEmpty && hideEmptyCategories) return;
+    if (isEmpty && hideEmpty) return;
 
     const blk = document.createElement("div");
-    blk.className = `cat-block ${isEmpty ? 'empty-cat' : ''}`;
-
-    let tagsHtml = "";
-    if (isEmpty) {
-      tagsHtml = `<span style="color:#888; font-style:italic; font-size:10px;">[Inga egenskaper tilldelade]</span>`;
-    } else {
-      tagsHtml = propsInCat.map(p => `<span class="tag-badge"><span>${p.name}</span></span>`).join("");
-    }
+    blk.className = "cat-block";
+    let tagsHtml = isEmpty 
+      ? `<span style="color:#888; font-style:italic; font-size:10px;">[No properties assigned]</span>`
+      : propsInCat.map(p => `<span class="tag-badge"><span>${p}</span></span>`).join("");
 
     blk.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span class="cat-header">Kategori: ${cat}</span>
-        <button style="font-size:9px; padding:1px 4px;" onclick="promptAddTagToSpecificCat('${cat}')">+ Lägg till i ${cat}</button>
+      <div style="display:flex; justify-content:space-between;">
+        <span class="cat-header">${cat}</span>
+        <button style="font-size:9px;" onclick="openAddTagModal('${cat}')">+ Add</button>
       </div>
       <div class="tag-container" style="margin-top:4px;">${tagsHtml}</div>
     `;
-    profCont.appendChild(blk);
+    cont.appendChild(blk);
   });
 }
 
-function createNewObjectPrompt() {
-  const name = prompt("Ange namn på det nya objektet:");
+function createObjectPrompt() {
+  const name = prompt("Enter new Object name:");
   if (!name) return;
-  const id = name.toLowerCase().replace(/\s+/g, '_');
-  database.objects.push({ id, name, defaultRole: "Ingrediens", props: {} });
-  selectedObjectId = id;
-  persistData();
+  const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  database.objects.push({ id, name, defaultRole: "Component", props: {} });
+  selectedObjId = id;
+  persist();
   renderM1();
 }
 
-function m1AddCategoryPrompt() {
-  const name = prompt("Ange ny global kategori:");
-  if (!name) return;
-  if (!database.categories[name]) {
-    database.categories[name] = { system: "Generellt", desc: "" };
-    persistData();
+// ==================== AUTO-SUGGESTION & SYNONYMER (2 & 2B) ====================
+let activeTargetCat = "";
+function openAddTagModal(catName = "") {
+  activeTargetCat = catName;
+  const obj = database.objects.find(o => o.id === selectedObjId);
+  document.getElementById("modal-obj-title").innerText = obj.name;
+  document.getElementById("tag-autocomplete-input").value = "";
+  document.getElementById("tag-suggestions").style.display = "none";
+  document.getElementById("synonym-alert").style.display = "none";
+  document.getElementById("add-tag-modal").style.display = "flex";
+  document.getElementById("tag-autocomplete-input").focus();
+}
+
+function closeTagModal() {
+  document.getElementById("add-tag-modal").style.display = "none";
+}
+
+function handleTagInput(query) {
+  const sugBox = document.getElementById("tag-suggestions");
+  const synAlert = document.getElementById("synonym-alert");
+  sugBox.innerHTML = "";
+  synAlert.style.display = "none";
+
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) {
+    sugBox.style.display = "none";
+    return;
   }
-  renderM1();
-}
 
-function m1AddTagPrompt() {
-  const pName = prompt("Ange egenskap att koppla till objektet:");
-  if (!pName) return;
-  if (!database.properties[pName]) {
-    const cat = prompt(`Egenskapen '${pName}' är ny. Ange kategori:`, Object.keys(database.categories)[0]) || "Generellt";
-    database.properties[pName] = { category: cat, desc: "", opposite: "" };
-    if (!database.categories[cat]) database.categories[cat] = { system: "Generellt", desc: "" };
-  }
-  const obj = database.objects.find(o => o.id === selectedObjectId);
-  obj.props[pName] = {};
-  persistData();
-  renderM1();
-}
-
-function promptAddTagToSpecificCat(cat) {
-  const pName = prompt(`Ange ny egenskap under kategorin [${cat}]:`);
-  if (!pName) return;
-  if (!database.properties[pName]) {
-    database.properties[pName] = { category: cat, desc: "", opposite: "" };
-  }
-  const obj = database.objects.find(o => o.id === selectedObjectId);
-  obj.props[pName] = {};
-  persistData();
-  renderM1();
-}
-
-// ==================== 2. EGENSKAPSHANTERAREN ====================
-function renderM2() {
-  const catList = document.getElementById("m2-cat-list");
-  catList.innerHTML = "";
-  Object.keys(database.categories).forEach(cName => {
-    const d = document.createElement("div");
-    d.className = `list-item ${cName === selectedCatName ? 'selected' : ''}`;
-    d.innerHTML = `<span>${cName}</span>`;
-    d.onclick = () => {
-      selectedCatName = cName;
-      const first = Object.keys(database.properties).find(p => database.properties[p].category === cName);
-      if (first) selectedPropName = first;
-      renderM2();
-    };
-    catList.appendChild(d);
-  });
-
-  const propList = document.getElementById("m2-prop-list");
-  propList.innerHTML = "";
-  Object.entries(database.properties)
-    .filter(([pName, pData]) => pData.category === selectedCatName)
-    .forEach(([pName, pData]) => {
-      const d = document.createElement("div");
-      d.className = `list-item ${pName === selectedPropName ? 'selected' : ''}`;
-      d.innerHTML = `<span>${pName}</span>${pData.opposite ? '<span style="font-size:9px; color:#5b7bb2;">[Polär]</span>' : ''}`;
-      d.onclick = () => { selectedPropName = pName; renderM2(); };
-      propList.appendChild(d);
+  // 1. Matcha mot existerande egenskaper
+  const propMatches = Object.keys(database.properties).filter(p => p.toLowerCase().includes(q));
+  if (propMatches.length > 0) {
+    sugBox.style.display = "block";
+    propMatches.forEach(match => {
+      const item = document.createElement("div");
+      item.className = "suggest-item";
+      item.innerText = match;
+      item.onclick = () => {
+        document.getElementById("tag-autocomplete-input").value = match;
+        sugBox.style.display = "none";
+      };
+      sugBox.appendChild(item);
     });
-
-  const pMeta = database.properties[selectedPropName];
-  if (!pMeta) return;
-
-  document.getElementById("m2-detail-title").innerText = `Egenskapsdetaljer: [${selectedPropName}]`;
-  document.getElementById("m2-prop-name").value = selectedPropName;
-  document.getElementById("m2-prop-desc").value = pMeta.desc || "";
-
-  const catSel = document.getElementById("m2-prop-category");
-  catSel.innerHTML = Object.keys(database.categories).map(c => 
-    `<option value="${c}" ${c === pMeta.category ? 'selected' : ''}>${c}</option>`
-  ).join("");
-
-  const oppSel = document.getElementById("m2-prop-opposite");
-  oppSel.innerHTML = `<option value="">-- Ingen motsatspol --</option>` + 
-    Object.keys(database.properties).filter(p => p !== selectedPropName).map(p => 
-      `<option value="${p}" ${p === pMeta.opposite ? 'selected' : ''}>${p}</option>`
-    ).join("");
-
-  const objCont = document.getElementById("m2-assigned-objects");
-  objCont.innerHTML = "";
-  const matchingObjs = database.objects.filter(o => o.props[selectedPropName] !== undefined);
-
-  if (matchingObjs.length === 0) {
-    objCont.innerHTML = `<div style="color:#777; font-style:italic; padding:6px;">Inga objekt har denna egenskap tilldelad.</div>`;
   } else {
-    matchingObjs.forEach(o => {
+    sugBox.style.display = "none";
+  }
+
+  // 2. Steg 2B: Synonym-skanning
+  let matchedSynonymTarget = null;
+  Object.entries(database.properties).forEach(([pName, meta]) => {
+    if (meta.synonyms && meta.synonyms.some(s => s.toLowerCase() === q)) {
+      matchedSynonymTarget = pName;
+    }
+  });
+
+  if (matchedSynonymTarget) {
+    synAlert.style.display = "block";
+    synAlert.innerHTML = `💡 <b>Synonym match:</b> "${query}" is a recognized synonym of <b>${matchedSynonymTarget}</b>. 
+      <br><a href="#" style="color:#0055ea;" onclick="applySynonymTarget('${matchedSynonymTarget}')">Use '${matchedSynonymTarget}' instead?</a>`;
+  }
+}
+
+function applySynonymTarget(propName) {
+  document.getElementById("tag-autocomplete-input").value = propName;
+  document.getElementById("synonym-alert").style.display = "none";
+}
+
+function submitAssignTag() {
+  const val = document.getElementById("tag-autocomplete-input").value.trim();
+  if (!val) return;
+
+  const obj = database.objects.find(o => o.id === selectedObjId);
+  // Om taggen inte finns alls, registrera den
+  if (!database.properties[val]) {
+    const cat = activeTargetCat || prompt(`Assign category for new property '${val}':`, "General") || "General";
+    if (!database.categories[cat]) database.categories[cat] = { system: "General" };
+    database.properties[val] = { category: cat, synonyms: [] };
+  }
+
+  obj.props[val] = {};
+  persist();
+  closeTagModal();
+  renderM1();
+}
+
+// ==================== MODUL 2: EGENSKAPSHANTERAREN ====================
+function renderM2() {
+  const cList = document.getElementById("cat-list-ui");
+  cList.innerHTML = "";
+  Object.keys(database.categories).forEach(c => {
+    const d = document.createElement("div");
+    d.className = `list-item ${c === selectedCat ? 'selected' : ''}`;
+    d.innerText = c;
+    d.onclick = () => { selectedCat = c; renderM2(); };
+    cList.appendChild(d);
+  });
+
+  const pList = document.getElementById("prop-list-ui");
+  pList.innerHTML = "";
+  Object.entries(database.properties)
+    .filter(([_, data]) => data.category === selectedCat)
+    .forEach(([p, _]) => {
       const d = document.createElement("div");
-      d.className = "list-item";
-      d.innerHTML = `<span>${o.name}</span><span style="font-size:10px; color:#555;">Kopplad</span>`;
-      objCont.appendChild(d);
+      d.className = `list-item ${p === selectedProp ? 'selected' : ''}`;
+      d.innerText = p;
+      d.onclick = () => { selectedProp = p; renderM2(); };
+      pList.appendChild(d);
     });
-  }
+
+  const meta = database.properties[selectedProp];
+  if (!meta) return;
+
+  document.getElementById("det-name").value = selectedProp;
+  document.getElementById("det-synonyms").value = meta.synonyms ? meta.synonyms.join(", ") : "";
+  document.getElementById("det-desc").value = meta.desc || "";
+
+  const catSel = document.getElementById("det-cat");
+  catSel.innerHTML = Object.keys(database.categories).map(c => `<option value="${c}" ${c === meta.category ? 'selected' : ''}>${c}</option>`).join("");
+
+  const oppSel = document.getElementById("det-opposite");
+  oppSel.innerHTML = `<option value="">-- No Polarity --</option>` + Object.keys(database.properties).filter(p => p !== selectedProp).map(p => 
+    `<option value="${p}" ${p === meta.opposite ? 'selected' : ''}>${p}</option>`).join("");
 }
 
-function savePropDetails() {
-  const newName = document.getElementById("m2-prop-name").value.trim();
-  const newCat = document.getElementById("m2-prop-category").value;
-  const newDesc = document.getElementById("m2-prop-desc").value;
-  const newOpp = document.getElementById("m2-prop-opposite").value;
-  if (!newName) return;
+function savePropertyDetails() {
+  const newName = document.getElementById("det-name").value.trim();
+  const newCat = document.getElementById("det-cat").value;
+  const syns = document.getElementById("det-synonyms").value.split(",").map(s => s.trim()).filter(Boolean);
+  const desc = document.getElementById("det-desc").value;
+  const opp = document.getElementById("det-opposite").value;
 
-  const oldName = selectedPropName;
-  const pMeta = database.properties[oldName];
-  pMeta.category = newCat;
-  pMeta.desc = newDesc;
-  pMeta.opposite = newOpp;
+  const old = selectedProp;
+  const data = database.properties[old];
+  data.category = newCat;
+  data.synonyms = syns;
+  data.desc = desc;
+  data.opposite = opp;
 
-  if (newName !== oldName) {
-    database.properties[newName] = pMeta;
-    delete database.properties[oldName];
+  if (newName !== old) {
+    database.properties[newName] = data;
+    delete database.properties[old];
     database.objects.forEach(o => {
-      if (o.props[oldName]) {
-        o.props[newName] = o.props[oldName];
-        delete o.props[oldName];
-      }
+      if (o.props[old]) { o.props[newName] = o.props[old]; delete o.props[old]; }
     });
-    selectedPropName = newName;
+    selectedProp = newName;
   }
-  persistData();
+  persist();
   renderM2();
 }
 
-function createNewCategoryPrompt() {
-  const name = prompt("Ange ny kategori:");
-  if (!name) return;
-  database.categories[name] = { system: "Generellt", desc: "" };
-  selectedCatName = name;
-  persistData();
-  renderM2();
-}
-
-function createNewPropPrompt() {
-  const name = prompt(`Ange ny egenskap under [${selectedCatName}]:`);
-  if (!name) return;
-  database.properties[name] = { category: selectedCatName, desc: "", opposite: "" };
-  selectedPropName = name;
-  persistData();
-  renderM2();
-}
-
-// ==================== 3. FORMELMODULEN ====================
-function renderFormulaTable() {
-  const tbody = document.getElementById("formula-tbody");
+// ==================== MODUL 3: FORMELMODULEN ====================
+function renderFormula() {
+  const tbody = document.getElementById("formula-body");
   tbody.innerHTML = "";
-  const totalQty = formulaRows.reduce((sum, r) => sum + r.qty, 0);
+  const total = formula.reduce((s, r) => s + r.qty, 0);
 
-  formulaRows.forEach((row, idx) => {
+  formula.forEach((row, i) => {
     const tr = document.createElement("tr");
-    const share = totalQty > 0 ? Math.round((row.qty / totalQty) * 100) : 0;
-
-    let objOptions = database.objects.map(o => 
-      `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${o.name}</option>`
-    ).join("");
+    const share = total > 0 ? Math.round((row.qty / total) * 100) : 0;
+    const opts = database.objects.map(o => `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${o.name}</option>`).join("");
 
     tr.innerHTML = `
-      <td class="row-num">${idx + 1}</td>
+      <td class="row-num">${i+1}</td>
+      <td><select onchange="updateRow(${i}, 'objId', this.value)">${opts}</select></td>
+      <td><input type="text" class="cell-input" value="${row.role}" onchange="updateRow(${i}, 'role', this.value)"></td>
       <td>
-        <select class="cell-input" onchange="updateFormulaRow(${idx}, 'objId', this.value)">
-          ${objOptions}
-        </select>
+        <button onclick="updateQty(${i}, -1)">-</button>
+        <span style="font-weight:bold;">${row.qty}</span>
+        <button onclick="updateQty(${i}, 1)">+</button>
       </td>
-      <td>
-        <input type="text" class="cell-input" value="${row.role}" onchange="updateFormulaRow(${idx}, 'role', this.value)">
-      </td>
-      <td>
-        <div style="display:flex; align-items:center; gap:2px;">
-          <button onclick="updateQty(${idx}, -1)">-</button>
-          <input type="text" class="cell-input" style="text-align:center; font-weight:bold;" value="${row.qty}" readonly>
-          <button onclick="updateQty(${idx}, 1)">+</button>
-        </div>
-      </td>
-      <td class="calculated-cell">${share} %</td>
-      <td style="text-align:center; color:red; cursor:pointer;" onclick="removeFormulaRow(${idx})">✕</td>
+      <td class="calculated-cell">${share}%</td>
+      <td style="color:red; cursor:pointer;" onclick="deleteRow(${i})">✕</td>
     `;
     tbody.appendChild(tr);
   });
 
-  document.getElementById("formula-total-qty").innerText = totalQty;
+  calculateEffects(total);
 }
 
-function addFormulaRow() {
-  if (database.objects.length === 0) return;
-  const def = database.objects[0];
-  formulaRows.push({ objId: def.id, role: def.defaultRole, qty: 1 });
-  renderFormulaTable();
-  calculateFormula();
-}
+function updateRow(i, f, v) { formula[i][f] = v; renderFormula(); }
+function updateQty(i, delta) { formula[i].qty = Math.max(0, formula[i].qty + delta); renderFormula(); }
+function deleteRow(i) { formula.splice(i, 1); renderFormula(); }
+function addFormulaRow() { if (database.objects[0]) formula.push({ objId: database.objects[0].id, role: "Component", qty: 1 }); renderFormula(); }
 
-function removeFormulaRow(idx) {
-  formulaRows.splice(idx, 1);
-  renderFormulaTable();
-  calculateFormula();
-}
+function calculateEffects(total) {
+  let pSum = {};
+  let pSyn = {};
 
-function updateFormulaRow(idx, field, val) {
-  formulaRows[idx][field] = val;
-  if (field === 'objId') {
-    const obj = database.objects.find(o => o.id === val);
-    if (obj) formulaRows[idx].role = obj.defaultRole;
-    renderFormulaTable();
-  }
-  calculateFormula();
-}
-
-function updateQty(idx, delta) {
-  formulaRows[idx].qty = Math.max(0, formulaRows[idx].qty + delta);
-  renderFormulaTable();
-  calculateFormula();
-}
-
-// Konfigurera vilka kategorier som är pinnade i Formeln
-function promptManagePins() {
-  const catNames = Object.keys(database.categories);
-  const choice = prompt("Välj kategori att pinna eller av-pinna:\n" + catNames.map((c, i) => `${i+1}. ${c} ${database.pinnedConfigs[c] ? '[' + database.pinnedConfigs[c] + ']' : ''}`).join("\n"));
-  if (!choice) return;
-  const idx = parseInt(choice) - 1;
-  const selectedCat = catNames[idx];
-  if (!selectedCat) return;
-
-  if (database.pinnedConfigs[selectedCat]) {
-    const action = confirm(`Kategorin '${selectedCat}' är redan pinnad med '${database.pinnedConfigs[selectedCat]}'. Vill du ta bort den från pinnade rutan?`);
-    if (action) {
-      delete database.pinnedConfigs[selectedCat];
-    }
-  } else {
-    const symbol = prompt(`Ange symbol/ikon/emoji för [${selectedCat}]:`, "📌") || "📌";
-    database.pinnedConfigs[selectedCat] = symbol;
-  }
-  persistData();
-  calculateFormula();
-}
-
-function calculateFormula() {
-  renderFormulaTable();
-  const totalQty = formulaRows.reduce((sum, r) => sum + r.qty, 0);
-
-  let propWeightedSum = {};
-  let propSynergy = {};
-  let pinnedFindings = [];
-
-  if (totalQty > 0) {
-    formulaRows.forEach(row => {
-      if (row.qty <= 0) return;
-      const obj = database.objects.find(o => o.id === row.objId);
+  if (total > 0) {
+    formula.forEach(r => {
+      if (r.qty <= 0) return;
+      const obj = database.objects.find(o => o.id === r.objId);
       if (!obj) return;
-
-      Object.entries(obj.props).forEach(([propName, pData]) => {
-        const pMeta = database.properties[propName];
-        const cat = pMeta?.category;
-
-        // Frank: Om kategorin är pinnad i Formelmodulen, lyft ut till pinnade rutan
-        if (database.pinnedConfigs && database.pinnedConfigs[cat]) {
-          pinnedFindings.push({
-            symbol: database.pinnedConfigs[cat],
-            category: cat,
-            prop: propName,
-            source: obj.name
-          });
-          return;
-        }
-
-        const weight = 1;
-        if (!propWeightedSum[propName]) propWeightedSum[propName] = 0;
-        propWeightedSum[propName] += (row.qty * weight);
-
-        if (!propSynergy[propName]) propSynergy[propName] = 0;
-        propSynergy[propName] += 1;
+      Object.keys(obj.props).forEach(p => {
+        pSum[p] = (pSum[p] || 0) + r.qty;
+        pSyn[p] = (pSyn[p] || 0) + 1;
       });
     });
   }
 
-  // 1. Rendera pinnade statuskategorier
-  const pinContainer = document.getElementById("formula-pinned-items");
-  if (pinnedFindings.length > 0) {
-    pinContainer.innerHTML = pinnedFindings.map(item => 
-      `<div class="pinned-status-item">
-        <span style="font-size:13px;">${item.symbol}</span>
-        <b>[${item.prop}]</b> 
-        <span style="color:#555;">(från ${item.source} • Kategori: ${item.category})</span>
-      </div>`
-    ).join("");
-  } else {
-    pinContainer.innerHTML = `<span style="color:#888; font-style:italic; font-size:10px;">Inga aktiva träffar på pinnade kategorier i receptet.</span>`;
-  }
+  const tbody = document.getElementById("formula-props-body");
+  tbody.innerHTML = "";
+  let list = Object.keys(pSum).map(p => ({ name: p, syn: pSyn[p], eff: Math.round((pSum[p] / total) * 100) }));
+  list.sort((a, b) => b.syn - a.syn || b.eff - a.eff);
 
-  // 2. Kvantitativa egenskaper
-  let effects = {};
-  Object.keys(propWeightedSum).forEach(prop => {
-    const rawEffect = propWeightedSum[prop] / totalQty;
-    effects[prop] = { raw: rawEffect, percent: Math.round(rawEffect * 100) };
+  list.forEach((it, i) => {
+    tbody.innerHTML += `<tr><td class="row-num">${i+1}</td><td><b>${it.name}</b></td><td style="text-align:center;">${it.syn}</td><td class="calculated-cell">${it.eff}%</td></tr>`;
   });
 
-  const tbody = document.getElementById("display-props-tbody");
+  renderBalance(pSum, total);
+}
+
+function renderBalance(pSum, total) {
+  const cont = document.getElementById("balance-meter-ui");
+  cont.innerHTML = "";
+  const evaled = new Set();
+
+  Object.keys(pSum).forEach(p => {
+    const opp = database.properties[p]?.opposite;
+    if (opp && !evaled.has([p, opp].sort().join("::"))) {
+      evaled.add([p, opp].sort().join("::"));
+      const diff = ((pSum[p] || 0) - (pSum[opp] || 0)) / total;
+      cont.innerHTML += `<div style="display:flex; justify-content:space-between; margin:2px 0;"><span>[${opp}]</span><b>Balance: ${diff > 0 ? '+' : ''}${diff.toFixed(2)}</b><span>[${p}]</span></div>`;
+    }
+  });
+}
+
+// ==================== MODUL 4: FILTERSÖK ====================
+let searchFilters = [];
+function addSearchFilter() {
+  const val = document.getElementById("search-input").value.trim();
+  if (val && !searchFilters.includes(val)) {
+    searchFilters.push(val);
+    document.getElementById("search-input").value = "";
+    renderSearch();
+  }
+}
+
+function removeFilter(f) {
+  searchFilters = searchFilters.filter(x => x !== f);
+  renderSearch();
+}
+
+function renderSearch() {
+  const fCont = document.getElementById("active-filters");
+  fCont.innerHTML = searchFilters.map(f => `<span class="tag-badge"><span>${f}</span><b style="color:red; margin-left:4px; cursor:pointer;" onclick="removeFilter('${f}')">✕</b></span>`).join("");
+
+  const tbody = document.getElementById("search-results-body");
   tbody.innerHTML = "";
 
-  let list = Object.keys(effects).map(p => ({
-    name: p,
-    synergy: propSynergy[p] || 0,
-    effectPercent: effects[p].percent
-  }));
-  list.sort((a, b) => b.synergy - a.synergy || b.effectPercent - a.effectPercent);
-
-  if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Inga aktiva egenskaper</td></tr>`;
-  } else {
-    list.forEach((item, idx) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="row-num">${idx + 1}</td>
-        <td style="font-weight:bold;">${item.name}</td>
-        <td style="text-align:center; color:#0a246a; font-weight:bold;">${item.synergy}</td>
-        <td class="calculated-cell">${item.effectPercent} %</td>
-      `;
-      tbody.appendChild(tr);
-    });
+  if (searchFilters.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Add properties to filter database</td></tr>`;
+    return;
   }
 
-  // 3. Balans
-  const balContainer = document.getElementById("balance-ui-container");
-  balContainer.innerHTML = "";
-
-  const evaluated = new Set();
-  let foundPairs = false;
-
-  Object.keys(effects).forEach(prop => {
-    const meta = database.properties[prop];
-    if (meta && meta.opposite) {
-      const opp = meta.opposite;
-      const key = [prop, opp].sort().join("::");
-
-      if (!evaluated.has(key)) {
-        evaluated.add(key);
-        foundPairs = true;
-
-        const effA = effects[prop] ? effects[prop].raw : 0;
-        const effB = effects[opp] ? effects[opp].raw : 0;
-        const diff = effA - effB;
-
-        const maxScale = 1.0;
-        let widthPct = Math.min(50, (Math.abs(diff) / maxScale) * 50);
-        let leftPos = 50;
-        let color = "#888";
-
-        if (diff > 0) {
-          leftPos = 50;
-          color = "#c0392b";
-        } else if (diff < 0) {
-          leftPos = 50 - widthPct;
-          color = "#2980b9";
-        }
-
-        const row = document.createElement("div");
-        row.className = "balance-row";
-        row.innerHTML = `
-          <div style="text-align:right; font-weight:bold;">[${opp}]</div>
-          <div class="balance-track">
-            <div class="center-zero"></div>
-            <div class="balance-bar" style="left:${leftPos}%; width:${widthPct}%; background:${color};"></div>
-          </div>
-          <div style="font-weight:bold;">[${prop}]</div>
-        `;
-        balContainer.appendChild(row);
-      }
-    }
-  });
-
-  if (!foundPairs) {
-    balContainer.innerHTML = `<div style="font-size:10px; color:#777; text-align:center;">Inga polära motsatspar aktiva i nuvarande formel.</div>`;
-  }
-}
-
-// ==================== 4. FILTERSÖK ====================
-function renderSearchModule() {
-  const picker = document.getElementById("search-prop-picker");
-  picker.innerHTML = Object.keys(database.properties)
-    .filter(p => !activeSearchTerms.includes(p))
-    .map(p => `<option value="${p}">${p}</option>`).join("");
-
-  const termsCont = document.getElementById("search-terms-container");
-  termsCont.innerHTML = "";
-  activeSearchTerms.forEach(term => {
-    const chip = document.createElement("div");
-    chip.className = "search-chip";
-    chip.innerHTML = `<span>${term}</span><span class="remove-chip" onclick="removeSearchTerm('${term}')">✕</span>`;
-    termsCont.appendChild(chip);
-  });
-
-  const resultsTbody = document.getElementById("search-results-tbody");
-  resultsTbody.innerHTML = "";
-
-  let results = [];
-  const totalTerms = activeSearchTerms.length;
-
+  let res = [];
   database.objects.forEach(obj => {
-    let matchedProps = [];
-    activeSearchTerms.forEach(term => {
-      if (obj.props[term] !== undefined) {
-        matchedProps.push(term);
-      }
-    });
-
-    if (matchedProps.length > 0) {
-      const relevance = Math.round((matchedProps.length / totalTerms) * 100);
-      results.push({ id: obj.id, name: obj.name, relevance, matchedProps });
+    let match = searchFilters.filter(f => obj.props[f] !== undefined);
+    if (match.length > 0) {
+      res.push({ name: obj.name, pct: Math.round((match.length / searchFilters.length) * 100), match });
     }
   });
+  res.sort((a, b) => b.pct - a.pct);
 
-  results.sort((a, b) => b.relevance - a.relevance);
-
-  if (results.length === 0) {
-    resultsTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Inga objekt matchar.</td></tr>`;
-  } else {
-    results.forEach((res, idx) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="row-num">${idx + 1}</td>
-        <td>
-          <span style="color:#0a246a; text-decoration:underline; cursor:pointer; font-weight:bold;" onclick="jumpToObject('${res.id}')">${res.name}</span>
-          <div style="font-size:10px; color:#555;">${res.matchedProps.join(", ")}</div>
-        </td>
-        <td class="calculated-cell">${res.relevance} %</td>
-        <td style="text-align:center;">
-          <button onclick="addToFormulaFromSearch('${res.id}')">+ Till formel</button>
-        </td>
-      `;
-      resultsTbody.appendChild(tr);
-    });
-  }
+  res.forEach((r, i) => {
+    tbody.innerHTML += `<tr><td class="row-num">${i+1}</td><td><b>${r.name}</b></td><td class="calculated-cell">${r.pct}%</td><td>${r.match.join(", ")}</td></tr>`;
+  });
 }
 
-function addSearchTerm() {
-  const val = document.getElementById("search-prop-picker").value;
-  if (val && !activeSearchTerms.includes(val)) {
-    activeSearchTerms.push(val);
-    renderSearchModule();
-  }
+function exportDatabaseFile() {
+  const blob = new Blob([JSON.stringify(database, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "master_taxonomy_backup.json";
+  a.click();
 }
 
-function removeSearchTerm(term) {
-  activeSearchTerms = activeSearchTerms.filter(t => t !== term);
-  renderSearchModule();
+function importDatabaseFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = (ev) => {
+    database = JSON.parse(ev.target.result);
+    persist();
+    renderM1();
+    alert("Database imported!");
+  };
+  r.readAsText(file);
 }
 
-function jumpToObject(objId) {
-  selectedObjectId = objId;
-  switchTab('obj-tab', document.getElementById("tab-btn-obj"));
-}
-
-function addToFormulaFromSearch(objId) {
-  const obj = database.objects.find(o => o.id === objId);
-  if (!obj) return;
-  formulaRows.push({ objId: obj.id, role: obj.defaultRole, qty: 1 });
-  alert(`'${obj.name}' lades till i formeln!`);
-}
-
-// Start
+// Init
 renderM1();
 </script>
 
