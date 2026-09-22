@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Universal Taxonomy IDE v0.17.2</title>
+  <title>Universal Taxonomy IDE v0.17.3</title>
   <style>
     /* ==================== TEMA 1: IDE / DARK ==================== */
     [data-theme="ide"] {
@@ -37,7 +37,7 @@
       --bg-card: #ffffff;
       --bg-card-hover: #f1f5f9;
       --bg-input: #f1f5f9;
-      --border: #cbd5e1;
+      --border: #e2e8f0;
       --border-focus: #2563eb;
       --text: #0f172a;
       --text-muted: #64748b;
@@ -52,7 +52,32 @@
       --pinned-bg: #fefce8;
       --pinned-border: #fef08a;
       --pinned-text: #854d0e;
-      --radius: 8px;
+      --radius: 6px;
+    }
+
+    /* ==================== TEMA 3: CLASSIC / WINDOWS ==================== */
+    [data-theme="classic"] {
+      --bg-main: #2e5b88;
+      --bg-panel: #d4d0c8;
+      --bg-card: #ffffff;
+      --bg-card-hover: #e8f0fe;
+      --bg-input: #ffffff;
+      --border: #808080;
+      --border-focus: #0a246a;
+      --text: #000000;
+      --text-muted: #555555;
+      --accent: #0a246a;
+      --accent-hover: #133a94;
+      --accent-active: #b85d00;
+      --danger: #c00000;
+      --danger-bg: #fdd;
+      --tag-bg: #e8eef7;
+      --tag-border: #5b7bb2;
+      --tag-text: #0a246a;
+      --pinned-bg: #fdf8e2;
+      --pinned-border: #c9b36d;
+      --pinned-text: #7a5d00;
+      --radius: 0px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -264,13 +289,14 @@
       gap: 8px;
     }
 
+    /* KATEGORIKORT MED SUBTIL SYSTEMKANT */
     .cat-box {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 8px;
       margin-bottom: 8px;
-      transition: background-color 0.2s, border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
     .cat-box-header {
       display: flex;
@@ -425,28 +451,29 @@
   <!-- TOPP-VERKTYGSFÄLT -->
   <div class="top-bar">
     <div class="top-left">
-      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.17.2</span></span>
+      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.17.3</span></span>
       <div style="display:flex; align-items:center; gap:4px; margin-left:8px;">
         <span style="color:var(--text-muted);" id="lbl-top-lib">Bibliotek:</span>
         <select id="sel-library" onchange="switchLibrary(this.value)" title="Välj bibliotek"></select>
-        <button onclick="createNewLibraryPrompt()" id="btn-top-new-lib" title="Skapa ett nytt tomt bibliotek">+ Nytt</button>
+        <button onclick="createNewLibraryPrompt()" id="btn-top-new-lib">+ Nytt</button>
       </div>
     </div>
 
     <div class="top-right">
-      <!-- TEMA-VÄLJARE UTAN PERSONNAMN -->
+      <!-- TEMA-VÄLJARE -->
       <div style="display:flex; align-items:center; gap:4px; margin-right:6px;">
         <span id="lbl-theme">🎨 Tema:</span>
         <select id="sel-theme" onchange="switchTheme(this.value)">
           <option value="ide">IDE / Dark</option>
           <option value="modern">Modern / Clean</option>
+          <option value="classic">Classic / Windows</option>
         </select>
       </div>
 
-      <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search" title="Filtrera och sök objekt">🔍 Filtersök</button>
-      <button onclick="loadMasterTemplate()" id="btn-load-template" title="Läs in Franks Herbal Master Tag Index">🌿 Läs in Master Index</button>
-      <button onclick="exportBackup()" id="btn-export" title="Spara backupfil (.json)">💾 Backup</button>
-      <button onclick="document.getElementById('file-import').click()" id="btn-import" title="Läs in backupfil">📂 Importera</button>
+      <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search">🔍 Filtersök</button>
+      <button onclick="loadMasterTemplate()" id="btn-load-template">🌿 Läs in Master Index</button>
+      <button onclick="exportBackup()" id="btn-export">💾 Backup</button>
+      <button onclick="document.getElementById('file-import').click()" id="btn-import">📂 Importera</button>
       <input type="file" id="file-import" style="display:none;" accept=".json" onchange="importBackup(event)">
       
       <div style="display:flex; align-items:center; gap:4px; margin-left:4px;">
@@ -596,7 +623,7 @@
           <div class="panel-title"><span>🔍</span> <span id="lbl-search-title">Filtersök efter gemensamma egenskaper</span></div>
         </div>
         <div style="display:flex; gap:6px; margin-bottom:8px;">
-          <input type="text" id="filter-search-input" placeholder="Skriv egenskaper eller synonymer (separera med komma)..." style="width:360px;">
+          <input type="text" id="filter-search-input" placeholder="Skriv egenskaper eller synonymer..." style="width:360px;">
           <button onclick="applySearchFilter()" id="btn-apply-filter">+ Applicera Filter</button>
         </div>
         <div id="filter-chips-container" style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;"></div>
@@ -608,7 +635,7 @@
 
     </div>
 
-    <!-- HÖGER: INSPECTOR / 3:E SPALTEN -->
+    <!-- HÖGER: INSPECTOR -->
     <div class="inspector-sidebar" id="panel-inspector" style="display:none;">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:6px; margin-bottom:10px;">
         <span style="font-weight:700; color:var(--accent-active); font-size:12px;">🏷 Tag Inspector</span>
@@ -637,7 +664,7 @@
     </div>
   </div>
 
-  <!-- MODAL: TILLDELA EGENSKAP TILL OBJEKT -->
+  <!-- MODAL: TILLDELA EGENSKAP -->
   <div class="modal-overlay" id="modal-add-tag">
     <div class="modal-box">
       <div class="modal-header">
@@ -656,7 +683,7 @@
     </div>
   </div>
 
-  <!-- MODAL: KOPPLA FLERA OBJEKT TILL EN EGENSKAP -->
+  <!-- MODAL: KOPPLA FLERA OBJEKT -->
   <div class="modal-overlay" id="modal-connect-objs">
     <div class="modal-box" style="width:480px;">
       <div class="modal-header">
@@ -707,19 +734,25 @@
   </div>
 
 <script>
-// ==================== SYSTEMFÄRGER PER TEMA ====================
-const systemThemePalettes = {
+// ==================== SYSTEMFÄRGER (ACCENTER PER TEMA) ====================
+const systemThemeAccents = {
   ide: {
-    "Energetik": { bg: "#2d2315", border: "#5c431d" },
-    "Fysiologi": { bg: "#16281e", border: "#255c3c" },
-    "Säkerhet":  { bg: "#2d161c", border: "#5c242f" },
-    "Generellt": { bg: "#212431", border: "#3b3f54" }
+    "Energetik": "#f59e0b", // Varm bärnsten
+    "Fysiologi": "#10b981", // Skogsgrön
+    "Säkerhet":  "#ef4444", // Röd
+    "Generellt": "#6366f1"  // Indigo
   },
   modern: {
-    "Energetik": { bg: "#fef3c7", border: "#fde68a" },
-    "Fysiologi": { bg: "#dcfce7", border: "#bbf7d0" },
-    "Säkerhet":  { bg: "#fee2e2", border: "#fecaca" },
-    "Generellt": { bg: "#f1f5f9", border: "#cbd5e1" }
+    "Energetik": "#d97706", // Varm ockra/orange
+    "Fysiologi": "#059669", // Smaragdgrön
+    "Säkerhet":  "#dc2626", // Rubinröd
+    "Generellt": "#2563eb"  // Blå
+  },
+  classic: {
+    "Energetik": "#804000", // Brun/bärnsten
+    "Fysiologi": "#006633", // Mörkgrön
+    "Säkerhet":  "#990000", // Mörkröd
+    "Generellt": "#0a246a"  // Marinblå
   }
 };
 
@@ -735,6 +768,7 @@ const i18n = {
     btnImport: "📂 Importera",
     treeObjects: "📁 Objekt (Object Index)",
     treeIndex: "📁 Egenskapsindex (Tag Index)",
+    treeFormulas: "📁 Formler",
     btnNewObjTree: "➕ Skapa nytt objekt...",
     btnNewSysTree: "➕ Skapa nytt system...",
     btnNewCatTree: "➕ Skapa ny kategori...",
@@ -749,6 +783,10 @@ const i18n = {
     btnBatchAdd: "+ Fler (komma)",
     btnAssignProp: "+ Tilldela egenskap",
     noPropsInCat: "[Inga egenskaper tilldelade]",
+    btnAddShort: "+ Lägg till",
+    btnListView: "☰ Listvy",
+    btnFlowView: "🏷 Flöde",
+    commentLabel: "💬 Kommentar",
     lblPropName: "Egenskapsnamn",
     lblPropCat: "Kategori & System",
     lblPropDesc: "Beskrivning [Type here]",
@@ -836,6 +874,7 @@ const i18n = {
     btnImport: "📂 Import",
     treeObjects: "📁 Object Index",
     treeIndex: "📁 Tag Index",
+    treeFormulas: "📁 Formulas",
     btnNewObjTree: "➕ Create new object...",
     btnNewSysTree: "➕ Create new system...",
     btnNewCatTree: "➕ Create new category...",
@@ -850,6 +889,10 @@ const i18n = {
     btnBatchAdd: "+ More (comma)",
     btnAssignProp: "+ Assign Property",
     noPropsInCat: "[No properties assigned]",
+    btnAddShort: "+ Add",
+    btnListView: "☰ List view",
+    btnFlowView: "🏷 Flow view",
+    commentLabel: "💬 Comment",
     lblPropName: "Property Name",
     lblPropCat: "Category & System",
     lblPropDesc: "Description [Type here]",
@@ -1097,7 +1140,7 @@ const defaultAppData = {
 };
 
 let appData = defaultAppData;
-const stored = localStorage.getItem("taxonomy_ide_v17_2") || localStorage.getItem("taxonomy_ide_v17_1") || localStorage.getItem("taxonomy_ide_v17");
+const stored = localStorage.getItem("taxonomy_ide_v17_3") || localStorage.getItem("taxonomy_ide_v17_2") || localStorage.getItem("taxonomy_ide_v17_1");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -1126,7 +1169,7 @@ function currentLib() {
 }
 
 function persist() {
-  localStorage.setItem("taxonomy_ide_v17_2", JSON.stringify(appData));
+  localStorage.setItem("taxonomy_ide_v17_3", JSON.stringify(appData));
 }
 
 // ==================== TILLSTÅND ====================
@@ -1323,7 +1366,7 @@ function renderTree() {
   const root = document.getElementById("tree-root");
   root.innerHTML = "";
 
-  // 1. OBJECT INDEX (Översatt etikett)
+  // 1. OBJECT INDEX
   const isObjOpen = !!lib.treeOpen["objects"];
   const objFolder = document.createElement("div");
   objFolder.innerHTML = `
@@ -1359,7 +1402,7 @@ function renderTree() {
     root.appendChild(wrap);
   }
 
-  // 2. TAG INDEX (Översatt etikett)
+  // 2. TAG INDEX
   const isTaxOpen = !!lib.treeOpen["taxonomies"];
   const taxFolder = document.createElement("div");
   taxFolder.innerHTML = `
@@ -1494,13 +1537,13 @@ function renderTree() {
     root.appendChild(taxWrap);
   }
 
-  // 3. FORMLER
+  // 3. FORMLER (ÖVERSATT)
   const isFormOpen = !!lib.treeOpen["formulas"];
   const formFolder = document.createElement("div");
   formFolder.innerHTML = `
     <div class="tree-node ${activeView === 'FORMULA' ? 'active' : ''}" onclick="toggleTreeNode('formulas')">
       <span class="tree-toggle">${isFormOpen ? '▼' : '▶'}</span>
-      <span>📁 Formler</span>
+      <span>${t("treeFormulas")}</span>
       <span class="tree-badge">${Object.keys(lib.formulas).length}</span>
     </div>
   `;
@@ -1542,7 +1585,7 @@ function renderTree() {
   root.appendChild(trashNode);
 }
 
-// ==================== 2. OBJEKTPROFIL (FÄRGKODAD PER TEMA) ====================
+// ==================== 2. OBJEKTPROFIL (STILREN ACCENT-FÄRGNING) ====================
 function toggleSystemColors(isChecked) {
   currentLib().useSystemColors = isChecked;
   persist();
@@ -1587,7 +1630,7 @@ function renderObjectView() {
   cont.innerHTML = "";
 
   const currentTheme = appData.theme || "ide";
-  const palette = systemThemePalettes[currentTheme] || systemThemePalettes.ide;
+  const accents = systemThemeAccents[currentTheme] || systemThemeAccents.ide;
 
   const cats = lib.categoryOrder || Object.keys(lib.categories);
   cats.forEach((cat, idx) => {
@@ -1604,14 +1647,12 @@ function renderObjectView() {
     const box = document.createElement("div");
     box.className = "cat-box";
 
-    // FÄRGSÄTTNING: Mörka nyanser i Dark/IDE, mjuka pasteller i Modern/Clean
+    // STILREN FÄRGSÄTTNING: Vänsterkants-accent (4px border-left) istället för heltäckande neon!
     if (lib.useSystemColors) {
-      const themeColor = palette[sysName] || palette["Generellt"];
-      box.style.backgroundColor = themeColor.bg;
-      box.style.borderColor = themeColor.border;
+      const accentColor = accents[sysName] || accents["Generellt"];
+      box.style.borderLeft = `4px solid ${accentColor}`;
     } else {
-      box.style.backgroundColor = "var(--bg-card)";
-      box.style.borderColor = "var(--border)";
+      box.style.borderLeft = "1px solid var(--border)";
     }
 
     let itemsHtml = "";
@@ -1636,7 +1677,7 @@ function renderObjectView() {
             <div class="bullet-item" onclick="inspectTagInRightPanel('${item.name}')">
               <span>•</span> <b>${item.name}</b> ${commentDisplay}
               <div style="margin-left:auto; display:flex; gap:6px;">
-                <span style="color:var(--accent-active); cursor:pointer;" onclick="openCommentModal('${item.name}', event)">💬 Kommentar</span>
+                <span style="color:var(--accent-active); cursor:pointer;" onclick="openCommentModal('${item.name}', event)">${t("commentLabel")}</span>
                 <span style="color:var(--danger); cursor:pointer;" onclick="trashPropFromObj('${item.name}', event)">✕</span>
               </div>
             </div>
@@ -1654,9 +1695,9 @@ function renderObjectView() {
         </div>
         <div style="display:flex; gap:4px;">
           <button style="font-size:8px; padding:1px 4px;" onclick="toggleCategoryLayout('${cat}')" title="Växla layout">
-            ${layout === 'flow' ? '☰ Listvy' : '🏷 Flöde'}
+            ${layout === 'flow' ? t("btnListView") : t("btnFlowView")}
           </button>
-          <button style="font-size:8px; padding:1px 4px;" onclick="openAddTagModal('${cat}')">+ Lägg till</button>
+          <button style="font-size:8px; padding:1px 4px;" onclick="openAddTagModal('${cat}')">${t("btnAddShort")}</button>
         </div>
       </div>
       <div>${itemsHtml}</div>
@@ -1683,35 +1724,35 @@ function inspectTagInRightPanel(pName) {
     <div style="font-size:10px; color:var(--text-muted); margin-bottom:12px;">Kategori: <b>${cat}</b> • System: <b>${sys}</b></div>
     
     <div class="form-group">
-      <label>Beskrivning</label>
+      <label>${t("lblPropDesc")}</label>
       <div style="background:var(--bg-card); padding:6px; border-radius:var(--radius); border:1px solid var(--border); font-size:11px;">
-        ${meta.desc || '<i style="color:var(--text-muted);">Ingen beskrivning angiven.</i>'}
+        ${meta.desc || '<i style="color:var(--text-muted);">Ingen beskrivning.</i>'}
       </div>
     </div>
 
     <div class="form-group">
-      <label>Webblänkar</label>
+      <label>${t("lblPropLinks")}</label>
       <div style="background:var(--bg-card); padding:6px; border-radius:var(--radius); border:1px solid var(--border); font-size:11px;">
         ${meta.links ? `<a href="${meta.links}" target="_blank" style="color:var(--accent);">${meta.links}</a>` : '<i style="color:var(--text-muted);">Inga länkar.</i>'}
       </div>
     </div>
 
     <div class="form-group">
-      <label>Bokkällor / Referenser</label>
+      <label>${t("lblPropSources")}</label>
       <div style="background:var(--bg-card); padding:6px; border-radius:var(--radius); border:1px solid var(--border); font-size:11px;">
-        ${meta.sources || '<i style="color:var(--text-muted);">Inga källor angivna.</i>'}
+        ${meta.sources || '<i style="color:var(--text-muted);">Inga källor.</i>'}
       </div>
     </div>
 
     <div class="form-group">
-      <label>Polaritetsmotsats</label>
+      <label>${t("lblPropOpp")}</label>
       <div style="background:var(--bg-card); padding:6px; border-radius:var(--radius); border:1px solid var(--border); font-size:11px;">
-        ${meta.opposite ? `<b>[${meta.opposite}]</b>` : '<i style="color:var(--text-muted);">Ingen polaritet</i>'}
+        ${meta.opposite ? `<b>[${meta.opposite}]</b>` : `<i style="color:var(--text-muted);">${t("noPolarity")}</i>`}
       </div>
     </div>
 
     <div style="margin-top:16px;">
-      <button class="primary" style="width:100%;" onclick="jumpToFullPropView('${pName}')">Redigera i Master Index</button>
+      <button class="primary" style="width:100%;" onclick="jumpToFullPropView('${pName}')">${t("btnSaveProp")}</button>
     </div>
   `;
 }
@@ -1791,7 +1832,7 @@ function openConnectObjectsModal() {
 
   const unassigned = lib.objects.filter(o => o.props[selectedPropName] === undefined);
   if (unassigned.length === 0) {
-    list.innerHTML = `<span style="color:var(--text-muted); font-style:italic; font-size:10px;">Alla objekt har redan denna egenskap.</span>`;
+    list.innerHTML = `<span style="color:var(--text-muted); font-style:italic; font-size:10px;">${t("noFeaturedObjs")}</span>`;
   } else {
     unassigned.forEach(obj => {
       const label = document.createElement("label");
@@ -2366,7 +2407,7 @@ function createNewLibraryPrompt() {
     categoryLayouts: {},
     useSystemColors: true,
     showComments: true,
-    systems: { "Generellt": { categories: ["Generellt"] } },
+    systems: { "Generellt": { categories: [] } },
     categories: { "Generellt": { system: "Generellt", subcategories: [] } },
     properties: {},
     objects: [],
