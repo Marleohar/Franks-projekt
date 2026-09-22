@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Universal Multi-Library Taxonomy System v0.11</title>
+  <title>Universal Multi-Library Taxonomy System v0.12</title>
   <style>
     :root {
       --bg: #d4d0c8;
@@ -53,8 +53,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #dfdbd2;
+      padding: 2px 6px;
+      border: 1px solid #aaa;
     }
 
     .tab-bar {
@@ -285,15 +294,24 @@
 
 <div class="window">
   <div class="title-bar">
-    <span id="txt-app-title">Universal Multi-Library System v0.11</span>
+    <span id="txt-app-title">Universal Multi-Library System v0.12</span>
     <span id="save-status" style="font-size:10px; font-weight:normal;">Lokal lagring redo ✓</span>
   </div>
 
   <div class="top-toolbar">
     <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+      <!-- BIBLIOTEKSVÄXLARE -->
+      <div class="toolbar-group">
+        <label for="library-select" style="font-weight:bold;" id="lbl-lib-select">📚 Bibliotek:</label>
+        <select id="library-select" onchange="switchLibrary(this.value)"></select>
+        <button onclick="createNewLibraryPrompt()" id="btn-new-lib" title="Skapa nytt tomt bibliotek">+ Nytt</button>
+        <button onclick="renameCurrentLibraryPrompt()" id="btn-rename-lib" title="Byt namn på bibliotek">Döp om</button>
+        <button onclick="deleteCurrentLibraryPrompt()" id="btn-delete-lib" title="Radera aktivt bibliotek">Radera</button>
+      </div>
+
       <!-- SPRÅKVÄXLARE -->
-      <div style="display:flex; align-items:center; gap:4px; margin-right:8px;">
-        <label for="lang-select" style="font-weight:bold;">🌐 Språk / Language:</label>
+      <div class="toolbar-group">
+        <label for="lang-select" style="font-weight:bold;">🌐</label>
         <select id="lang-select" onchange="changeLanguage(this.value)">
           <option value="sv">Svenska</option>
           <option value="en">English</option>
@@ -301,11 +319,11 @@
       </div>
 
       <button onclick="loadMasterTemplate()" id="btn-load-template">🌿 Läs in "Herbal Master Index"</button>
-      <button onclick="exportDatabaseFile()" id="btn-export">💾 Exportera JSON</button>
-      <button onclick="document.getElementById('import-file').click()" id="btn-import">📂 Importera JSON</button>
+      <button onclick="exportDatabaseFile()" id="btn-export">💾 Exportera Backup</button>
+      <button onclick="document.getElementById('import-file').click()" id="btn-import">📂 Importera Backup</button>
       <input type="file" id="import-file" style="display:none;" accept=".json" onchange="importDatabaseFile(event)">
     </div>
-    <div style="font-size:10px; color:#555;" id="txt-local-subtext">Lokal databas utan serverlagring</div>
+    <div style="font-size:10px; color:#555;" id="txt-local-subtext">Lokal och oberoende sandlåda</div>
   </div>
 
   <div class="tab-bar">
@@ -358,7 +376,7 @@
           <div style="display:flex; flex-direction:column; gap:6px;" id="prop-details-form">
             <div><label><b id="lbl-prop-name">Egenskapsnamn:</b></label><input type="text" id="det-name" style="width:100%;"></div>
             <div><label><b id="lbl-prop-cat">Kategori:</b></label><select id="det-cat" style="width:100%;"></select></div>
-            <div><label><b id="lbl-prop-syn">Synonymer (kommaseparerade):</b></label><input type="text" id="det-synonyms" style="width:100%;" placeholder="t.ex. Kall, Kylande, Kyla"></div>
+            <div><label><b id="lbl-prop-syn">Synonymer (kommaseparerade):</b></label><input type="text" id="det-synonyms" style="width:100%;" placeholder="t.ex. Kall, Kylande"></div>
             <div><label><b id="lbl-prop-desc">Beskrivning:</b></label><textarea id="det-desc" rows="2" style="width:100%;"></textarea></div>
             <div><label><b id="lbl-prop-opp">Motsatspol (Balans):</b></label><select id="det-opposite" style="width:100%;"></select></div>
             <button onclick="savePropertyDetails()" id="btn-save-prop">Spara Metadata</button>
@@ -388,7 +406,6 @@
         </div>
 
         <div class="section-card">
-          <!-- PINNADE KATEGORIER -->
           <div class="pinned-status-panel">
             <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; font-size:10px;">
               <span id="lbl-pinned-panel">📌 Pinnade Status- & Varningskategorier</span>
@@ -452,16 +469,20 @@
 </div>
 
 <script>
-// ==================== SPRÅKDEFINITIONER (I18N) ====================
+// ==================== I18N SPRÅKHANTERING ====================
 const i18n = {
   sv: {
-    appTitle: "Universal Multi-Biblioteks System v0.11",
+    appTitle: "Universal Multi-Biblioteks System v0.12",
     saveStatusReady: "Lokal lagring redo ✓",
     saveStatusSaved: "Autosparad: ",
     btnLoadTemplate: "🌿 Läs in 'Herbal Master Index'",
-    btnExport: "💾 Exportera JSON",
-    btnImport: "📂 Importera JSON",
-    txtLocalSubtext: "Lokal databas utan serverlagring",
+    btnExport: "💾 Exportera Backup",
+    btnImport: "📂 Importera Backup",
+    txtLocalSubtext: "Lokal och oberoende sandlåda",
+    lblLibSelect: "📚 Bibliotek:",
+    btnNewLib: "+ Nytt",
+    btnRenameLib: "Döp om",
+    btnDeleteLib: "Radera",
     tabObj: "1. Objekthanteraren",
     tabProp: "2. Egenskapshanteraren",
     tabForm: "3. Formelmodulen",
@@ -497,7 +518,7 @@ const i18n = {
     thProp: "Egenskap",
     thSyn: "Synergi",
     thEff: "Effekt",
-    noFormulaProps: "Inga aktiva beräkningsbara egenskaper",
+    noFormulaProps: "Inga aktiva egenskaper i formeln",
     lblSearchTitle: "Filtersök efter gemensamma egenskaper",
     searchPlaceholder: "Skriv egenskap...",
     btnAddFilter: "+ Lägg till filter",
@@ -512,20 +533,28 @@ const i18n = {
     promptNewObj: "Ange namn på det nya objektet:",
     promptNewPropCat: "Ange kategori för ny egenskap '{0}':",
     confirmLoadTemplate: "Vill du läsa in kategorier och egenskaper från 'Herbal Master Tag Index'? (Dina egna objekt sparas)",
-    templateLoaded: "Herbal Master Tag Index har lästs in!",
-    dbImported: "Biblioteket har lästs in och sparats!",
+    templateLoaded: "Herbal Master Tag Index har lästs in i aktivt bibliotek!",
+    dbImported: "Biblioteken har lästs in och sparats!",
     synonymHit: '💡 <b>Synonymträff:</b> "{0}" är en registrerad synonym till <b>{1}</b>. <br><a href="#" style="color:#0055ea;" onclick="applySynonymTarget(\'{1}\')">Använd \'{1}\' istället?</a>',
     fromText: "från",
-    categoryText: "Kategori"
+    categoryText: "Kategori",
+    promptNewLibName: "Ange namn på det nya biblioteket:",
+    promptRenameLib: "Ange nytt namn på biblioteket:",
+    confirmDeleteLib: "Är du säker på att du vill radera biblioteket '{0}'? Detta kan inte ångras.",
+    cannotDeleteLastLib: "Du kan inte radera det enda återstående biblioteket."
   },
   en: {
-    appTitle: "Universal Multi-Library System v0.11",
+    appTitle: "Universal Multi-Library System v0.12",
     saveStatusReady: "Local Store Ready ✓",
     saveStatusSaved: "Autosaved: ",
     btnLoadTemplate: "🌿 Load 'Herbal Master Index'",
-    btnExport: "💾 Export JSON",
-    btnImport: "📂 Import JSON",
-    txtLocalSubtext: "Local-first Database Engine",
+    btnExport: "💾 Export Backup",
+    btnImport: "📂 Import Backup",
+    txtLocalSubtext: "Local & independent sandbox",
+    lblLibSelect: "📚 Library:",
+    btnNewLib: "+ New",
+    btnRenameLib: "Rename",
+    btnDeleteLib: "Delete",
     tabObj: "1. Object Manager",
     tabProp: "2. Property Manager",
     tabForm: "3. Formula Module",
@@ -576,21 +605,22 @@ const i18n = {
     promptNewObj: "Enter new Object name:",
     promptNewPropCat: "Assign category for new property '{0}':",
     confirmLoadTemplate: "Load complete 'Herbal Master Tag Index' categories & properties? (Existing objects remain)",
-    templateLoaded: "Herbal Master Tag Index loaded successfully!",
-    dbImported: "Database imported successfully!",
+    templateLoaded: "Herbal Master Tag Index loaded into active library!",
+    dbImported: "Libraries imported successfully!",
     synonymHit: '💡 <b>Synonym match:</b> "{0}" is a registered synonym of <b>{1}</b>. <br><a href="#" style="color:#0055ea;" onclick="applySynonymTarget(\'{1}\')">Use \'{1}\' instead?</a>',
     fromText: "from",
-    categoryText: "Category"
+    categoryText: "Category",
+    promptNewLibName: "Enter name of new library:",
+    promptRenameLib: "Enter new library name:",
+    confirmDeleteLib: "Are you sure you want to delete library '{0}'? This cannot be undone.",
+    cannotDeleteLastLib: "You cannot delete the only remaining library."
   }
 };
 
 let currentLang = localStorage.getItem("app_lang") || "sv";
-
 function t(key, ...args) {
   let str = i18n[currentLang][key] || key;
-  args.forEach((val, idx) => {
-    str = str.replace(`{${idx}}`, val);
-  });
+  args.forEach((val, idx) => { str = str.replace(`{${idx}}`, val); });
   return str;
 }
 
@@ -598,10 +628,7 @@ function changeLanguage(lang) {
   currentLang = lang;
   localStorage.setItem("app_lang", lang);
   updateUILanguage();
-  renderM1();
-  renderM2();
-  renderFormula();
-  renderSearch();
+  renderAllViews();
 }
 
 function updateUILanguage() {
@@ -613,6 +640,11 @@ function updateUILanguage() {
   document.getElementById("btn-import").innerText = t("btnImport");
   document.getElementById("txt-local-subtext").innerText = t("txtLocalSubtext");
   
+  document.getElementById("lbl-lib-select").innerText = t("lblLibSelect");
+  document.getElementById("btn-new-lib").innerText = t("btnNewLib");
+  document.getElementById("btn-rename-lib").innerText = t("btnRenameLib");
+  document.getElementById("btn-delete-lib").innerText = t("btnDeleteLib");
+
   document.getElementById("tab-obj").innerText = t("tabObj");
   document.getElementById("tab-prop").innerText = t("tabProp");
   document.getElementById("tab-form").innerText = t("tabForm");
@@ -660,97 +692,193 @@ function updateUILanguage() {
   document.getElementById("btn-modal-cancel").innerText = t("btnModalCancel");
 }
 
-// ==================== DATABAS & MASTER TAXONOMY ====================
-const defaultDatabase = {
-  categories: {
-    "Part Used": { system: "Botany" },
-    "Ingestion forms": { system: "Pharmacology" },
-    "Western Actions": { system: "Herbalism" },
-    "Western Energetics": { system: "Energetics" },
-    "Ayurveda Gunas": { system: "Ayurveda" },
-    "Symptoms": { system: "Pathology" },
-    "Precautions": { system: "Safety" }
-  },
-  pinnedConfigs: {
-    "Precautions": "⚠️"
-  },
-  properties: {
-    "Sheeta (Cold)": { category: "Ayurveda Gunas", synonyms: ["Cold", "Cooling", "Kall", "Kylande"], opposite: "Ushna (Hot)" },
-    "Ushna (Hot)":   { category: "Ayurveda Gunas", synonyms: ["Hot", "Warming", "Varm", "Värmande"], opposite: "Sheeta (Cold)" },
-    "Adaptogen":     { category: "Western Actions", synonyms: ["Stress support"] },
-    "Bitter Tonic":  { category: "Western Actions", synonyms: ["Digestive bitter"] },
-    "Roots":         { category: "Part Used", synonyms: ["Rot", "Rhizome"] },
-    "Tea":           { category: "Ingestion forms", synonyms: ["Te", "Infusion"] },
-    "Digestion":     { category: "Symptoms", synonyms: ["Matsmältning", "Acid reflux"] }
-  },
-  objects: [
-    { id: "ginger", name: "Ingefära (Zingiber officinale)", defaultRole: "Drivande rot", props: { "Ushna (Hot)": {}, "Roots": {}, "Tea": {} } },
-    { id: "peppermint", name: "Pepparmynta (Mentha x piperita)", defaultRole: "Kylande balans", props: { "Sheeta (Cold)": {}, "Tea": {}, "Digestion": {} } }
-  ]
+// ==================== MULTI-BIBLIOTEK DATASTRUKTUR ====================
+const defaultAppData = {
+  activeLibId: "herbal",
+  libraries: {
+    "herbal": {
+      name: "Örter (Herbalism)",
+      categories: {
+        "Part Used": { system: "Botany" },
+        "Ingestion forms": { system: "Pharmacology" },
+        "Western Actions": { system: "Herbalism" },
+        "Western Energetics": { system: "Energetics" },
+        "Ayurveda Gunas": { system: "Ayurveda" },
+        "Symptoms": { system: "Pathology" },
+        "Precautions": { system: "Safety" }
+      },
+      pinnedConfigs: { "Precautions": "⚠️" },
+      properties: {
+        "Sheeta (Cold)": { category: "Ayurveda Gunas", synonyms: ["Cold", "Cooling", "Kall", "Kylande"], opposite: "Ushna (Hot)" },
+        "Ushna (Hot)":   { category: "Ayurveda Gunas", synonyms: ["Hot", "Warming", "Varm", "Värmande"], opposite: "Sheeta (Cold)" },
+        "Adaptogen":     { category: "Western Actions", synonyms: ["Stress support"] },
+        "Bitter Tonic":  { category: "Western Actions", synonyms: ["Digestive bitter"] },
+        "Roots":         { category: "Part Used", synonyms: ["Rot", "Rhizome"] },
+        "Tea":           { category: "Ingestion forms", synonyms: ["Te", "Infusion"] },
+        "Digestion":     { category: "Symptoms", synonyms: ["Matsmältning", "Acid reflux"] }
+      },
+      objects: [
+        { id: "ginger", name: "Ingefära (Zingiber officinale)", defaultRole: "Drivande rot", props: { "Ushna (Hot)": {}, "Roots": {}, "Tea": {} } },
+        { id: "peppermint", name: "Pepparmynta (Mentha x piperita)", defaultRole: "Kylande balans", props: { "Sheeta (Cold)": {}, "Tea": {}, "Digestion": {} } }
+      ],
+      formula: [
+        { objId: "ginger", role: "Drivande rot", qty: 2 },
+        { objId: "peppermint", role: "Kylande balans", qty: 3 }
+      ]
+    },
+    "books": {
+      name: "Boksamling (Books)",
+      categories: {
+        "Genre": { system: "Litteratur" },
+        "Format": { system: "Tryck" },
+        "Tryckstatus": { system: "Logistik" },
+        "Språk": { system: "Språkvetenskap" }
+      },
+      pinnedConfigs: { "Tryckstatus": "📚" },
+      properties: {
+        "Sci-Fi": { category: "Genre", synonyms: ["Science Fiction"] },
+        "Fantasy": { category: "Genre", synonyms: ["Episk fantasy"] },
+        "Inbunden": { category: "Format", opposite: "Pocket" },
+        "Pocket": { category: "Format", opposite: "Inbunden" },
+        "Slut på förlag": { category: "Tryckstatus", synonyms: ["Out of print"] },
+        "Svenska": { category: "Språk" },
+        "Engelska": { category: "Språk" }
+      },
+      objects: [
+        { id: "dune", name: "Dune (Frank Herbert)", defaultRole: "Huvudbok", props: { "Sci-Fi": {}, "Inbunden": {}, "Engelska": {} } },
+        { id: "eon_core", name: "Eon Grundbok", defaultRole: "Regelverk", props: { "Fantasy": {}, "Slut på förlag": {}, "Svenska": {} } }
+      ],
+      formula: [
+        { objId: "dune", role: "Sci-Fi Referens", qty: 1 }
+      ]
+    }
+  }
 };
 
-let database = defaultDatabase;
-const stored = localStorage.getItem("master_db_v11");
-if (stored) {
-  try { database = JSON.parse(stored); } catch(e) { database = defaultDatabase; }
+let appData = defaultAppData;
+const storedApp = localStorage.getItem("multi_lib_v12");
+if (storedApp) {
+  try {
+    const parsed = JSON.parse(storedApp);
+    if (parsed.libraries && parsed.activeLibId) {
+      appData = parsed;
+    } else if (parsed.categories && parsed.objects) {
+      // Uppgradera gammal v11 databas sömlöst
+      appData = {
+        activeLibId: "migrated_lib",
+        libraries: {
+          "migrated_lib": {
+            name: "Mitt Bibliotek",
+            categories: parsed.categories,
+            properties: parsed.properties,
+            objects: parsed.objects,
+            pinnedConfigs: parsed.pinnedConfigs || {},
+            formula: []
+          }
+        }
+      };
+    }
+  } catch(e) { appData = defaultAppData; }
 }
-if (!database.pinnedConfigs) database.pinnedConfigs = { "Precautions": "⚠️" };
+
+function currentLib() {
+  if (!appData.libraries[appData.activeLibId]) {
+    appData.activeLibId = Object.keys(appData.libraries)[0];
+  }
+  return appData.libraries[appData.activeLibId];
+}
 
 function persist() {
-  localStorage.setItem("master_db_v11", JSON.stringify(database));
+  localStorage.setItem("multi_lib_v12", JSON.stringify(appData));
   const el = document.getElementById("save-status");
   el.innerText = t("saveStatusSaved") + new Date().toLocaleTimeString();
 }
 
-function loadMasterTemplate() {
-  if (!confirm(t("confirmLoadTemplate"))) return;
-
-  const masterCats = [
-    "Part Used", "Ingestion forms", "External Forms of Use", "Evidence of Effectiveness",
-    "Adverse Effects", "Conservation Status", "Diets", "Remedy Classifications",
-    "Ayurveda & Doshas", "Gunas (Metabolic Qualities)", "TCM Actions", "Six Tissue States",
-    "Western Energetics", "Western Actions", "Nutritional Actions", "Phytochemical Constituents",
-    "Nutrients", "Planetary Rulers", "Magical & Spiritual Uses", "Symptoms", "Precautions"
-  ];
-
-  masterCats.forEach(c => {
-    if (!database.categories[c]) database.categories[c] = { system: "Master Taxonomy" };
-  });
-
-  const masterProps = {
-    "Warming": { category: "Western Energetics", opposite: "Cooling", synonyms: ["Varm", "Hot"] },
-    "Cooling": { category: "Western Energetics", opposite: "Warming", synonyms: ["Kall", "Cold"] },
-    "Drying":  { category: "Western Energetics", opposite: "Moistening", synonyms: ["Torr"] },
-    "Moistening": { category: "Western Energetics", opposite: "Drying", synonyms: ["Fuktande"] },
-    "Roots":   { category: "Part Used", synonyms: ["Rot", "Rhizome"] },
-    "Leaves":  { category: "Part Used", synonyms: ["Blad"] },
-    "Flowers": { category: "Part Used", synonyms: ["Blommor"] },
-    "Tea":     { category: "Ingestion forms", synonyms: ["Te"] },
-    "Tincture":{ category: "Ingestion forms", synonyms: ["Tinktur"] },
-    "Anti-inflammatory": { category: "Western Actions", synonyms: ["Antiinflammatorisk"] },
-    "Antimicrobial":     { category: "Western Actions", synonyms: ["Antimikrobiell"] },
-    "Carminative":       { category: "Western Actions", synonyms: ["Väderdrivande"] },
-    "Nervine Relaxant":  { category: "Western Actions", synonyms: ["Lugnande"] }
-  };
-
-  Object.entries(masterProps).forEach(([p, data]) => {
-    if (!database.properties[p]) database.properties[p] = data;
-  });
-
-  persist();
-  renderM1();
-  alert(t("templateLoaded"));
+// ==================== BIBLIOTEKSVÄXLARE ====================
+function updateLibraryDropdown() {
+  const sel = document.getElementById("library-select");
+  sel.innerHTML = Object.entries(appData.libraries).map(([id, lib]) => 
+    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${lib.name}</option>`
+  ).join("");
 }
 
-let selectedObjId = "ginger";
-let selectedCat = "Western Energetics";
-let selectedProp = "Warming";
-let hideEmpty = false;
+function switchLibrary(newLibId) {
+  if (!appData.libraries[newLibId]) return;
+  appData.activeLibId = newLibId;
+  persist();
+  initSelectionDefaults();
+  renderAllViews();
+}
 
-let formula = [
-  { objId: "ginger", role: "Catalyst", qty: 2 },
-  { objId: "peppermint", role: "Cooling Balance", qty: 3 }
-];
+function createNewLibraryPrompt() {
+  const name = prompt(t("promptNewLibName"));
+  if (!name) return;
+  const id = "lib_" + Date.now();
+  appData.libraries[id] = {
+    name: name,
+    categories: { "Generellt": { system: "Grund" } },
+    properties: {},
+    objects: [],
+    pinnedConfigs: {},
+    formula: []
+  };
+  appData.activeLibId = id;
+  persist();
+  updateLibraryDropdown();
+  initSelectionDefaults();
+  renderAllViews();
+}
+
+function renameCurrentLibraryPrompt() {
+  const lib = currentLib();
+  const newName = prompt(t("promptRenameLib"), lib.name);
+  if (!newName || newName.trim() === "") return;
+  lib.name = newName.trim();
+  persist();
+  updateLibraryDropdown();
+}
+
+function deleteCurrentLibraryPrompt() {
+  const keys = Object.keys(appData.libraries);
+  if (keys.length <= 1) {
+    alert(t("cannotDeleteLastLib"));
+    return;
+  }
+  const lib = currentLib();
+  if (confirm(t("confirmDeleteLib", lib.name))) {
+    delete appData.libraries[appData.activeLibId];
+    appData.activeLibId = Object.keys(appData.libraries)[0];
+    persist();
+    updateLibraryDropdown();
+    initSelectionDefaults();
+    renderAllViews();
+  }
+}
+
+// ==================== TILLSTÅND FÖR AKTIV VY ====================
+let selectedObjId = "";
+let selectedCat = "";
+let selectedProp = "";
+let hideEmpty = false;
+let searchFilters = [];
+
+function initSelectionDefaults() {
+  const lib = currentLib();
+  selectedObjId = lib.objects.length > 0 ? lib.objects[0].id : "";
+  const catKeys = Object.keys(lib.categories);
+  selectedCat = catKeys.length > 0 ? catKeys[0] : "";
+  const propKeys = Object.keys(lib.properties);
+  selectedProp = propKeys.length > 0 ? propKeys[0] : "";
+  searchFilters = [];
+}
+
+function renderAllViews() {
+  updateLibraryDropdown();
+  renderM1();
+  renderM2();
+  renderFormula();
+  renderSearch();
+}
 
 function switchTab(viewId, btn) {
   document.getElementById("obj-view").style.display = (viewId === 'obj-view') ? 'block' : 'none';
@@ -774,9 +902,15 @@ function toggleHideEmpty(val) {
 
 // ==================== 1. OBJEKTHANTERAREN ====================
 function renderM1() {
+  const lib = currentLib();
   const list = document.getElementById("obj-list-ui");
   list.innerHTML = "";
-  database.objects.forEach(o => {
+
+  if (!lib.objects.some(o => o.id === selectedObjId) && lib.objects.length > 0) {
+    selectedObjId = lib.objects[0].id;
+  }
+
+  lib.objects.forEach(o => {
     const d = document.createElement("div");
     d.className = `list-item ${o.id === selectedObjId ? 'selected' : ''}`;
     d.innerHTML = `<span>${o.name}</span><span style="font-size:9px;">${Object.keys(o.props).length}</span>`;
@@ -784,17 +918,22 @@ function renderM1() {
     list.appendChild(d);
   });
 
-  const obj = database.objects.find(o => o.id === selectedObjId);
-  if (!obj) return;
-  document.getElementById("obj-profile-title").innerText = t("objProfilePrefix") + obj.name;
-
+  const obj = lib.objects.find(o => o.id === selectedObjId);
   const cont = document.getElementById("profile-cats-ui");
   cont.innerHTML = "";
 
-  Object.keys(database.categories).forEach(cat => {
+  if (!obj) {
+    document.getElementById("obj-profile-title").innerText = t("lblObjects");
+    cont.innerHTML = `<div style="color:#777; padding:10px; font-style:italic;">Inga objekt i detta bibliotek. Klicka '+ Nytt Objekt' för att börja.</div>`;
+    return;
+  }
+
+  document.getElementById("obj-profile-title").innerText = t("objProfilePrefix") + obj.name;
+
+  Object.keys(lib.categories).forEach(cat => {
     let propsInCat = [];
     Object.keys(obj.props).forEach(pName => {
-      if (database.properties[pName]?.category === cat) propsInCat.push(pName);
+      if (lib.properties[pName]?.category === cat) propsInCat.push(pName);
     });
 
     const isEmpty = propsInCat.length === 0;
@@ -820,8 +959,9 @@ function renderM1() {
 function createObjectPrompt() {
   const name = prompt(t("promptNewObj"));
   if (!name) return;
-  const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-  database.objects.push({ id, name, defaultRole: "Komponent", props: {} });
+  const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_') + "_" + Date.now().toString().slice(-4);
+  const lib = currentLib();
+  lib.objects.push({ id, name, defaultRole: "Komponent", props: {} });
   selectedObjId = id;
   persist();
   renderM1();
@@ -831,7 +971,9 @@ function createObjectPrompt() {
 let activeTargetCat = "";
 function openAddTagModal(catName = "") {
   activeTargetCat = catName;
-  const obj = database.objects.find(o => o.id === selectedObjId);
+  const lib = currentLib();
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (!obj) return;
   document.getElementById("modal-obj-title").innerText = obj.name;
   document.getElementById("tag-autocomplete-input").value = "";
   document.getElementById("tag-suggestions").style.display = "none";
@@ -845,6 +987,7 @@ function closeTagModal() {
 }
 
 function handleTagInput(query) {
+  const lib = currentLib();
   const sugBox = document.getElementById("tag-suggestions");
   const synAlert = document.getElementById("synonym-alert");
   sugBox.innerHTML = "";
@@ -856,8 +999,7 @@ function handleTagInput(query) {
     return;
   }
 
-  // 1. Existerande egenskaper
-  const propMatches = Object.keys(database.properties).filter(p => p.toLowerCase().includes(q));
+  const propMatches = Object.keys(lib.properties).filter(p => p.toLowerCase().includes(q));
   if (propMatches.length > 0) {
     sugBox.style.display = "block";
     propMatches.forEach(match => {
@@ -874,9 +1016,8 @@ function handleTagInput(query) {
     sugBox.style.display = "none";
   }
 
-  // 2. Synonym-skanning (Frank Steg 2B)
   let matchedSynonymTarget = null;
-  Object.entries(database.properties).forEach(([pName, meta]) => {
+  Object.entries(lib.properties).forEach(([pName, meta]) => {
     if (meta.synonyms && meta.synonyms.some(s => s.toLowerCase() === q)) {
       matchedSynonymTarget = pName;
     }
@@ -897,11 +1038,12 @@ function submitAssignTag() {
   const val = document.getElementById("tag-autocomplete-input").value.trim();
   if (!val) return;
 
-  const obj = database.objects.find(o => o.id === selectedObjId);
-  if (!database.properties[val]) {
-    const cat = activeTargetCat || prompt(t("promptNewPropCat", val), "General") || "General";
-    if (!database.categories[cat]) database.categories[cat] = { system: "General" };
-    database.properties[val] = { category: cat, synonyms: [] };
+  const lib = currentLib();
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (!lib.properties[val]) {
+    const cat = activeTargetCat || prompt(t("promptNewPropCat", val), Object.keys(lib.categories)[0] || "General") || "General";
+    if (!lib.categories[cat]) lib.categories[cat] = { system: "Custom" };
+    lib.properties[val] = { category: cat, synonyms: [] };
   }
 
   obj.props[val] = {};
@@ -912,9 +1054,14 @@ function submitAssignTag() {
 
 // ==================== 2. EGENSKAPSHANTERAREN ====================
 function renderM2() {
+  const lib = currentLib();
   const cList = document.getElementById("cat-list-ui");
   cList.innerHTML = "";
-  Object.keys(database.categories).forEach(c => {
+
+  const catKeys = Object.keys(lib.categories);
+  if (!catKeys.includes(selectedCat) && catKeys.length > 0) selectedCat = catKeys[0];
+
+  catKeys.forEach(c => {
     const d = document.createElement("div");
     d.className = `list-item ${c === selectedCat ? 'selected' : ''}`;
     d.innerText = c;
@@ -924,32 +1071,46 @@ function renderM2() {
 
   const pList = document.getElementById("prop-list-ui");
   pList.innerHTML = "";
-  Object.entries(database.properties)
-    .filter(([_, data]) => data.category === selectedCat)
-    .forEach(([p, data]) => {
-      const d = document.createElement("div");
-      d.className = `list-item ${p === selectedProp ? 'selected' : ''}`;
-      d.innerHTML = `<span>${p}</span>${data.opposite ? '<span style="font-size:9px; color:#5b7bb2;">[Polär]</span>' : ''}`;
-      d.onclick = () => { selectedProp = p; renderM2(); };
-      pList.appendChild(d);
-    });
 
-  const meta = database.properties[selectedProp];
-  if (!meta) return;
+  const matchingProps = Object.entries(lib.properties).filter(([_, data]) => data.category === selectedCat);
+  if (!matchingProps.some(([p]) => p === selectedProp) && matchingProps.length > 0) {
+    selectedProp = matchingProps[0][0];
+  }
+
+  matchingProps.forEach(([p, data]) => {
+    const d = document.createElement("div");
+    d.className = `list-item ${p === selectedProp ? 'selected' : ''}`;
+    d.innerHTML = `<span>${p}</span>${data.opposite ? '<span style="font-size:9px; color:#5b7bb2;">[Polär]</span>' : ''}`;
+    d.onclick = () => { selectedProp = p; renderM2(); };
+    pList.appendChild(d);
+  });
+
+  const meta = lib.properties[selectedProp];
+  if (!meta) {
+    document.getElementById("det-name").value = "";
+    document.getElementById("det-synonyms").value = "";
+    document.getElementById("det-desc").value = "";
+    return;
+  }
 
   document.getElementById("det-name").value = selectedProp;
   document.getElementById("det-synonyms").value = meta.synonyms ? meta.synonyms.join(", ") : "";
   document.getElementById("det-desc").value = meta.desc || "";
 
   const catSel = document.getElementById("det-cat");
-  catSel.innerHTML = Object.keys(database.categories).map(c => `<option value="${c}" ${c === meta.category ? 'selected' : ''}>${c}</option>`).join("");
+  catSel.innerHTML = Object.keys(lib.categories).map(c => 
+    `<option value="${c}" ${c === meta.category ? 'selected' : ''}>${c}</option>`
+  ).join("");
 
   const oppSel = document.getElementById("det-opposite");
-  oppSel.innerHTML = `<option value="">${t("noOpp")}</option>` + Object.keys(database.properties).filter(p => p !== selectedProp).map(p => 
-    `<option value="${p}" ${p === meta.opposite ? 'selected' : ''}>${p}</option>`).join("");
+  oppSel.innerHTML = `<option value="">${t("noOpp")}</option>` + 
+    Object.keys(lib.properties).filter(p => p !== selectedProp).map(p => 
+      `<option value="${p}" ${p === meta.opposite ? 'selected' : ''}>${p}</option>`
+    ).join("");
 }
 
 function savePropertyDetails() {
+  const lib = currentLib();
   const newName = document.getElementById("det-name").value.trim();
   const newCat = document.getElementById("det-cat").value;
   const syns = document.getElementById("det-synonyms").value.split(",").map(s => s.trim()).filter(Boolean);
@@ -957,16 +1118,18 @@ function savePropertyDetails() {
   const opp = document.getElementById("det-opposite").value;
 
   const old = selectedProp;
-  const data = database.properties[old];
+  const data = lib.properties[old];
+  if (!data) return;
+
   data.category = newCat;
   data.synonyms = syns;
   data.desc = desc;
   data.opposite = opp;
 
   if (newName !== old) {
-    database.properties[newName] = data;
-    delete database.properties[old];
-    database.objects.forEach(o => {
+    lib.properties[newName] = data;
+    delete lib.properties[old];
+    lib.objects.forEach(o => {
       if (o.props[old]) { o.props[newName] = o.props[old]; delete o.props[old]; }
     });
     selectedProp = newName;
@@ -977,14 +1140,16 @@ function savePropertyDetails() {
 
 // ==================== 3. FORMELMODULEN ====================
 function renderFormula() {
+  const lib = currentLib();
+  if (!lib.formula) lib.formula = [];
   const tbody = document.getElementById("formula-body");
   tbody.innerHTML = "";
-  const total = formula.reduce((s, r) => s + r.qty, 0);
+  const total = lib.formula.reduce((s, r) => s + r.qty, 0);
 
-  formula.forEach((row, i) => {
+  lib.formula.forEach((row, i) => {
     const tr = document.createElement("tr");
     const share = total > 0 ? Math.round((row.qty / total) * 100) : 0;
-    const opts = database.objects.map(o => `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${o.name}</option>`).join("");
+    const opts = lib.objects.map(o => `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${o.name}</option>`).join("");
 
     tr.innerHTML = `
       <td class="row-num">${i+1}</td>
@@ -1004,44 +1169,54 @@ function renderFormula() {
   calculateEffects(total);
 }
 
-function updateRow(i, f, v) { formula[i][f] = v; renderFormula(); }
-function updateQty(i, delta) { formula[i].qty = Math.max(0, formula[i].qty + delta); renderFormula(); }
-function deleteRow(i) { formula.splice(i, 1); renderFormula(); }
-function addFormulaRow() { if (database.objects[0]) formula.push({ objId: database.objects[0].id, role: "Komponent", qty: 1 }); renderFormula(); }
+function updateRow(i, f, v) { currentLib().formula[i][f] = v; persist(); renderFormula(); }
+function updateQty(i, delta) { currentLib().formula[i].qty = Math.max(0, currentLib().formula[i].qty + delta); persist(); renderFormula(); }
+function deleteRow(i) { currentLib().formula.splice(i, 1); persist(); renderFormula(); }
+function addFormulaRow() { 
+  const lib = currentLib();
+  if (lib.objects.length > 0) {
+    lib.formula.push({ objId: lib.objects[0].id, role: "Komponent", qty: 1 });
+    persist();
+    renderFormula();
+  }
+}
 
 function promptManagePins() {
-  const catNames = Object.keys(database.categories);
-  const choice = prompt("Välj kategori / Select category:\n" + catNames.map((c, i) => `${i+1}. ${c} ${database.pinnedConfigs[c] ? '[' + database.pinnedConfigs[c] + ']' : ''}`).join("\n"));
+  const lib = currentLib();
+  if (!lib.pinnedConfigs) lib.pinnedConfigs = {};
+  const catNames = Object.keys(lib.categories);
+  const choice = prompt("Välj kategori / Select category:\n" + catNames.map((c, i) => `${i+1}. ${c} ${lib.pinnedConfigs[c] ? '[' + lib.pinnedConfigs[c] + ']' : ''}`).join("\n"));
   if (!choice) return;
   const idx = parseInt(choice) - 1;
   const selectedCat = catNames[idx];
   if (!selectedCat) return;
 
-  if (database.pinnedConfigs[selectedCat]) {
-    if (confirm(`Ta bort / Remove pin '${selectedCat}'?`)) delete database.pinnedConfigs[selectedCat];
+  if (lib.pinnedConfigs[selectedCat]) {
+    if (confirm(`Ta bort / Remove pin '${selectedCat}'?`)) delete lib.pinnedConfigs[selectedCat];
   } else {
     const symbol = prompt(`Ange symbol/emoji / Enter symbol:`, "📌") || "📌";
-    database.pinnedConfigs[selectedCat] = symbol;
+    lib.pinnedConfigs[selectedCat] = symbol;
   }
   persist();
   renderFormula();
 }
 
 function calculateEffects(total) {
+  const lib = currentLib();
   let pSum = {};
   let pSyn = {};
   let pinnedItems = [];
 
-  if (total > 0) {
-    formula.forEach(r => {
+  if (total > 0 && lib.formula) {
+    lib.formula.forEach(r => {
       if (r.qty <= 0) return;
-      const obj = database.objects.find(o => o.id === r.objId);
+      const obj = lib.objects.find(o => o.id === r.objId);
       if (!obj) return;
 
       Object.keys(obj.props).forEach(p => {
-        const cat = database.properties[p]?.category;
-        if (database.pinnedConfigs && database.pinnedConfigs[cat]) {
-          pinnedItems.push({ symbol: database.pinnedConfigs[cat], prop: p, source: obj.name, cat: cat });
+        const cat = lib.properties[p]?.category;
+        if (lib.pinnedConfigs && lib.pinnedConfigs[cat]) {
+          pinnedItems.push({ symbol: lib.pinnedConfigs[cat], prop: p, source: obj.name, cat: cat });
           return;
         }
         pSum[p] = (pSum[p] || 0) + r.qty;
@@ -1050,7 +1225,6 @@ function calculateEffects(total) {
     });
   }
 
-  // Pinnade rutan
   const pinDiv = document.getElementById("formula-pinned-items");
   if (pinnedItems.length > 0) {
     pinDiv.innerHTML = pinnedItems.map(it => `
@@ -1063,7 +1237,6 @@ function calculateEffects(total) {
     pinDiv.innerHTML = `<span style="color:#888; font-style:italic; font-size:10px;">${t("noPinnedHits")}</span>`;
   }
 
-  // Kvantitativ lista
   const tbody = document.getElementById("formula-props-body");
   tbody.innerHTML = "";
   let list = Object.keys(pSum).map(p => ({ name: p, syn: pSyn[p], eff: Math.round((pSum[p] / total) * 100) }));
@@ -1081,12 +1254,13 @@ function calculateEffects(total) {
 }
 
 function renderBalance(pSum, total) {
+  const lib = currentLib();
   const cont = document.getElementById("balance-meter-ui");
   cont.innerHTML = "";
   const evaled = new Set();
 
   Object.keys(pSum).forEach(p => {
-    const opp = database.properties[p]?.opposite;
+    const opp = lib.properties[p]?.opposite;
     if (opp && !evaled.has([p, opp].sort().join("::"))) {
       evaled.add([p, opp].sort().join("::"));
       const diff = ((pSum[p] || 0) - (pSum[opp] || 0)) / total;
@@ -1096,7 +1270,6 @@ function renderBalance(pSum, total) {
 }
 
 // ==================== 4. FILTERSÖK ====================
-let searchFilters = [];
 function addSearchFilter() {
   const val = document.getElementById("search-input").value.trim();
   if (val && !searchFilters.includes(val)) {
@@ -1112,8 +1285,11 @@ function removeFilter(f) {
 }
 
 function renderSearch() {
+  const lib = currentLib();
   const fCont = document.getElementById("active-filters");
-  fCont.innerHTML = searchFilters.map(f => `<span class="tag-badge"><span>${f}</span><b style="color:red; margin-left:4px; cursor:pointer;" onclick="removeFilter('${f}')">✕</b></span>`).join("");
+  fCont.innerHTML = searchFilters.map(f => 
+    `<span class="tag-badge"><span>${f}</span><b style="color:red; margin-left:4px; cursor:pointer;" onclick="removeFilter('${f}')">✕</b></span>`
+  ).join("");
 
   const tbody = document.getElementById("search-results-body");
   tbody.innerHTML = "";
@@ -1124,7 +1300,7 @@ function renderSearch() {
   }
 
   let res = [];
-  database.objects.forEach(obj => {
+  lib.objects.forEach(obj => {
     let match = searchFilters.filter(f => obj.props[f] !== undefined);
     if (match.length > 0) {
       res.push({ name: obj.name, pct: Math.round((match.length / searchFilters.length) * 100), match });
@@ -1137,12 +1313,53 @@ function renderSearch() {
   });
 }
 
-// Filhantering
+// ==================== MALLAR OCH FILHANTERING ====================
+function loadMasterTemplate() {
+  if (!confirm(t("confirmLoadTemplate"))) return;
+  const lib = currentLib();
+
+  const masterCats = [
+    "Part Used", "Ingestion forms", "External Forms of Use", "Evidence of Effectiveness",
+    "Adverse Effects", "Conservation Status", "Diets", "Remedy Classifications",
+    "Ayurveda & Doshas", "Gunas (Metabolic Qualities)", "TCM Actions", "Six Tissue States",
+    "Western Energetics", "Western Actions", "Nutritional Actions", "Phytochemical Constituents",
+    "Nutrients", "Planetary Rulers", "Magical & Spiritual Uses", "Symptoms", "Precautions"
+  ];
+
+  masterCats.forEach(c => {
+    if (!lib.categories[c]) lib.categories[c] = { system: "Master Taxonomy" };
+  });
+
+  const masterProps = {
+    "Warming": { category: "Western Energetics", opposite: "Cooling", synonyms: ["Varm", "Hot"] },
+    "Cooling": { category: "Western Energetics", opposite: "Warming", synonyms: ["Kall", "Cold"] },
+    "Drying":  { category: "Western Energetics", opposite: "Moistening", synonyms: ["Torr"] },
+    "Moistening": { category: "Western Energetics", opposite: "Drying", synonyms: ["Fuktande"] },
+    "Roots":   { category: "Part Used", synonyms: ["Rot", "Rhizome"] },
+    "Leaves":  { category: "Part Used", synonyms: ["Blad"] },
+    "Flowers": { category: "Part Used", synonyms: ["Blommor"] },
+    "Tea":     { category: "Ingestion forms", synonyms: ["Te"] },
+    "Tincture":{ category: "Ingestion forms", synonyms: ["Tinktur"] },
+    "Anti-inflammatory": { category: "Western Actions", synonyms: ["Antiinflammatorisk"] },
+    "Antimicrobial":     { category: "Western Actions", synonyms: ["Antimikrobiell"] },
+    "Carminative":       { category: "Western Actions", synonyms: ["Väderdrivande"] },
+    "Nervine Relaxant":  { category: "Western Actions", synonyms: ["Lugnande"] }
+  };
+
+  Object.entries(masterProps).forEach(([p, data]) => {
+    if (!lib.properties[p]) lib.properties[p] = data;
+  });
+
+  persist();
+  renderAllViews();
+  alert(t("templateLoaded"));
+}
+
 function exportDatabaseFile() {
-  const blob = new Blob([JSON.stringify(database, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "taxonomy_backup_" + new Date().toISOString().slice(0,10) + ".json";
+  a.download = "all_libraries_backup_" + new Date().toISOString().slice(0,10) + ".json";
   a.click();
 }
 
@@ -1151,17 +1368,37 @@ function importDatabaseFile(e) {
   if (!file) return;
   const r = new FileReader();
   r.onload = (ev) => {
-    database = JSON.parse(ev.target.result);
-    persist();
-    renderM1();
-    alert(t("dbImported"));
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (imported.libraries) {
+        appData = imported;
+      } else if (imported.categories && imported.objects) {
+        const id = "imported_" + Date.now();
+        appData.libraries[id] = {
+          name: "Importerat Bibliotek",
+          categories: imported.categories,
+          properties: imported.properties || {},
+          objects: imported.objects || [],
+          pinnedConfigs: imported.pinnedConfigs || {},
+          formula: imported.formula || []
+        };
+        appData.activeLibId = id;
+      }
+      persist();
+      initSelectionDefaults();
+      renderAllViews();
+      alert(t("dbImported"));
+    } catch(err) {
+      alert("Kunde inte läsa JSON-filen.");
+    }
   };
   r.readAsText(file);
 }
 
-// Start
+// Uppstart
 updateUILanguage();
-renderM1();
+initSelectionDefaults();
+renderAllViews();
 </script>
 
 </body>
