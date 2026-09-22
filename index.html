@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Universal Taxonomy IDE v0.15 [Explorer & Full Engine]</title>
+  <title>Universal Taxonomy IDE v0.15.1 [Tree Toggle & Highlight Fix]</title>
   <style>
     :root {
       --bg-main: #18191f;
@@ -156,6 +156,15 @@
       padding: 1px 5px;
       border-radius: 10px;
       color: #777c91;
+    }
+
+    /* GUL HIGHLIGHT FÖR SÖKTRÄFFAR */
+    mark.tree-highlight {
+      background: #ffb703;
+      color: #000;
+      font-weight: bold;
+      border-radius: 2px;
+      padding: 0 2px;
     }
 
     /* HÖGER HUVUDYTA */
@@ -375,24 +384,24 @@
   <!-- TOPP-VERKTYGSFÄLT -->
   <div class="top-bar">
     <div class="top-left">
-      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.15</span></span>
+      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.15.1</span></span>
       <div style="display:flex; align-items:center; gap:4px; margin-left:12px;">
         <span style="color:var(--text-muted);" id="lbl-top-lib">Bibliotek:</span>
-        <select id="sel-library" onchange="switchLibrary(this.value)"></select>
-        <button onclick="createNewLibraryPrompt()" id="btn-top-new-lib">+ Nytt</button>
+        <select id="sel-library" onchange="switchLibrary(this.value)" title="Välj vilket bibliotek du vill arbeta i"></select>
+        <button onclick="createNewLibraryPrompt()" id="btn-top-new-lib" title="Skapa ett nytt tomt bibliotek">+ Nytt</button>
       </div>
     </div>
 
     <div class="top-right">
-      <button onclick="setWorkspaceView('FORMULA')" id="btn-mode-formula">⚗ Formelmodul</button>
-      <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search">🔍 Filtersök</button>
-      <button onclick="loadMasterTemplate()" id="btn-load-template">🌿 Läs in Master Index</button>
-      <button onclick="exportBackup()" id="btn-export">💾 Backup</button>
-      <button onclick="document.getElementById('file-import').click()" id="btn-import">📂 Importera</button>
+      <button onclick="setWorkspaceView('FORMULA')" id="btn-mode-formula" title="Öppna formel- och receptmotorn">⚗ Formelmodul</button>
+      <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search" title="Filtrera och sök objekt baserat på egenskaper">🔍 Filtersök</button>
+      <button onclick="loadMasterTemplate()" id="btn-load-template" title="Läs in Franks Herbal Master Tag Index taxonomier">🌿 Läs in Master Index</button>
+      <button onclick="exportBackup()" id="btn-export" title="Ladda ner en fullständig säkerhetskopia som .json">💾 Backup</button>
+      <button onclick="document.getElementById('file-import').click()" id="btn-import" title="Läs in en sparad .json-fil">📂 Importera</button>
       <input type="file" id="file-import" style="display:none;" accept=".json" onchange="importBackup(event)">
       <div style="display:flex; align-items:center; gap:4px; margin-left:6px;">
         <span style="font-size:12px;">🌐</span>
-        <select id="sel-lang" onchange="changeLanguage(this.value)">
+        <select id="sel-lang" onchange="changeLanguage(this.value)" title="Växla språk mellan Svenska och Engelska">
           <option value="sv">Svenska</option>
           <option value="en">English</option>
         </select>
@@ -406,7 +415,8 @@
     <!-- VÄNSTER: EXPLORER / TRÄDMENY (Franks skiss) -->
     <div class="sidebar">
       <div class="tree-search-box">
-        <input type="text" id="tree-filter-input" placeholder="🔍 Snabbfilter i trädet..." oninput="renderTree()">
+        <input type="text" id="tree-filter-input" placeholder="🔍 Snabbfilter i trädet (Enter för att öppna)..." 
+               oninput="renderTree()" onkeydown="handleTreeFilterKey(event)" title="Skriv för att filtrera och markera i trädet">
       </div>
       <div class="tree-view" id="tree-root"></div>
     </div>
@@ -422,8 +432,8 @@
             <span id="obj-title-name">Objektprofil</span>
           </div>
           <div style="display:flex; gap:6px;">
-            <button onclick="openBatchAddPrompt()" id="btn-batch-add">+ Lägg till fler (komma)</button>
-            <button onclick="openAddTagModal()" id="btn-assign-prop">+ Tilldela egenskap</button>
+            <button onclick="openBatchAddPrompt()" id="btn-batch-add" title="Klistra in flera egenskaper separerade med kommatecken">+ Lägg till fler (komma)</button>
+            <button onclick="openAddTagModal()" id="btn-assign-prop" title="Sök och lägg till en egenskap på detta objekt">+ Tilldela egenskap</button>
           </div>
         </div>
         <div id="obj-categories-container" style="overflow-y:auto; flex-grow:1;"></div>
@@ -436,11 +446,10 @@
             <span style="color:var(--accent-active);">🏷</span>
             <span id="prop-title-name">Egenskapsdetaljer</span>
           </div>
-          <button class="primary" onclick="saveActiveProperty()" id="btn-save-prop">Spara Ändringar</button>
+          <button class="primary" onclick="saveActiveProperty()" id="btn-save-prop" title="Spara ändringar för denna egenskap">Spara Ändringar</button>
         </div>
 
         <div class="meta-grid">
-          <!-- Vänster halva: Beskrivning, länkar, källor -->
           <div>
             <div class="form-group">
               <label id="lbl-prop-name">Egenskapsnamn</label>
@@ -468,11 +477,10 @@
             </div>
           </div>
 
-          <!-- Höger halva: Förekommer i objekt -->
           <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:3px; padding:10px; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <span style="font-weight:700; color:var(--text-muted); text-transform:uppercase;" id="lbl-featured-objs">Förekommer i objekt (Featured in Objects)</span>
-              <button onclick="promptAssignActivePropToObj()" id="btn-connect-obj">+ Koppla objekt</button>
+              <button onclick="promptAssignActivePropToObj()" id="btn-connect-obj" title="Koppla denna egenskap till fler objekt">+ Koppla objekt</button>
             </div>
             <div id="prop-featured-objs-list" style="flex-grow:1; overflow-y:auto; border:1px solid var(--border); background:var(--bg-input); border-radius:3px; padding:4px;"></div>
           </div>
@@ -505,8 +513,8 @@
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:8px;">
-          <button class="danger" onclick="purgeUnkeptTrash()" id="btn-purge-trash">Rensa obockade permanent (Remove Unkept)</button>
-          <button class="primary" onclick="reviveKeptTrash()" id="btn-revive-trash">Återställ bockade (Revive kept files)</button>
+          <button class="danger" onclick="purgeUnkeptTrash()" id="btn-purge-trash" title="Radera permanent alla element som inte har en bock">Rensa obockade permanent (Remove Unkept)</button>
+          <button class="primary" onclick="reviveKeptTrash()" id="btn-revive-trash" title="Återställ alla bockade element till sina platser">Återställ bockade (Revive kept files)</button>
         </div>
       </div>
 
@@ -519,7 +527,6 @@
           <button onclick="addFormulaRow()" id="btn-formula-add">+ Ny Komponent</button>
         </div>
 
-        <!-- PINNADE VARNINGAR & STATUSKATEGORIER -->
         <div class="pinned-status-panel">
           <div class="pinned-status-header">
             <span id="lbl-pinned-panel">📌 Pinnade Status- & Varningskategorier</span>
@@ -600,7 +607,7 @@ const i18n = {
     btnLoadTemplate: "🌿 Läs in Master Index",
     btnExport: "💾 Backup",
     btnImport: "📂 Importera",
-    treeSearchPlaceholder: "🔍 Snabbfilter i trädet...",
+    treeSearchPlaceholder: "🔍 Snabbfilter i trädet (Enter för att öppna)...",
     treeObjects: "📁 Objekt (Objects)",
     treeIndex: "📁 Egenskapsindex (Tag Index)",
     treeTrash: "Papperskorg (Trash Bin)",
@@ -678,7 +685,7 @@ const i18n = {
     btnLoadTemplate: "🌿 Load Master Index",
     btnExport: "💾 Backup",
     btnImport: "📂 Import",
-    treeSearchPlaceholder: "🔍 Quick filter tree...",
+    treeSearchPlaceholder: "🔍 Quick filter tree (Enter to open)...",
     treeObjects: "📁 Objects",
     treeIndex: "📁 Tag Index (Taxonomies)",
     treeTrash: "Trash Bin",
@@ -879,7 +886,7 @@ const defaultAppData = {
 };
 
 let appData = defaultAppData;
-const stored = localStorage.getItem("taxonomy_ide_v15") || localStorage.getItem("taxonomy_ide_v14") || localStorage.getItem("multi_lib_v13");
+const stored = localStorage.getItem("taxonomy_ide_v15_1") || localStorage.getItem("taxonomy_ide_v15") || localStorage.getItem("taxonomy_ide_v14") || localStorage.getItem("multi_lib_v13");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -900,7 +907,7 @@ function currentLib() {
 }
 
 function persist() {
-  localStorage.setItem("taxonomy_ide_v15", JSON.stringify(appData));
+  localStorage.setItem("taxonomy_ide_v15_1", JSON.stringify(appData));
 }
 
 // ==================== TILLSTÅND ====================
@@ -925,35 +932,73 @@ function setWorkspaceView(viewType) {
   renderTree();
 }
 
-// ==================== 1. EXPLORER-TRÄD (VÄNSTER) ====================
+// ==================== 1. EXPLORER-TRÄD MED FULL TOGGLE & HIGHLIGHT ====================
+function escapeHtml(text) {
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function highlightMatch(text, query) {
+  if (!query) return escapeHtml(text);
+  const raw = String(text);
+  const q = query.toLowerCase();
+  const idx = raw.toLowerCase().indexOf(q);
+  if (idx === -1) return escapeHtml(raw);
+  const before = escapeHtml(raw.slice(0, idx));
+  const match = escapeHtml(raw.slice(idx, idx + query.length));
+  const after = escapeHtml(raw.slice(idx + query.length));
+  return `${before}<mark class="tree-highlight">${match}</mark>${after}`;
+}
+
+function isNodeOpen(key, isFiltering) {
+  if (isFiltering) return true; // Under sökning expanderas alla matchande grenar automatiskt
+  const lib = currentLib();
+  if (!lib.treeOpen) lib.treeOpen = {};
+  return lib.treeOpen[key] !== false; // Öppet som standard, stängs till false vid klick
+}
+
+function toggleTreeNode(key) {
+  const lib = currentLib();
+  if (!lib.treeOpen) lib.treeOpen = {};
+  lib.treeOpen[key] = !isNodeOpen(key, false);
+  persist();
+  renderTree();
+}
+
+function handleTreeFilterKey(e) {
+  if (e.key === 'Enter') {
+    const firstLeaf = document.querySelector('.tree-node.search-match-leaf');
+    if (firstLeaf) firstLeaf.click();
+  }
+}
+
 function renderTree() {
   const lib = currentLib();
   const root = document.getElementById("tree-root");
   root.innerHTML = "";
   const filter = document.getElementById("tree-filter-input").value.trim().toLowerCase();
+  const isFiltering = filter.length > 0;
 
-  // OBJECTS
-  const objCount = lib.objects.length;
-  const isObjOpen = lib.treeOpen["objects"] || filter.length > 0;
-  const objNode = document.createElement("div");
-  objNode.innerHTML = `
-    <div class="tree-node ${activeView === 'OBJECT' ? 'active' : ''}" onclick="toggleTree('objects')">
-      <span class="tree-toggle">${isObjOpen ? '▼' : '▶'}</span>
-      <span>${t("treeObjects")}</span>
-      <span class="tree-badge">${objCount}</span>
-    </div>
-  `;
-  root.appendChild(objNode);
+  // --- SEKTION: OBJECTS ---
+  const matchingObjs = lib.objects.filter(o => !isFiltering || o.name.toLowerCase().includes(filter));
+  if (!isFiltering || matchingObjs.length > 0) {
+    const isObjOpen = isNodeOpen("objects", isFiltering);
+    const objNode = document.createElement("div");
+    objNode.innerHTML = `
+      <div class="tree-node ${activeView === 'OBJECT' ? 'active' : ''}" onclick="toggleTreeNode('objects')">
+        <span class="tree-toggle">${isObjOpen ? '▼' : '▶'}</span>
+        <span>${t("treeObjects")}</span>
+        <span class="tree-badge">${matchingObjs.length}</span>
+      </div>
+    `;
+    root.appendChild(objNode);
 
-  if (isObjOpen) {
-    const childWrap = document.createElement("div");
-    childWrap.className = "tree-children";
-    lib.objects
-      .filter(o => !filter || o.name.toLowerCase().includes(filter))
-      .forEach(obj => {
+    if (isObjOpen) {
+      const childWrap = document.createElement("div");
+      childWrap.className = "tree-children";
+      matchingObjs.forEach(obj => {
         const leaf = document.createElement("div");
-        leaf.className = `tree-node ${activeView === 'OBJECT' && selectedObjId === obj.id ? 'active' : ''}`;
-        leaf.innerHTML = `<span>📄</span> <span>${obj.name}</span>`;
+        leaf.className = `tree-node search-match-leaf ${activeView === 'OBJECT' && selectedObjId === obj.id ? 'active' : ''}`;
+        leaf.innerHTML = `<span>📄</span> <span>${highlightMatch(obj.name, filter)}</span>`;
         leaf.onclick = (e) => {
           e.stopPropagation();
           selectedObjId = obj.id;
@@ -961,73 +1006,118 @@ function renderTree() {
         };
         childWrap.appendChild(leaf);
       });
-    root.appendChild(childWrap);
+      root.appendChild(childWrap);
+    }
   }
 
-  // TAG INDEX
-  const isTaxOpen = lib.treeOpen["taxonomies"] || filter.length > 0;
-  const taxNode = document.createElement("div");
-  taxNode.innerHTML = `
-    <div class="tree-node ${activeView === 'PROPERTY' ? 'active' : ''}" onclick="toggleTree('taxonomies')">
-      <span class="tree-toggle">${isTaxOpen ? '▼' : '▶'}</span>
-      <span>${t("treeIndex")}</span>
-      <span class="tree-badge">${Object.keys(lib.properties).length}</span>
-    </div>
-  `;
-  root.appendChild(taxNode);
+  // --- SEKTION: TAG INDEX (SYSTEM -> KATEGORI -> EGENSKAP) ---
+  const systemMap = {};
+  Object.entries(lib.categories).forEach(([cName, cData]) => {
+    const sys = cData.system || "Generellt";
+    if (!systemMap[sys]) systemMap[sys] = [];
+    systemMap[sys].push(cName);
+  });
 
-  if (isTaxOpen) {
-    const taxWrap = document.createElement("div");
-    taxWrap.className = "tree-children";
+  // Filtrera fram vilka system och kategorier som har träffar
+  const filteredSystems = {};
+  let totalPropMatches = 0;
 
-    const systemMap = {};
-    Object.entries(lib.categories).forEach(([cName, cData]) => {
-      const sys = cData.system || "Generellt";
-      if (!systemMap[sys]) systemMap[sys] = [];
-      systemMap[sys].push(cName);
+  Object.entries(systemMap).forEach(([sysName, cats]) => {
+    cats.forEach(cName => {
+      const props = Object.entries(lib.properties).filter(([pName, pData]) => {
+        if (pData.category !== cName) return false;
+        if (!isFiltering) return true;
+        const nameHit = pName.toLowerCase().includes(filter);
+        const synHit = pData.synonyms && pData.synonyms.some(s => s.toLowerCase().includes(filter));
+        return nameHit || synHit;
+      });
+
+      const catMatches = isFiltering && cName.toLowerCase().includes(filter);
+      if (props.length > 0 || catMatches) {
+        if (!filteredSystems[sysName]) filteredSystems[sysName] = {};
+        filteredSystems[sysName][cName] = props;
+        totalPropMatches += props.length;
+      }
     });
+  });
 
-    Object.entries(systemMap).forEach(([sysName, cats]) => {
-      const sysDiv = document.createElement("div");
-      sysDiv.className = "tree-node";
-      sysDiv.innerHTML = `<span>🗂</span> <b>${sysName}</b>`;
-      taxWrap.appendChild(sysDiv);
+  const hasIndexMatches = !isFiltering || Object.keys(filteredSystems).length > 0;
+  if (hasIndexMatches) {
+    const isTaxOpen = isNodeOpen("taxonomies", isFiltering);
+    const taxNode = document.createElement("div");
+    taxNode.innerHTML = `
+      <div class="tree-node ${activeView === 'PROPERTY' ? 'active' : ''}" onclick="toggleTreeNode('taxonomies')">
+        <span class="tree-toggle">${isTaxOpen ? '▼' : '▶'}</span>
+        <span>${t("treeIndex")}</span>
+        <span class="tree-badge">${isFiltering ? totalPropMatches : Object.keys(lib.properties).length}</span>
+      </div>
+    `;
+    root.appendChild(taxNode);
 
-      const sysChildren = document.createElement("div");
-      sysChildren.className = "tree-children";
+    if (isTaxOpen) {
+      const taxWrap = document.createElement("div");
+      taxWrap.className = "tree-children";
 
-      cats.forEach(cName => {
-        const catDiv = document.createElement("div");
-        catDiv.className = "tree-node";
-        catDiv.innerHTML = `<span>📂</span> <span>${cName}</span>`;
-        sysChildren.appendChild(catDiv);
+      Object.entries(filteredSystems).forEach(([sysName, catsObj]) => {
+        const sysKey = "sys_" + sysName;
+        const isSysOpen = isNodeOpen(sysKey, isFiltering);
 
-        const props = Object.entries(lib.properties).filter(([p, data]) => data.category === cName);
-        if (props.length > 0) {
-          const propWrap = document.createElement("div");
-          propWrap.className = "tree-children";
-          props
-            .filter(([p]) => !filter || p.toLowerCase().includes(filter))
-            .forEach(([p]) => {
-              const pLeaf = document.createElement("div");
-              pLeaf.className = `tree-node ${activeView === 'PROPERTY' && selectedPropName === p ? 'active' : ''}`;
-              pLeaf.innerHTML = `<span>🏷</span> <span>${p}</span>`;
-              pLeaf.onclick = (e) => {
-                e.stopPropagation();
-                selectedPropName = p;
-                setWorkspaceView("PROPERTY");
-              };
-              propWrap.appendChild(pLeaf);
-            });
-          sysChildren.appendChild(propWrap);
+        const sysDiv = document.createElement("div");
+        sysDiv.className = "tree-node";
+        sysDiv.innerHTML = `
+          <span class="tree-toggle">${isSysOpen ? '▼' : '▶'}</span>
+          <span>🗂</span> <b>${highlightMatch(sysName, filter)}</b>
+        `;
+        sysDiv.onclick = () => toggleTreeNode(sysKey);
+        taxWrap.appendChild(sysDiv);
+
+        if (isSysOpen) {
+          const sysChildren = document.createElement("div");
+          sysChildren.className = "tree-children";
+
+          Object.entries(catsObj).forEach(([cName, propList]) => {
+            const catKey = "cat_" + cName;
+            const isCatOpen = isNodeOpen(catKey, isFiltering);
+
+            const catDiv = document.createElement("div");
+            catDiv.className = "tree-node";
+            catDiv.innerHTML = `
+              <span class="tree-toggle">${isCatOpen ? '▼' : '▶'}</span>
+              <span>📂</span> <span>${highlightMatch(cName, filter)}</span>
+              <span class="tree-badge" style="margin-left:auto;">${propList.length}</span>
+            `;
+            catDiv.onclick = (e) => {
+              e.stopPropagation();
+              toggleTreeNode(catKey);
+            };
+            sysChildren.appendChild(catDiv);
+
+            if (isCatOpen && propList.length > 0) {
+              const propWrap = document.createElement("div");
+              propWrap.className = "tree-children";
+
+              propList.forEach(([pName]) => {
+                const pLeaf = document.createElement("div");
+                pLeaf.className = `tree-node search-match-leaf ${activeView === 'PROPERTY' && selectedPropName === pName ? 'active' : ''}`;
+                pLeaf.innerHTML = `<span>🏷</span> <span>${highlightMatch(pName, filter)}</span>`;
+                pLeaf.onclick = (e) => {
+                  e.stopPropagation();
+                  selectedPropName = pName;
+                  setWorkspaceView("PROPERTY");
+                };
+                propWrap.appendChild(pLeaf);
+              });
+              sysChildren.appendChild(propWrap);
+            }
+          });
+          taxWrap.appendChild(sysChildren);
         }
       });
-      taxWrap.appendChild(sysChildren);
-    });
-    root.appendChild(taxWrap);
+      root.appendChild(taxWrap);
+    }
   }
 
-  // TRASH BIN
+  // --- SEKTION: TRASH BIN ---
   const trashCount = lib.trash.length;
   const trashNode = document.createElement("div");
   trashNode.innerHTML = `
@@ -1037,13 +1127,6 @@ function renderTree() {
     </div>
   `;
   root.appendChild(trashNode);
-}
-
-function toggleTree(nodeKey) {
-  const lib = currentLib();
-  lib.treeOpen[nodeKey] = !lib.treeOpen[nodeKey];
-  persist();
-  renderTree();
 }
 
 // ==================== 2. OBJEKTPROFIL ====================
@@ -1069,8 +1152,8 @@ function renderObjectView() {
       ? `<span style="color:#666; font-style:italic;">${t("noPropsInCat")}</span>`
       : assigned.map(p => `
           <span class="tag-badge">
-            <span onclick="inspectPropFromObj('${p}')">${p}</span>
-            <span style="color:var(--danger); margin-left:4px; font-weight:bold;" onclick="trashPropFromObj('${p}')" title="Trash bin">✕</span>
+            <span onclick="inspectPropFromObj('${p}')" title="Klicka för att inspektera i index">${p}</span>
+            <span style="color:var(--danger); margin-left:4px; font-weight:bold;" onclick="trashPropFromObj('${p}')" title="Kasta till papperskorgen">✕</span>
           </span>
         `).join("");
 
@@ -1078,8 +1161,8 @@ function renderObjectView() {
       <div class="cat-box-header">
         <div style="display:flex; align-items:center; gap:4px;">
           <span class="cat-title-text">${cat}</span>
-          <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
-          <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, 1)" ${idx === cats.length - 1 ? 'disabled' : ''}>▼</button>
+          <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Flytta kategori uppåt">▲</button>
+          <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, 1)" ${idx === cats.length - 1 ? 'disabled' : ''} title="Flytta kategori nedåt">▼</button>
         </div>
         <button style="font-size:9px;" onclick="openAddTagModal('${cat}')">${t("btnAddShort")}</button>
       </div>
@@ -1327,7 +1410,7 @@ function purgeUnkeptTrash() {
   }
 }
 
-// ==================== 5. FORMELMODULEN (MED PINNADE STATUSAR) ====================
+// ==================== 5. FORMELMODULEN ====================
 function promptManagePins() {
   const lib = currentLib();
   if (!lib.pinnedConfigs) lib.pinnedConfigs = {};
@@ -1403,7 +1486,6 @@ function calculateEffects(total) {
 
       Object.keys(obj.props).forEach(p => {
         const cat = lib.properties[p]?.category;
-        // Om kategorin är pinnad, lyft ut till pinnade rutan
         if (lib.pinnedConfigs && lib.pinnedConfigs[cat]) {
           pinnedFindings.push({
             symbol: lib.pinnedConfigs[cat],
@@ -1420,7 +1502,6 @@ function calculateEffects(total) {
     });
   }
 
-  // Pinnade rutan
   const pinCont = document.getElementById("formula-pinned-items");
   if (pinnedFindings.length > 0) {
     pinCont.innerHTML = pinnedFindings.map(item => `
@@ -1434,7 +1515,6 @@ function calculateEffects(total) {
     pinCont.innerHTML = `<span style="color:#777; font-style:italic;">${t("noPinnedHits")}</span>`;
   }
 
-  // Kvantitativ lista
   const tbody = document.getElementById("formula-props-body");
   tbody.innerHTML = "";
   let list = Object.keys(pSum).map(p => ({ name: p, syn: pSyn[p], eff: Math.round((pSum[p] / total) * 100) }));
@@ -1444,7 +1524,6 @@ function calculateEffects(total) {
     tbody.innerHTML += `<tr><td>${i+1}</td><td><b>${it.name}</b></td><td style="color:var(--accent);">${it.syn}</td><td style="text-align:right;">${it.eff}%</td></tr>`;
   });
 
-  // Balans
   const cont = document.getElementById("formula-balance-container");
   cont.innerHTML = "";
   const evaled = new Set();
@@ -1665,7 +1744,7 @@ function loadMasterTemplate() {
   alert(t("templateLoadedAlert"));
 }
 
-// Uppstart
+// Start
 updateUILanguage();
 updateLibrarySelect();
 renderTree();
