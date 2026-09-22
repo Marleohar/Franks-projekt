@@ -32,13 +32,13 @@
 
     /* ==================== TEMA 2: MODERN / CLEAN ==================== */
     [data-theme="modern"] {
-      --bg-main: #f8fafc;
+      --bg-main: #f1f5f9;
       --bg-panel: #ffffff;
       --bg-card: #ffffff;
-      --bg-card-hover: #f1f5f9;
-      --bg-input: #f1f5f9;
+      --bg-card-hover: #f8fafc;
+      --bg-input: #f8fafc;
       --border: #e2e8f0;
-      --border-focus: #2563eb;
+      --border-focus: #3b82f6;
       --text: #0f172a;
       --text-muted: #64748b;
       --accent: #2563eb;
@@ -46,13 +46,13 @@
       --accent-active: #d97706;
       --danger: #e11d48;
       --danger-bg: #ffe4e6;
-      --tag-bg: #eff6ff;
-      --tag-border: #bfdbfe;
-      --tag-text: #1d4ed8;
+      --tag-bg: #f8fafc;
+      --tag-border: #e2e8f0;
+      --tag-text: #334155;
       --pinned-bg: #fefce8;
       --pinned-border: #fef08a;
       --pinned-text: #854d0e;
-      --radius: 6px;
+      --radius: 10px;
     }
 
     /* ==================== TEMA 3: CLASSIC / WINDOWS ==================== */
@@ -178,7 +178,7 @@
       background: var(--bg-panel);
       border: 1px solid var(--border-focus);
       border-radius: var(--radius);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       max-height: 220px;
       overflow-y: auto;
       z-index: 5000;
@@ -209,7 +209,7 @@
     }
 
     .tree-node {
-      padding: 3px 6px;
+      padding: 4px 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -220,6 +220,23 @@
     }
     .tree-node:hover { background: var(--bg-card); color: var(--text); }
     .tree-node.active { background: var(--accent); color: #fff; font-weight: 600; }
+    
+    /* MODERN TEMA: Subtila pills i trädet istället för skarp balk */
+    [data-theme="modern"] .tree-node {
+      margin: 2px 6px;
+      padding: 5px 8px;
+      color: #475569;
+    }
+    [data-theme="modern"] .tree-node:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    [data-theme="modern"] .tree-node.active {
+      background: #e0e7ff;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+
     .tree-toggle {
       width: 12px;
       text-align: center;
@@ -289,15 +306,37 @@
       gap: 8px;
     }
 
-    /* KATEGORIKORT MED SUBTIL SYSTEMKANT */
+    /* KATEGORI-CONTAINER: STANDARD (IDE & CLASSIC) = 1 KOLUMN */
+    .categories-layout-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* KATEGORI-CONTAINER: MODERN = RESPONSIVT DASHBOARD-GRID */
+    [data-theme="modern"] .categories-layout-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 14px;
+    }
+
+    /* KATEGORIKORT */
     .cat-box {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 8px;
-      margin-bottom: 8px;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      padding: 8px 10px;
+      transition: all 0.2s ease;
     }
+    [data-theme="modern"] .cat-box {
+      padding: 12px 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+      border-radius: 12px;
+    }
+    [data-theme="modern"] .cat-box:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
     .cat-box-header {
       display: flex;
       justify-content: space-between;
@@ -310,6 +349,22 @@
       color: var(--accent-active);
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    [data-theme="modern"] .cat-title-text {
+      color: #0f172a;
+      font-size: 11px;
+    }
+
+    .sys-badge-pill {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
     .tag-flow {
@@ -329,12 +384,21 @@
       gap: 4px;
       font-size: 11px;
     }
-    .tag-badge:hover { filter: brightness(1.15); border-color: var(--accent); }
+    [data-theme="modern"] .tag-badge {
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-weight: 500;
+    }
+    .tag-badge:hover { filter: brightness(1.1); border-color: var(--accent); }
     .tag-comment-text {
       font-style: italic;
       color: var(--accent-active);
       font-size: 10px;
       margin-left: 2px;
+    }
+    [data-theme="modern"] .tag-comment-text {
+      color: #64748b;
+      font-weight: 400;
     }
 
     .tag-bullet-list {
@@ -364,7 +428,7 @@
       height: 100%;
       overflow-y: auto;
       padding: 12px;
-      box-shadow: -4px 0 16px rgba(0,0,0,0.15);
+      box-shadow: -4px 0 16px rgba(0,0,0,0.1);
     }
 
     .form-group {
@@ -391,7 +455,7 @@
       font-size: 11px;
     }
     table.data-table th {
-      background: rgba(0,0,0,0.08);
+      background: rgba(0,0,0,0.06);
       border: 1px solid var(--border);
       padding: 6px;
       text-align: left;
@@ -460,7 +524,6 @@
     </div>
 
     <div class="top-right">
-      <!-- TEMA-VÄLJARE -->
       <div style="display:flex; align-items:center; gap:4px; margin-right:6px;">
         <span id="lbl-theme">🎨 Tema:</span>
         <select id="sel-theme" onchange="switchTheme(this.value)">
@@ -522,7 +585,7 @@
             <button onclick="openAddTagModal()" id="btn-assign-prop">+ Tilldela egenskap</button>
           </div>
         </div>
-        <div id="obj-categories-container" style="overflow-y:auto; flex-grow:1;"></div>
+        <div id="obj-categories-container" class="categories-layout-container" style="overflow-y:auto; flex-grow:1;"></div>
       </div>
 
       <!-- VY 2: EGENSKAPSDETALJER I FULLVY -->
@@ -623,7 +686,7 @@
           <div class="panel-title"><span>🔍</span> <span id="lbl-search-title">Filtersök efter gemensamma egenskaper</span></div>
         </div>
         <div style="display:flex; gap:6px; margin-bottom:8px;">
-          <input type="text" id="filter-search-input" placeholder="Skriv egenskaper eller synonymer..." style="width:360px;">
+          <input type="text" id="filter-search-input" placeholder="Quick Search..." style="width:360px;">
           <button onclick="applySearchFilter()" id="btn-apply-filter">+ Applicera Filter</button>
         </div>
         <div id="filter-chips-container" style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;"></div>
@@ -734,27 +797,45 @@
   </div>
 
 <script>
-// ==================== SYSTEMFÄRGER (ACCENTER PER TEMA) ====================
+// ==================== SYSTEMFÄRGER & ACCENTER PER TEMA ====================
 const systemThemeAccents = {
   ide: {
-    "Energetik": "#f59e0b", // Varm bärnsten
-    "Fysiologi": "#10b981", // Skogsgrön
-    "Säkerhet":  "#ef4444", // Röd
-    "Generellt": "#6366f1"  // Indigo
+    "Energetik": { color: "#f59e0b", bg: "#2d2315" },
+    "Fysiologi": { color: "#10b981", bg: "#16281e" },
+    "Säkerhet":  { color: "#ef4444", bg: "#2d161c" },
+    "Generellt": { color: "#6366f1", bg: "#212431" }
   },
   modern: {
-    "Energetik": "#d97706", // Varm ockra/orange
-    "Fysiologi": "#059669", // Smaragdgrön
-    "Säkerhet":  "#dc2626", // Rubinröd
-    "Generellt": "#2563eb"  // Blå
+    "Energetik": { color: "#d97706", bg: "#fef3c7", border: "#fde68a" },
+    "Fysiologi": { color: "#059669", bg: "#d1fae5", border: "#a7f3d0" },
+    "Säkerhet":  { color: "#dc2626", bg: "#fee2e2", border: "#fecdd3" },
+    "Generellt": { color: "#2563eb", bg: "#e0e7ff", border: "#bfdbfe" }
   },
   classic: {
-    "Energetik": "#804000", // Brun/bärnsten
-    "Fysiologi": "#006633", // Mörkgrön
-    "Säkerhet":  "#990000", // Mörkröd
-    "Generellt": "#0a246a"  // Marinblå
+    "Energetik": { color: "#804000", bg: "#ffffff" },
+    "Fysiologi": { color: "#006633", bg: "#ffffff" },
+    "Säkerhet":  { color: "#990000", bg: "#ffffff" },
+    "Generellt": { color: "#0a246a", bg: "#ffffff" }
   }
 };
+
+// SYSTEM-ÖVERSÄTTNINGAR (Eliminerar svenska systemnamn i EN-läge)
+const systemTranslations = {
+  "Energetik": { sv: "Energetik", en: "Energetics" },
+  "Fysiologi": { sv: "Fysiologi", en: "Physiology" },
+  "Säkerhet":  { sv: "Säkerhet", en: "Safety" },
+  "Generellt": { sv: "Generellt", en: "General" }
+};
+
+function sysName(name) {
+  if (systemTranslations[name]) return systemTranslations[name][currentLang] || name;
+  for (let k in systemTranslations) {
+    if (systemTranslations[k].en.toLowerCase() === name.toLowerCase()) {
+      return systemTranslations[k][currentLang] || name;
+    }
+  }
+  return name;
+}
 
 // ==================== SPRÅKMOTOR (I18N) ====================
 const i18n = {
@@ -1068,7 +1149,7 @@ function updateUILanguage() {
   document.getElementById("btn-cancel-add-form").innerText = t("btnCancelAddForm");
 }
 
-// ==================== DATABAS ====================
+// ==================== DATABAS & LOCALISATION ====================
 const defaultAppData = {
   activeLibId: "herbal",
   theme: "ide",
@@ -1140,7 +1221,7 @@ const defaultAppData = {
 };
 
 let appData = defaultAppData;
-const stored = localStorage.getItem("taxonomy_ide_v17_3") || localStorage.getItem("taxonomy_ide_v17_2") || localStorage.getItem("taxonomy_ide_v17_1");
+const stored = localStorage.getItem("taxonomy_ide_v17_3") || localStorage.getItem("taxonomy_ide_v17_2") || localStorage.getItem("taxonomy_ide_v17");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -1170,6 +1251,33 @@ function currentLib() {
 
 function persist() {
   localStorage.setItem("taxonomy_ide_v17_3", JSON.stringify(appData));
+}
+
+// HJÄLPFUNKTIONER FÖR ATT VISA ENGELSKA FÖR STANDARD-OBJEKT/FORMLER
+function getDisplayObjName(obj) {
+  if (obj.id === "ginger") return currentLang === "en" ? "Ginger (Zingiber officinale)" : "Ingefära (Zingiber officinale)";
+  if (obj.id === "peppermint") return currentLang === "en" ? "Peppermint (Mentha piperita)" : "Pepparmynta (Mentha piperita)";
+  return obj.name;
+}
+
+function getDisplayComment(comment) {
+  if (!comment) return "";
+  if (currentLang === "en") {
+    if (comment === "väldigt hård; måste kokas länge") return "very hard; requires long decoction";
+    if (comment === "kraftigt svalkande") return "strongly cooling";
+    if (comment === "vid kramper") return "for cramps";
+  }
+  return comment;
+}
+
+function getDisplayFormulaName(name) {
+  if (name === "Magbalans & Skärpa" && currentLang === "en") return "Digestive Balance & Clarity";
+  return name;
+}
+
+function getDisplayLibName(lib) {
+  if (lib.name === "Örtkunskap (Herbal)" && currentLang === "en") return "Herbalism (Örter)";
+  return lib.name;
 }
 
 // ==================== TILLSTÅND ====================
@@ -1216,8 +1324,9 @@ function handleQuickSearch(query) {
   const hits = [];
 
   lib.objects.forEach(o => {
-    if (o.name.toLowerCase().includes(q)) {
-      hits.push({ name: o.name, type: "object", id: o.id, parent: "Object Index" });
+    const dName = getDisplayObjName(o);
+    if (dName.toLowerCase().includes(q)) {
+      hits.push({ name: dName, type: "object", id: o.id, parent: t("treeObjects") });
     }
   });
 
@@ -1225,19 +1334,20 @@ function handleQuickSearch(query) {
     const synMatch = pData.synonyms && pData.synonyms.some(s => s.toLowerCase().includes(q));
     if (pName.toLowerCase().includes(q) || synMatch) {
       const cat = pData.category || "General";
-      const sys = lib.categories[cat]?.system || "System";
+      const sys = sysName(lib.categories[cat]?.system || "Generellt");
       hits.push({ name: pName, type: "property", id: pName, parent: `${cat}; ${sys}` });
     }
   });
 
   Object.keys(lib.formulas).forEach(fName => {
-    if (fName.toLowerCase().includes(q)) {
-      hits.push({ name: fName, type: "formula", id: fName, parent: "Formler" });
+    const dName = getDisplayFormulaName(fName);
+    if (dName.toLowerCase().includes(q)) {
+      hits.push({ name: dName, type: "formula", id: fName, parent: t("treeFormulas") });
     }
   });
 
   if (hits.length === 0) {
-    dd.innerHTML = `<div style="padding:6px 8px; color:var(--text-muted); font-style:italic;">Inga träffar.</div>`;
+    dd.innerHTML = `<div style="padding:6px 8px; color:var(--text-muted); font-style:italic;">${t("noPropsInCat")}</div>`;
   } else {
     hits.slice(0, 10).forEach(h => {
       const item = document.createElement("div");
@@ -1300,16 +1410,16 @@ function createSystemPrompt() {
   }
 }
 
-function createCategoryPrompt(sysName) {
-  const name = prompt(t("promptNewCat", sysName));
+function createCategoryPrompt(sysNameVal) {
+  const name = prompt(t("promptNewCat", sysName(sysNameVal)));
   if (!name || name.trim() === "") return;
   const lib = currentLib();
   const catName = name.trim();
   if (!lib.categories[catName]) {
-    lib.categories[catName] = { system: sysName, subcategories: [] };
+    lib.categories[catName] = { system: sysNameVal, subcategories: [] };
     if (!lib.categoryOrder.includes(catName)) lib.categoryOrder.push(catName);
-    if (!lib.systems[sysName]) lib.systems[sysName] = { categories: [] };
-    if (!lib.systems[sysName].categories.includes(catName)) lib.systems[sysName].categories.push(catName);
+    if (!lib.systems[sysNameVal]) lib.systems[sysNameVal] = { categories: [] };
+    if (!lib.systems[sysNameVal].categories.includes(catName)) lib.systems[sysNameVal].categories.push(catName);
     persist();
     renderTree();
   }
@@ -1391,7 +1501,7 @@ function renderTree() {
     lib.objects.forEach(obj => {
       const leaf = document.createElement("div");
       leaf.className = `tree-node ${activeView === 'OBJECT' && selectedObjId === obj.id ? 'active' : ''}`;
-      leaf.innerHTML = `<span>📄</span> <span>${obj.name}</span>`;
+      leaf.innerHTML = `<span>📄</span> <span>${getDisplayObjName(obj)}</span>`;
       leaf.onclick = (e) => {
         e.stopPropagation();
         selectedObjId = obj.id;
@@ -1402,7 +1512,7 @@ function renderTree() {
     root.appendChild(wrap);
   }
 
-  // 2. TAG INDEX
+  // 2. TAG INDEX (SYSTEM -> KATEGORI -> SUBKATEGORI -> EGENSKAP)
   const isTaxOpen = !!lib.treeOpen["taxonomies"];
   const taxFolder = document.createElement("div");
   taxFolder.innerHTML = `
@@ -1424,14 +1534,14 @@ function renderTree() {
     newSysBtn.onclick = (e) => { e.stopPropagation(); createSystemPrompt(); };
     taxWrap.appendChild(newSysBtn);
 
-    Object.entries(lib.systems).forEach(([sysName, sysData]) => {
-      const sysKey = "sys_" + sysName;
+    Object.entries(lib.systems).forEach(([sysNameVal, sysData]) => {
+      const sysKey = "sys_" + sysNameVal;
       const isSysOpen = !!lib.treeOpen[sysKey];
       const sysDiv = document.createElement("div");
       sysDiv.className = "tree-node";
       sysDiv.innerHTML = `
         <span class="tree-toggle">${isSysOpen ? '▼' : '▶'}</span>
-        <span>🗂</span> <b>${sysName}</b>
+        <span>🗂</span> <b>${sysName(sysNameVal)}</b>
       `;
       sysDiv.onclick = () => toggleTreeNode(sysKey);
       taxWrap.appendChild(sysDiv);
@@ -1443,7 +1553,7 @@ function renderTree() {
         const newCatBtn = document.createElement("div");
         newCatBtn.className = "tree-node tree-create-btn";
         newCatBtn.innerHTML = `<span>➕</span> <span>${t("btnNewCatTree")}</span>`;
-        newCatBtn.onclick = (e) => { e.stopPropagation(); createCategoryPrompt(sysName); };
+        newCatBtn.onclick = (e) => { e.stopPropagation(); createCategoryPrompt(sysNameVal); };
         sysChildren.appendChild(newCatBtn);
 
         (sysData.categories || []).forEach(cName => {
@@ -1537,7 +1647,7 @@ function renderTree() {
     root.appendChild(taxWrap);
   }
 
-  // 3. FORMLER (ÖVERSATT)
+  // 3. FORMLER
   const isFormOpen = !!lib.treeOpen["formulas"];
   const formFolder = document.createElement("div");
   formFolder.innerHTML = `
@@ -1562,7 +1672,7 @@ function renderTree() {
     Object.keys(lib.formulas).forEach(fName => {
       const fLeaf = document.createElement("div");
       fLeaf.className = `tree-node ${activeView === 'FORMULA' && lib.activeFormulaName === fName ? 'active' : ''}`;
-      fLeaf.innerHTML = `<span>📜</span> <span>${fName}</span>`;
+      fLeaf.innerHTML = `<span>📜</span> <span>${getDisplayFormulaName(fName)}</span>`;
       fLeaf.onclick = (e) => {
         e.stopPropagation();
         lib.activeFormulaName = fName;
@@ -1585,7 +1695,7 @@ function renderTree() {
   root.appendChild(trashNode);
 }
 
-// ==================== 2. OBJEKTPROFIL (STILREN ACCENT-FÄRGNING) ====================
+// ==================== 2. OBJEKTPROFIL (FÄRGSÄTTNING) ====================
 function toggleSystemColors(isChecked) {
   currentLib().useSystemColors = isChecked;
   persist();
@@ -1622,7 +1732,7 @@ function renderObjectView() {
   const obj = lib.objects.find(o => o.id === selectedObjId);
   if (!obj) return;
 
-  document.getElementById("obj-title-name").innerText = `${t("objProfilePrefix")}${obj.name}`;
+  document.getElementById("obj-title-name").innerText = `${t("objProfilePrefix")}${getDisplayObjName(obj)}`;
   document.getElementById("chk-system-colors").checked = lib.useSystemColors;
   document.getElementById("chk-show-comments").checked = lib.showComments;
 
@@ -1641,18 +1751,31 @@ function renderObjectView() {
       }
     });
 
-    const sysName = lib.categories[cat]?.system || "Generellt";
+    const sysNameVal = lib.categories[cat]?.system || "Generellt";
     const layout = lib.categoryLayouts[cat] || "flow";
 
     const box = document.createElement("div");
     box.className = "cat-box";
 
-    // STILREN FÄRGSÄTTNING: Vänsterkants-accent (4px border-left) istället för heltäckande neon!
-    if (lib.useSystemColors) {
-      const accentColor = accents[sysName] || accents["Generellt"];
-      box.style.borderLeft = `4px solid ${accentColor}`;
+    // FÄRGNING LOGIK PER TEMA:
+    let badgeStyle = "background:rgba(0,0,0,0.06); color:var(--text-muted);";
+    if (currentTheme === "modern") {
+      if (lib.useSystemColors) {
+        const themeAccent = accents[sysNameVal] || accents["Generellt"];
+        box.style.borderTop = `3px solid ${themeAccent.color}`;
+        badgeStyle = `background:${themeAccent.bg}; color:${themeAccent.color}; border:1px solid ${themeAccent.border};`;
+      } else {
+        box.style.borderTop = "1px solid var(--border)";
+      }
     } else {
-      box.style.borderLeft = "1px solid var(--border)";
+      // IDE OCH CLASSIC: Behåller den stabila vänsterkanten
+      if (lib.useSystemColors) {
+        const themeAccent = accents[sysNameVal] || accents["Generellt"];
+        box.style.borderLeft = `4px solid ${themeAccent.color}`;
+        badgeStyle = `background:rgba(255,255,255,0.06); color:${themeAccent.color};`;
+      } else {
+        box.style.borderLeft = "1px solid var(--border)";
+      }
     }
 
     let itemsHtml = "";
@@ -1661,7 +1784,8 @@ function renderObjectView() {
     } else {
       if (layout === "flow") {
         itemsHtml = `<div class="tag-flow">` + assigned.map(item => {
-          const commentDisplay = (lib.showComments && item.comment) ? `<span class="tag-comment-text">(${item.comment})</span>` : '';
+          const displayComment = getDisplayComment(item.comment);
+          const commentDisplay = (lib.showComments && displayComment) ? `<span class="tag-comment-text">(${displayComment})</span>` : '';
           return `
             <span class="tag-badge" onclick="inspectTagInRightPanel('${item.name}')">
               <span>${item.name}</span>${commentDisplay}
@@ -1672,7 +1796,8 @@ function renderObjectView() {
         }).join("") + `</div>`;
       } else {
         itemsHtml = `<div class="tag-bullet-list">` + assigned.map(item => {
-          const commentDisplay = (lib.showComments && item.comment) ? `<span class="tag-comment-text">(${item.comment})</span>` : '';
+          const displayComment = getDisplayComment(item.comment);
+          const commentDisplay = (lib.showComments && displayComment) ? `<span class="tag-comment-text">(${displayComment})</span>` : '';
           return `
             <div class="bullet-item" onclick="inspectTagInRightPanel('${item.name}')">
               <span>•</span> <b>${item.name}</b> ${commentDisplay}
@@ -1688,8 +1813,9 @@ function renderObjectView() {
 
     box.innerHTML = `
       <div class="cat-box-header">
-        <div style="display:flex; align-items:center; gap:4px;">
-          <span class="cat-title-text">${cat} <span style="font-size:9px; opacity:0.65;">[${sysName}]</span></span>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="cat-title-text">${cat}</span>
+          <span class="sys-badge-pill" style="${badgeStyle}">[${sysName(sysNameVal)}]</span>
           <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Flytta upp">▲</button>
           <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, 1)" ${idx === cats.length - 1 ? 'disabled' : ''} title="Flytta ned">▼</button>
         </div>
@@ -1717,11 +1843,11 @@ function inspectTagInRightPanel(pName) {
   panel.style.display = "flex";
 
   const cat = meta.category || "Generellt";
-  const sys = lib.categories[cat]?.system || "Generellt";
+  const sys = sysName(lib.categories[cat]?.system || "Generellt");
 
   cont.innerHTML = `
     <div style="font-size:14px; font-weight:700; margin-bottom:4px;">${pName}</div>
-    <div style="font-size:10px; color:var(--text-muted); margin-bottom:12px;">Kategori: <b>${cat}</b> • System: <b>${sys}</b></div>
+    <div style="font-size:10px; color:var(--text-muted); margin-bottom:12px;">${t("categoryText")}: <b>${cat}</b> • System: <b>${sys}</b></div>
     
     <div class="form-group">
       <label>${t("lblPropDesc")}</label>
@@ -1781,7 +1907,7 @@ function renderPropertyView() {
 
   const catSel = document.getElementById("prop-edit-cat");
   catSel.innerHTML = Object.keys(lib.categories).map(c => 
-    `<option value="${c}" ${c === meta.category ? 'selected' : ''}>${c} (${lib.categories[c].system || 'System'})</option>`
+    `<option value="${c}" ${c === meta.category ? 'selected' : ''}>${c} (${sysName(lib.categories[c].system || 'Generellt')})</option>`
   ).join("");
 
   const oppSel = document.getElementById("prop-edit-opposite");
@@ -1801,7 +1927,7 @@ function renderPropertyView() {
       const row = document.createElement("div");
       row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:4px 6px; border-bottom:1px solid var(--border);";
       row.innerHTML = `
-        <span style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="jumpToObj('${o.id}')">${o.name}</span>
+        <span style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="jumpToObj('${o.id}')">${getDisplayObjName(o)}</span>
         <button style="font-size:9px;" onclick="disconnectPropFromSpecificObj('${o.id}')">${t("disconnectBtn")}</button>
       `;
       featCont.appendChild(row);
@@ -1839,7 +1965,7 @@ function openConnectObjectsModal() {
       label.style.cssText = "display:flex; align-items:center; gap:6px; cursor:pointer; font-size:11px;";
       label.innerHTML = `
         <input type="checkbox" value="${obj.id}" class="conn-obj-check">
-        <span>${obj.name}</span>
+        <span>${getDisplayObjName(obj)}</span>
       `;
       list.appendChild(label);
     });
@@ -1944,12 +2070,12 @@ function promptDeleteFormula() {
 function renderFormulaView() {
   const lib = currentLib();
   const fName = lib.activeFormulaName || Object.keys(lib.formulas)[0];
-  document.getElementById("formula-header-name").innerText = fName;
+  document.getElementById("formula-header-name").innerText = getDisplayFormulaName(fName);
 
   const backBtn = document.getElementById("btn-formula-back");
   if (navigatedFromObjectId) {
     const originObj = lib.objects.find(o => o.id === navigatedFromObjectId);
-    backBtn.innerText = `⬅ ${t("btnBackPrefix")}${originObj ? originObj.name : 'objekt'}`;
+    backBtn.innerText = `⬅ ${t("btnBackPrefix")}${originObj ? getDisplayObjName(originObj) : 'objekt'}`;
     backBtn.style.display = "inline-flex";
   } else {
     backBtn.style.display = "none";
@@ -1963,7 +2089,7 @@ function renderFormulaView() {
   rows.forEach((row, i) => {
     const tr = document.createElement("tr");
     const share = total > 0 ? Math.round((row.qty / total) * 100) : 0;
-    const opts = lib.objects.map(o => `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${o.name}</option>`).join("");
+    const opts = lib.objects.map(o => `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${getDisplayObjName(o)}</option>`).join("");
 
     tr.innerHTML = `
       <td>${i+1}</td>
@@ -2036,7 +2162,7 @@ function calculateEffects(total, rows) {
       Object.keys(obj.props).forEach(p => {
         const cat = lib.properties[p]?.category;
         if (lib.pinnedConfigs && lib.pinnedConfigs[cat]) {
-          pinnedFindings.push({ symbol: lib.pinnedConfigs[cat], prop: p, source: obj.name });
+          pinnedFindings.push({ symbol: lib.pinnedConfigs[cat], prop: p, source: getDisplayObjName(obj) });
           return;
         }
         pSum[p] = (pSum[p] || 0) + r.qty;
@@ -2049,7 +2175,7 @@ function calculateEffects(total, rows) {
   if (pinnedFindings.length > 0) {
     pinCont.innerHTML = pinnedFindings.map(item => `
       <div style="font-size:11px; margin-bottom:2px;">
-        <span>${item.symbol}</span> <b>[${item.prop}]</b> <span style="color:var(--text-muted);">(från ${item.source})</span>
+        <span>${item.symbol}</span> <b>[${item.prop}]</b> <span style="color:var(--text-muted);">(${t("fromText")} ${item.source})</span>
       </div>
     `).join("");
   } else {
@@ -2118,7 +2244,7 @@ function trashPropFromObj(pName, event) {
     id: "del_" + Date.now(),
     name: pName,
     type: "Objektkoppling",
-    originalPlace: `${obj.name} (${lib.properties[pName]?.category || 'General'})`,
+    originalPlace: `${getDisplayObjName(obj)} (${lib.properties[pName]?.category || 'General'})`,
     deletedAt: new Date().toLocaleString(),
     restoreData: { targetType: "object_prop", objId: obj.id, propName: pName },
     keep: false
@@ -2134,9 +2260,9 @@ function openAddToFormulaModal() {
   const lib = currentLib();
   const obj = lib.objects.find(o => o.id === selectedObjId);
   if (!obj) return;
-  document.getElementById("modal-add-form-obj-display").innerText = `Lägg till '${obj.name}' i formel:`;
+  document.getElementById("modal-add-form-obj-display").innerText = `${t("btnAddToFormula")}: '${getDisplayObjName(obj)}'`;
   const sel = document.getElementById("modal-sel-existing-formula");
-  sel.innerHTML = Object.keys(lib.formulas).map(f => `<option value="${f}">${f}</option>`).join("");
+  sel.innerHTML = Object.keys(lib.formulas).map(f => `<option value="${f}">${getDisplayFormulaName(f)}</option>`).join("");
   document.getElementById("modal-input-new-formula").value = "";
   document.getElementById("modal-add-to-formula").style.display = "flex";
 }
@@ -2254,7 +2380,7 @@ function renderTrashView() {
   tbody.innerHTML = "";
 
   if (lib.trash.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:20px;">Papperskorgen är tom.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:20px;">${t("noPropsInCat")}</td></tr>`;
     return;
   }
 
@@ -2361,7 +2487,7 @@ function renderSearchView() {
   lib.objects.forEach(obj => {
     let match = activeSearchFilters.filter(f => obj.props[f] !== undefined);
     if (match.length > 0) {
-      res.push({ id: obj.id, name: obj.name, pct: Math.round((match.length / activeSearchFilters.length) * 100), match });
+      res.push({ id: obj.id, name: getDisplayObjName(obj), pct: Math.round((match.length / activeSearchFilters.length) * 100), match });
     }
   });
   res.sort((a, b) => b.pct - a.pct);
@@ -2382,7 +2508,7 @@ function renderSearchView() {
 function updateLibrarySelect() {
   const sel = document.getElementById("sel-library");
   sel.innerHTML = Object.entries(appData.libraries).map(([id, lib]) => 
-    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${lib.name}</option>`
+    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${getDisplayLibName(lib)}</option>`
   ).join("");
 }
 
