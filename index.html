@@ -2,674 +2,755 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Universal Multi-Library System v0.13</title>
+  <title>Universal Taxonomy IDE v0.15 [Explorer & Full Engine]</title>
   <style>
     :root {
-      --bg: #d4d0c8;
-      --panel: #ece9d8;
-      --border-light: #ffffff;
-      --border-dark: #808080;
-      --border-darker: #404040;
-      --win-blue: #0a246a;
-      --grid-line: #c8c8c8;
-      --tag-bg: #e8eef7;
-      --tag-border: #5b7bb2;
+      --bg-main: #18191f;
+      --bg-panel: #21232d;
+      --bg-card: #2a2d3a;
+      --bg-card-hover: #333747;
+      --bg-input: #13141a;
+      --border: #383c4e;
+      --border-focus: #4d7cfe;
+      --text: #e1e3eb;
+      --text-muted: #8d93a8;
+      --accent: #4d7cfe;
+      --accent-hover: #3969ef;
+      --accent-active: #ff9800;
+      --danger: #ef476f;
+      --danger-bg: #3d1b26;
+      --success: #06d6a0;
+      --tag-bg: #26334d;
+      --tag-border: #3b527d;
+      --tag-text: #96beff;
+      --pinned-bg: #2d2a1c;
+      --pinned-border: #806820;
+      --pinned-text: #ffd166;
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #2e5b88;
-      font-family: Tahoma, "Segoe UI", sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 11px;
-      margin: 8px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
       user-select: none;
     }
 
-    .window {
-      background: var(--bg);
-      border-top: 2px solid var(--border-light);
-      border-left: 2px solid var(--border-light);
-      border-right: 2px solid var(--border-darker);
-      border-bottom: 2px solid var(--border-darker);
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
-      max-width: 1260px;
-      margin: 0 auto;
-    }
-
-    .title-bar {
-      background: linear-gradient(90deg, var(--win-blue), #5c8fc2);
-      padding: 3px 6px;
-      color: #fff;
-      font-weight: bold;
+    /* TOPPVERKTYGSFÄLT */
+    .top-bar {
+      background: #13141a;
+      border-bottom: 1px solid var(--border);
+      padding: 6px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-shrink: 0;
+      gap: 8px;
     }
-
-    .top-toolbar {
-      background: var(--bg);
-      padding: 4px 8px;
-      border-bottom: 1px solid var(--border-dark);
+    .top-left, .top-right {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       gap: 6px;
       flex-wrap: wrap;
     }
-
-    .toolbar-group {
+    .app-title {
+      font-weight: 700;
+      color: var(--accent-active);
+      letter-spacing: 0.5px;
       display: flex;
       align-items: center;
-      gap: 4px;
-      background: #dfdbd2;
-      padding: 2px 6px;
-      border: 1px solid #aaa;
-    }
-
-    .tab-bar {
-      display: flex;
-      gap: 3px;
-      padding: 4px 8px 0 8px;
-      background: var(--bg);
-      border-bottom: 2px solid var(--border-dark);
-    }
-    .tab-btn {
-      padding: 5px 12px;
-      background: #c0c0c0;
-      border-top: 2px solid var(--border-light);
-      border-left: 2px solid var(--border-light);
-      border-right: 2px solid var(--border-darker);
-      border-bottom: none;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 11px;
-      border-radius: 3px 3px 0 0;
-    }
-    .tab-btn.active {
-      background: var(--panel);
-      padding-bottom: 7px;
-      margin-bottom: -2px;
-      border-bottom: 2px solid var(--panel);
-      z-index: 10;
-    }
-
-    .module-content {
-      padding: 8px;
-      background: var(--panel);
-      min-height: 620px;
-    }
-
-    .section-card {
-      background: #ffffff;
-      border-top: 2px solid var(--border-dark);
-      border-left: 2px solid var(--border-dark);
-      border-right: 2px solid var(--border-light);
-      border-bottom: 2px solid var(--border-light);
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-    }
-    .section-title {
-      font-weight: bold;
-      text-transform: uppercase;
-      font-size: 11px;
-      margin-bottom: 6px;
-      padding-bottom: 3px;
-      border-bottom: 1px solid #aaa;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      gap: 6px;
     }
 
     button, select, input, textarea {
       font-family: inherit;
       font-size: 11px;
-    }
-
-    button {
-      background: var(--bg);
-      border-top: 1px solid var(--border-light);
-      border-left: 1px solid var(--border-light);
-      border-right: 1px solid var(--border-darker);
-      border-bottom: 1px solid var(--border-darker);
-      padding: 2px 6px;
-      cursor: pointer;
-    }
-    button:active {
-      border-top: 1px solid var(--border-darker);
-      border-left: 1px solid var(--border-darker);
-      border-right: 1px solid var(--border-light);
-      border-bottom: 1px solid var(--border-light);
-    }
-
-    .list-box {
-      overflow-y: auto;
-      border: 1px solid #999;
-      background: #fff;
-      flex-grow: 1;
-    }
-    .list-item {
-      padding: 4px 6px;
-      cursor: pointer;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .list-item:hover { background: #e8f0fe; }
-    .list-item.selected {
-      background: var(--win-blue);
-      color: #fff;
-      font-weight: bold;
-    }
-
-    .tag-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-    .tag-badge {
-      background: var(--tag-bg);
-      border: 1px solid var(--tag-border);
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
       border-radius: 3px;
-      padding: 2px 6px;
+      padding: 3px 8px;
+      outline: none;
+    }
+    button {
       cursor: pointer;
-      font-size: 11px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      font-weight: 500;
+      transition: background 0.1s, border-color 0.1s;
     }
-    .tag-badge:hover {
-      background: #d4e3fc;
-      border-color: #0a246a;
+    button:hover { background: var(--bg-card-hover); border-color: #555b75; }
+    button:active { border-color: var(--accent); }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.primary:hover { background: var(--accent-hover); }
+    button.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+    button.danger:hover { background: var(--danger); color: #fff; }
+
+    /* LAYOUT: EXPLORER TRÄD (VÄNSTER) + WORKSPACE (HÖGER) */
+    .workspace-container {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      flex-grow: 1;
+      height: calc(100vh - 42px);
+      overflow: hidden;
     }
 
-    .cat-block {
-      background: #fafafa;
-      border: 1px solid #ccc;
-      margin-bottom: 6px;
-      padding: 6px;
+    /* VÄNSTER TRÄDSPALT */
+    .sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
     }
-    .cat-header {
-      font-weight: bold;
-      color: #0a246a;
-      padding: 2px 4px;
-      background: #eaeaea;
-      display: inline-block;
-      border: 1px solid #bbb;
+    .tree-search-box {
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      background: #1a1c24;
+    }
+    .tree-search-box input {
+      width: 100%;
+      background: var(--bg-input);
+    }
+    .tree-view {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 6px 4px;
+    }
+
+    /* TRÄDNODER */
+    .tree-node {
+      padding: 3px 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 3px;
+      margin-bottom: 1px;
+      color: var(--text-muted);
+    }
+    .tree-node:hover { background: var(--bg-card); color: var(--text); }
+    .tree-node.active { background: #2f354a; color: #fff; font-weight: 600; }
+    .tree-toggle {
+      width: 12px;
+      text-align: center;
+      font-size: 9px;
+      cursor: pointer;
+      color: #7b8196;
+    }
+    .tree-children {
+      margin-left: 14px;
+      border-left: 1px dashed #34384a;
+      padding-left: 4px;
+    }
+    .tree-badge {
+      margin-left: auto;
+      font-size: 9px;
+      background: #18191f;
+      padding: 1px 5px;
+      border-radius: 10px;
+      color: #777c91;
+    }
+
+    /* HÖGER HUVUDYTA */
+    .main-content {
+      background: var(--bg-main);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .content-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* KATEGORIBLOCK I OBJEKTPROFIL */
+    .cat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+    .cat-box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .cat-title-text {
+      font-weight: 700;
+      font-size: 10px;
+      color: var(--accent-active);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .tag-badge {
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      color: var(--tag-text);
+      border-radius: 3px;
+      padding: 3px 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+    }
+    .tag-badge:hover {
+      background: #334569;
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* FORMULÄR FÖR METADATA */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 12px;
+      flex-grow: 1;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .form-group label {
+      font-weight: 600;
+      color: var(--text-muted);
       font-size: 10px;
       text-transform: uppercase;
     }
+    .form-group input, .form-group textarea, .form-group select {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      padding: 6px;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--accent);
+    }
 
-    table.grid-table {
+    /* TABELLER */
+    table.data-table {
       width: 100%;
       border-collapse: collapse;
-      background: #fff;
-    }
-    table.grid-table th {
-      background: #e8e8e8;
-      border: 1px solid var(--border-dark);
-      padding: 4px;
-      font-size: 10px;
-      text-align: left;
-    }
-    table.grid-table td {
-      border: 1px solid var(--grid-line);
-      padding: 2px 4px;
       font-size: 11px;
     }
-    .row-num {
-      width: 22px;
-      text-align: center;
-      background: #f0f0f0;
-      color: #666;
-      font-weight: bold;
+    table.data-table th {
+      background: #171821;
+      border: 1px solid var(--border);
+      padding: 6px;
+      text-align: left;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
     }
-    .cell-input {
-      width: 100%;
-      border: 1px solid transparent;
-      padding: 2px;
-      background: transparent;
+    table.data-table td {
+      border: 1px solid var(--border);
+      padding: 5px 8px;
     }
-    .cell-input:focus {
-      border: 1px solid #0055ea;
-      background: #fff;
-      outline: none;
-    }
-    .calculated-cell {
-      font-family: monospace;
-      text-align: right;
-      font-weight: bold;
-      background: #fafafa;
-    }
+    table.data-table tr:hover { background: rgba(255,255,255,0.02); }
 
+    /* PINNAD FORMELPANEL */
     .pinned-status-panel {
-      background: #fdf8e2;
-      border: 1px solid #c9b36d;
-      padding: 6px 10px;
-      margin-bottom: 8px;
+      background: var(--pinned-bg);
+      border: 1px solid var(--pinned-border);
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
+    .pinned-status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      color: var(--pinned-text);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .pinned-status-item {
+      font-size: 11px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 0;
+    }
 
+    /* BALANSMÄTARE */
+    .balance-track {
+      height: 16px;
+      background: #171821;
+      border: 1px solid var(--border);
+      position: relative;
+      border-radius: 2px;
+    }
+    .center-zero {
+      position: absolute;
+      left: 50%;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: #555b75;
+      z-index: 2;
+    }
+    .balance-bar {
+      position: absolute;
+      top: 2px; bottom: 2px;
+      border-radius: 2px;
+    }
+
+    /* MODAL */
     .modal-overlay {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.4);
+      inset: 0;
+      background: rgba(0,0,0,0.6);
       display: none;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 9999;
     }
-    .modal-window {
-      background: var(--bg);
-      border-top: 2px solid var(--border-light);
-      border-left: 2px solid var(--border-light);
-      border-right: 2px solid var(--border-darker);
-      border-bottom: 2px solid var(--border-darker);
-      width: 460px;
-      box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
+    .modal-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      width: 440px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      overflow: hidden;
+    }
+    .modal-header {
+      background: #181920;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
     }
     .modal-body {
-      padding: 10px;
-      background: var(--panel);
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 10px;
     }
-
-    .suggest-box { position: relative; }
-    .suggest-list {
-      position: absolute;
-      top: 100%;
-      left: 0; right: 0;
-      background: #fff;
-      border: 1px solid #000;
-      max-height: 120px;
-      overflow-y: auto;
-      z-index: 2000;
-      display: none;
-    }
-    .suggest-item { padding: 4px 6px; cursor: pointer; }
-    .suggest-item:hover { background: var(--win-blue); color: #fff; }
   </style>
 </head>
 <body>
 
-<div class="window">
-  <div class="title-bar">
-    <span id="txt-app-title">Universal Multi-Library System v0.13</span>
-    <span id="save-status" style="font-size:10px; font-weight:normal;">Lokal lagring redo ✓</span>
-  </div>
-
-  <div class="top-toolbar">
-    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-      <div class="toolbar-group">
-        <label for="library-select" style="font-weight:bold;" id="lbl-lib-select">📚 Bibliotek:</label>
-        <select id="library-select" onchange="switchLibrary(this.value)"></select>
-        <button onclick="createNewLibraryPrompt()" id="btn-new-lib">+ Nytt</button>
-        <button onclick="renameCurrentLibraryPrompt()" id="btn-rename-lib">Döp om</button>
-        <button onclick="deleteCurrentLibraryPrompt()" id="btn-delete-lib">Radera</button>
+  <!-- TOPP-VERKTYGSFÄLT -->
+  <div class="top-bar">
+    <div class="top-left">
+      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.15</span></span>
+      <div style="display:flex; align-items:center; gap:4px; margin-left:12px;">
+        <span style="color:var(--text-muted);" id="lbl-top-lib">Bibliotek:</span>
+        <select id="sel-library" onchange="switchLibrary(this.value)"></select>
+        <button onclick="createNewLibraryPrompt()" id="btn-top-new-lib">+ Nytt</button>
       </div>
+    </div>
 
-      <div class="toolbar-group">
-        <label for="lang-select" style="font-weight:bold;">🌐</label>
-        <select id="lang-select" onchange="changeLanguage(this.value)">
+    <div class="top-right">
+      <button onclick="setWorkspaceView('FORMULA')" id="btn-mode-formula">⚗ Formelmodul</button>
+      <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search">🔍 Filtersök</button>
+      <button onclick="loadMasterTemplate()" id="btn-load-template">🌿 Läs in Master Index</button>
+      <button onclick="exportBackup()" id="btn-export">💾 Backup</button>
+      <button onclick="document.getElementById('file-import').click()" id="btn-import">📂 Importera</button>
+      <input type="file" id="file-import" style="display:none;" accept=".json" onchange="importBackup(event)">
+      <div style="display:flex; align-items:center; gap:4px; margin-left:6px;">
+        <span style="font-size:12px;">🌐</span>
+        <select id="sel-lang" onchange="changeLanguage(this.value)">
           <option value="sv">Svenska</option>
           <option value="en">English</option>
         </select>
       </div>
-
-      <button onclick="loadMasterTemplate()" id="btn-load-template">🌿 Läs in "Herbal Master Index"</button>
-      <button onclick="exportDatabaseFile()" id="btn-export">💾 Exportera Backup</button>
-      <button onclick="document.getElementById('import-file').click()" id="btn-import">📂 Importera Backup</button>
-      <input type="file" id="import-file" style="display:none;" accept=".json" onchange="importDatabaseFile(event)">
     </div>
-    <div style="font-size:10px; color:#555;" id="txt-local-subtext">Lokal och oberoende sandlåda</div>
   </div>
 
-  <div class="tab-bar">
-    <button class="tab-btn active" id="tab-obj" onclick="switchTab('obj-view', this)">1. Objekthanteraren</button>
-    <button class="tab-btn" id="tab-prop" onclick="switchTab('prop-view', this)">2. Index Manager</button>
-    <button class="tab-btn" id="tab-form" onclick="switchTab('form-view', this)">3. Formelmodulen</button>
-    <button class="tab-btn" id="tab-search" onclick="switchTab('search-view', this)">4. Filtersök</button>
-  </div>
-
-  <div class="module-content">
-    <!-- 1. OBJEKTHANTERAREN -->
-    <div id="obj-view">
-      <div style="display:grid; grid-template-columns: 280px 1fr; gap: 8px; height: 600px;">
-        <div class="section-card">
-          <div class="section-title">
-            <span id="lbl-objects">Objekt</span>
-            <button onclick="createObjectPrompt()" id="btn-new-obj">+ Nytt Objekt</button>
-          </div>
-          <div class="list-box" id="obj-list-ui"></div>
-        </div>
-
-        <div class="section-card">
-          <div class="section-title">
-            <span id="obj-profile-title">Objektprofil</span>
-            <div style="display:flex; gap:6px; align-items:center;">
-              <label style="font-size:10px; font-weight:normal;">
-                <input type="checkbox" id="hide-empty" onchange="toggleHideEmpty(this.checked)"> <span id="lbl-hide-empty">Dölj tomma</span>
-              </label>
-              <button onclick="openBatchAddPrompt()" id="btn-batch-add">+ Lägg till fler (komma)</button>
-              <button onclick="openAddTagModal()" id="btn-assign-prop">+ Tilldela egenskap</button>
-            </div>
-          </div>
-          <div class="list-box" style="padding: 6px;" id="profile-cats-ui"></div>
-        </div>
+  <!-- HUVUDCONTAINER -->
+  <div class="workspace-container">
+    
+    <!-- VÄNSTER: EXPLORER / TRÄDMENY (Franks skiss) -->
+    <div class="sidebar">
+      <div class="tree-search-box">
+        <input type="text" id="tree-filter-input" placeholder="🔍 Snabbfilter i trädet..." oninput="renderTree()">
       </div>
+      <div class="tree-view" id="tree-root"></div>
     </div>
 
-    <!-- 2. INDEX MANAGER -->
-    <div id="prop-view" style="display:none;">
-      <div style="display:grid; grid-template-columns: 200px 220px 1fr; gap: 8px; height: 600px;">
-        <div class="section-card">
-          <div class="section-title" id="lbl-categories">Kategorier</div>
-          <div class="list-box" id="cat-list-ui"></div>
+    <!-- HÖGER: ARBETSYTA / METADATA FIELD -->
+    <div class="main-content">
+      
+      <!-- VY 1: OBJEKTPROFIL -->
+      <div class="content-panel" id="view-object" style="display:none;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span style="color:var(--accent);">📄</span>
+            <span id="obj-title-name">Objektprofil</span>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button onclick="openBatchAddPrompt()" id="btn-batch-add">+ Lägg till fler (komma)</button>
+            <button onclick="openAddTagModal()" id="btn-assign-prop">+ Tilldela egenskap</button>
+          </div>
         </div>
-        <div class="section-card">
-          <div class="section-title" id="lbl-properties">Egenskaper</div>
-          <div class="list-box" id="prop-list-ui"></div>
-        </div>
-        <div class="section-card">
-          <div class="section-title" id="lbl-prop-details">Metadata, Källor & Objekt</div>
-          <div style="display:flex; flex-direction:column; gap:5px; overflow-y:auto; padding-right:4px;" id="prop-details-form">
-            <div><label><b id="lbl-prop-name">Egenskapsnamn:</b></label><input type="text" id="det-name" style="width:100%;"></div>
-            <div><label><b id="lbl-prop-cat">Kategori:</b></label><select id="det-cat" style="width:100%;"></select></div>
-            <div><label><b id="lbl-prop-syn">Synonymer (kommaseparerade):</b></label><input type="text" id="det-synonyms" style="width:100%;" placeholder="t.ex. Kall, Kylande"></div>
-            <div><label><b id="lbl-prop-desc">Beskrivning:</b></label><textarea id="det-desc" rows="2" style="width:100%;"></textarea></div>
-            <div><label><b id="lbl-prop-links">Webblänkar (en per rad):</b></label><textarea id="det-links" rows="2" style="width:100%;" placeholder="https://..."></textarea></div>
-            <div><label><b id="lbl-prop-sources">Bokkällor / Referenser:</b></label><textarea id="det-sources" rows="2" style="width:100%;" placeholder="Författare, Bok, Sida..."></textarea></div>
-            <div><label><b id="lbl-prop-opp">Motsatspol (Balans):</b></label><select id="det-opposite" style="width:100%;"></select></div>
-            <button onclick="savePropertyDetails()" id="btn-save-prop" style="margin-top:2px;">Spara Metadata</button>
+        <div id="obj-categories-container" style="overflow-y:auto; flex-grow:1;"></div>
+      </div>
 
-            <!-- KOPPLADE OBJEKT SEKTION -->
-            <div style="margin-top:8px; border-top:1px solid #aaa; padding-top:6px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <b id="lbl-connected-objects">Kopplade Objekt:</b>
-                <button onclick="promptConnectObjectToActiveProp()" style="font-size:9px;" id="btn-connect-obj">+ Koppla till objekt</button>
-              </div>
-              <div class="list-box" style="height:110px;" id="prop-connected-objs-ui"></div>
+      <!-- VY 2: EGENSKAPSDETALJER & KÄLLOR (Franks skiss) -->
+      <div class="content-panel" id="view-property" style="display:none;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span style="color:var(--accent-active);">🏷</span>
+            <span id="prop-title-name">Egenskapsdetaljer</span>
+          </div>
+          <button class="primary" onclick="saveActiveProperty()" id="btn-save-prop">Spara Ändringar</button>
+        </div>
+
+        <div class="meta-grid">
+          <!-- Vänster halva: Beskrivning, länkar, källor -->
+          <div>
+            <div class="form-group">
+              <label id="lbl-prop-name">Egenskapsnamn</label>
+              <input type="text" id="prop-edit-name">
             </div>
+            <div class="form-group">
+              <label id="lbl-prop-cat">Kategori & System</label>
+              <select id="prop-edit-cat"></select>
+            </div>
+            <div class="form-group">
+              <label id="lbl-prop-desc">Beskrivning [Type here]</label>
+              <textarea id="prop-edit-desc" rows="3" placeholder="Skriv förklarande text här..."></textarea>
+            </div>
+            <div class="form-group">
+              <label id="lbl-prop-links">Webblänkar (External Links)</label>
+              <textarea id="prop-edit-links" rows="2" placeholder="https://exempel.se..."></textarea>
+            </div>
+            <div class="form-group">
+              <label id="lbl-prop-sources">Bokkällor & Referenser (Books & Sources)</label>
+              <textarea id="prop-edit-sources" rows="2" placeholder="Författare, år, boktitel, sidnummer..."></textarea>
+            </div>
+            <div class="form-group">
+              <label id="lbl-prop-opp">Motsatspol (Opposite)</label>
+              <select id="prop-edit-opposite"></select>
+            </div>
+          </div>
+
+          <!-- Höger halva: Förekommer i objekt -->
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:3px; padding:10px; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-weight:700; color:var(--text-muted); text-transform:uppercase;" id="lbl-featured-objs">Förekommer i objekt (Featured in Objects)</span>
+              <button onclick="promptAssignActivePropToObj()" id="btn-connect-obj">+ Koppla objekt</button>
+            </div>
+            <div id="prop-featured-objs-list" style="flex-grow:1; overflow-y:auto; border:1px solid var(--border); background:var(--bg-input); border-radius:3px; padding:4px;"></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 3. FORMELMODULEN -->
-    <div id="form-view" style="display:none;">
-      <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap: 8px;">
-        <div class="section-card">
-          <div class="section-title">
-            <span id="lbl-formula">Formel</span>
-            <button onclick="addFormulaRow()" id="btn-add-row">+ Ny Rad</button>
+      <!-- VY 3: PAPPERSKORG (Franks skiss: Trash Bin) -->
+      <div class="content-panel" id="view-trash" style="display:none;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span style="color:var(--danger);">🗑</span>
+            <span id="lbl-trash-title">Papperskorg (Trash Bin)</span>
           </div>
-          <table class="grid-table">
-            <thead>
-              <tr><th class="row-num">#</th><th id="th-comp">Komponent</th><th id="th-role">Roll</th><th style="width:70px;" id="th-qty">Mängd</th><th style="width:60px;" id="th-share">Andel</th><th></th></tr>
-            </thead>
-            <tbody id="formula-body"></tbody>
-          </table>
-          <div style="margin-top:10px; padding:6px; background:#f0f0f0; border:1px solid #999;">
-            <b id="lbl-polarity">Polaritetsbalans (Motsatspar):</b>
-            <div id="balance-meter-ui" style="margin-top:4px;"></div>
-          </div>
+          <span style="color:var(--text-muted); font-size:10px;" id="lbl-trash-subtitle">Borttagna objekt & egenskaper sparas här temporärt</span>
         </div>
 
-        <div class="section-card">
-          <div class="pinned-status-panel">
-            <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; font-size:10px;">
-              <span id="lbl-pinned-panel">📌 Pinnade Status- & Varningskategorier</span>
-              <button onclick="promptManagePins()" style="font-size:9px; padding:1px 4px;" id="btn-manage-pins">⚙ Hantera pinnar</button>
-            </div>
-            <div id="formula-pinned-items" style="margin-top:4px; font-size:11px;"></div>
-          </div>
-
-          <div class="section-title" id="lbl-cumulative-eff">Egenskapssynergi & Effekt</div>
-          <table class="grid-table">
+        <div style="flex-grow:1; overflow-y:auto; border:1px solid var(--border); background:var(--bg-card); border-radius:3px;">
+          <table class="data-table">
             <thead>
-              <tr><th class="row-num">#</th><th id="th-prop">Egenskap</th><th style="width:80px; text-align:center;" id="th-syn">Synergi</th><th style="width:70px; text-align:right;" id="th-eff">Effekt</th></tr>
+              <tr>
+                <th style="width:30px; text-align:center;" id="th-trash-keep">Behåll</th>
+                <th id="th-trash-name">Element / Namn</th>
+                <th id="th-trash-type">Typ</th>
+                <th id="th-trash-date">Borttagen (Date Removed)</th>
+                <th id="th-trash-orig">Ursprunglig Plats (Original Place)</th>
+              </tr>
             </thead>
-            <tbody id="formula-props-body"></tbody>
+            <tbody id="trash-table-body"></tbody>
           </table>
         </div>
-      </div>
-    </div>
 
-    <!-- 4. FILTERSÖK -->
-    <div id="search-view" style="display:none;">
-      <div class="section-card" style="height:580px;">
-        <div class="section-title" id="lbl-search-title">Filtersök efter gemensamma egenskaper</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:8px;">
+          <button class="danger" onclick="purgeUnkeptTrash()" id="btn-purge-trash">Rensa obockade permanent (Remove Unkept)</button>
+          <button class="primary" onclick="reviveKeptTrash()" id="btn-revive-trash">Återställ bockade (Revive kept files)</button>
+        </div>
+      </div>
+
+      <!-- VY 4: FORMELMODULEN -->
+      <div class="content-panel" id="view-formula" style="display:none;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>⚗</span> <span id="lbl-formula-title">Formelmodulen</span>
+          </div>
+          <button onclick="addFormulaRow()" id="btn-formula-add">+ Ny Komponent</button>
+        </div>
+
+        <!-- PINNADE VARNINGAR & STATUSKATEGORIER -->
+        <div class="pinned-status-panel">
+          <div class="pinned-status-header">
+            <span id="lbl-pinned-panel">📌 Pinnade Status- & Varningskategorier</span>
+            <button onclick="promptManagePins()" style="font-size:9px; padding:1px 5px;" id="btn-manage-pins">⚙ Hantera pinnar</button>
+          </div>
+          <div id="formula-pinned-items" style="margin-top:4px;"></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:12px; flex-grow:1;">
+          <div>
+            <table class="data-table">
+              <thead><tr><th>#</th><th id="th-form-comp">Komponent</th><th id="th-form-role">Roll</th><th style="width:70px;" id="th-form-qty">Mängd</th><th id="th-form-share">Andel</th><th></th></tr></thead>
+              <tbody id="formula-table-body"></tbody>
+            </table>
+            <div style="margin-top:12px; background:var(--bg-card); border:1px solid var(--border); padding:8px; border-radius:3px;">
+              <span style="font-weight:700; text-transform:uppercase; font-size:10px; color:var(--text-muted);" id="lbl-polarity">Polaritetsbalans (Motsatspar):</span>
+              <div id="formula-balance-container" style="margin-top:6px;"></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-weight:700; margin-bottom:6px; color:var(--text-muted); text-transform:uppercase;" id="lbl-cumulative-eff">Synergivärde & Effekt:</div>
+            <table class="data-table">
+              <thead><tr><th>#</th><th id="th-form-prop">Egenskap</th><th id="th-form-syn">Synergi</th><th style="text-align:right;" id="th-form-eff">Effekt</th></tr></thead>
+              <tbody id="formula-props-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VY 5: FILTERSÖK -->
+      <div class="content-panel" id="view-search" style="display:none;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>🔍</span> <span id="lbl-search-title">Filtersök efter gemensamma egenskaper</span>
+          </div>
+        </div>
         <div style="display:flex; gap:6px; margin-bottom:8px;">
-          <input type="text" id="search-input" placeholder="Skriv egenskaper separerade med kommatecken..." style="width:340px;">
-          <button onclick="addSearchFilterFromInput()" id="btn-add-filter">+ Lägg till filter</button>
+          <input type="text" id="filter-search-input" placeholder="Skriv egenskaper eller synonymer (separera med kommatecken)..." style="width:360px;">
+          <button onclick="applySearchFilter()" id="btn-apply-filter">+ Applicera Filter</button>
         </div>
-        <div id="active-filters" class="tag-container" style="margin-bottom:8px;"></div>
-        <table class="grid-table">
-          <thead><tr><th class="row-num">#</th><th id="th-res-obj">Objekt</th><th id="th-res-match">Matchning</th><th id="th-res-shared">Matchade egenskaper</th></tr></thead>
-          <tbody id="search-results-body"></tbody>
+        <div id="filter-chips-container" style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;"></div>
+        <table class="data-table">
+          <thead><tr><th>#</th><th id="th-search-obj">Objekt</th><th id="th-search-rel">Relevans</th><th id="th-search-props">Matchade egenskaper</th></tr></thead>
+          <tbody id="search-table-body"></tbody>
         </table>
       </div>
+
     </div>
   </div>
-</div>
 
-<!-- MODAL FÖR ATT TILLDELA EN EGENSKAP -->
-<div class="modal-overlay" id="add-tag-modal">
-  <div class="modal-window">
-    <div class="title-bar">
-      <span><span id="lbl-modal-assign">Tilldela egenskap till:</span> <span id="modal-obj-title"></span></span>
-      <span style="cursor:pointer;" onclick="closeTagModal()">✕</span>
-    </div>
-    <div class="modal-body">
-      <label id="lbl-modal-prompt">Skriv egenskapsnamn (minst 2 tecken för förslag):</label>
-      <div class="suggest-box">
-        <input type="text" id="tag-autocomplete-input" style="width:100%; padding:3px;" 
-               autocomplete="off" oninput="handleTagInput(this.value)">
-        <div class="suggest-list" id="tag-suggestions"></div>
+  <!-- MODAL FÖR NY EGENSKAP -->
+  <div class="modal-overlay" id="modal-add-tag">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span id="lbl-modal-title">Tilldela egenskap</span>
+        <span style="cursor:pointer;" onclick="closeModal('modal-add-tag')">✕</span>
       </div>
-
-      <div id="synonym-alert" style="display:none; background:#fff3cd; border:1px solid #ffeeba; padding:6px; font-size:10px; color:#856404; margin-top:4px;"></div>
-
-      <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:10px;">
-        <button onclick="submitAssignTag()" id="btn-modal-assign">Tilldela</button>
-        <button onclick="closeTagModal()" id="btn-modal-cancel">Avbryt</button>
+      <div class="modal-body">
+        <label id="lbl-modal-prompt">Egenskapsnamn (skriv minst 2 tecken för förslag):</label>
+        <input type="text" id="modal-tag-input" oninput="handleTagSuggestions(this.value)">
+        <div id="modal-tag-suggestions" style="max-height:100px; overflow-y:auto; border:1px solid var(--border); display:none;"></div>
+        <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
+          <button class="primary" onclick="confirmAssignTag()" id="btn-modal-assign">Tilldela</button>
+          <button onclick="closeModal('modal-add-tag')" id="btn-modal-cancel">Avbryt</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
-<!-- MODAL FÖR TAGG-ÅTGÄRDER (EDIT / REMOVE) -->
-<div class="modal-overlay" id="tag-action-modal">
-  <div class="modal-window" style="width:340px;">
-    <div class="title-bar">
-      <span>Hantera egenskap: <span id="action-tag-name"></span></span>
-      <span style="cursor:pointer;" onclick="closeTagActionModal()">✕</span>
-    </div>
-    <div class="modal-body">
-      <div style="margin-bottom:8px;" id="txt-tag-action-desc">Vad vill du göra med denna egenskap på objektet?</div>
-      <div style="display:flex; flex-direction:column; gap:6px;">
-        <button onclick="jumpToTagInIndex()" id="btn-action-edit">✏ Redigera i Index Manager</button>
-        <button onclick="removeTagFromCurrentObject()" style="color:red;" id="btn-action-remove">🗑 Ta bort från objekt</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <script>
-// ==================== SPRÅK (I18N) ====================
+// ==================== SPRÅKMOTOR (I18N) ====================
 const i18n = {
   sv: {
-    appTitle: "Universal Multi-Library System v0.13",
-    saveStatusSaved: "Autosparad: ",
-    btnLoadTemplate: "🌿 Läs in 'Herbal Master Index'",
-    btnExport: "💾 Exportera Backup",
-    btnImport: "📂 Importera Backup",
-    txtLocalSubtext: "Lokal och oberoende sandlåda",
-    lblLibSelect: "📚 Bibliotek:",
-    btnNewLib: "+ Nytt",
-    btnRenameLib: "Döp om",
-    btnDeleteLib: "Radera",
-    tabObj: "1. Objekthanteraren",
-    tabProp: "2. Index Manager",
-    tabForm: "3. Formelmodulen",
-    tabSearch: "4. Filtersök",
-    lblObjects: "Objekt",
-    btnNewObj: "+ Nytt Objekt",
+    topLib: "Bibliotek:",
+    btnTopNewLib: "+ Nytt",
+    btnModeFormula: "⚗ Formelmodul",
+    btnModeSearch: "🔍 Filtersök",
+    btnLoadTemplate: "🌿 Läs in Master Index",
+    btnExport: "💾 Backup",
+    btnImport: "📂 Importera",
+    treeSearchPlaceholder: "🔍 Snabbfilter i trädet...",
+    treeObjects: "📁 Objekt (Objects)",
+    treeIndex: "📁 Egenskapsindex (Tag Index)",
+    treeTrash: "Papperskorg (Trash Bin)",
     objProfilePrefix: "Objektprofil: ",
-    lblHideEmpty: "Dölj tomma",
     btnBatchAdd: "+ Lägg till fler (komma)",
     btnAssignProp: "+ Tilldela egenskap",
-    noPropsAssigned: "[Inga egenskaper tilldelade]",
-    btnAddTagShort: "+ Lägg till",
-    lblCategories: "Kategorier",
-    lblProperties: "Egenskaper",
-    lblPropDetails: "Metadata, Källor & Objekt",
-    lblPropName: "Egenskapsnamn:",
-    lblPropCat: "Kategori:",
-    lblPropSyn: "Synonymer (kommaseparerade):",
-    lblPropDesc: "Beskrivning:",
-    lblPropLinks: "Webblänkar (en per rad):",
-    lblPropSources: "Bokkällor / Referenser:",
-    lblPropOpp: "Motsatspol (Balans):",
-    noOpp: "-- Ingen motsatspol --",
-    btnSaveProp: "Spara Metadata",
-    lblConnectedObjects: "Kopplade Objekt:",
-    btnConnectObj: "+ Koppla till objekt",
-    lblFormula: "Formel",
-    btnAddRow: "+ Ny Rad",
-    thComp: "Komponent",
-    thRole: "Roll",
-    thQty: "Mängd",
-    thShare: "Andel",
-    lblPolarity: "Polaritetsbalans (Motsatspar):",
+    noPropsInCat: "[Inga egenskaper i denna kategori]",
+    btnAddShort: "+ Lägg till",
+    lblPropName: "Egenskapsnamn",
+    lblPropCat: "Kategori & System",
+    lblPropDesc: "Beskrivning [Type here]",
+    lblPropLinks: "Webblänkar (External Links)",
+    lblPropSources: "Bokkällor & Referenser (Books & Sources)",
+    lblPropOpp: "Motsatspol (Opposite)",
+    noPolarity: "-- Ingen polaritet --",
+    btnSaveProp: "Spara Ändringar",
+    lblFeaturedObjs: "Förekommer i objekt (Featured in Objects)",
+    btnConnectObj: "+ Koppla objekt",
+    noFeaturedObjs: "Inga objekt bär denna egenskap ännu.",
+    disconnectBtn: "Koppla loss",
+    lblTrashTitle: "Papperskorg (Trash Bin)",
+    lblTrashSubtitle: "Borttagna objekt & egenskaper sparas här temporärt",
+    thTrashKeep: "Behåll",
+    thTrashName: "Element / Namn",
+    thTrashType: "Typ",
+    thTrashDate: "Borttagen (Date Removed)",
+    thTrashOrig: "Ursprunglig Plats (Original Place)",
+    emptyTrashText: "Papperskorgen är tom.",
+    btnPurgeTrash: "Rensa obockade permanent (Remove Unkept)",
+    btnReviveTrash: "Återställ bockade (Revive kept files)",
+    lblFormulaTitle: "Formelmodulen",
+    btnFormulaAdd: "+ Ny Komponent",
     lblPinnedPanel: "📌 Pinnade Status- & Varningskategorier",
     btnManagePins: "⚙ Hantera pinnar",
     noPinnedHits: "Inga aktiva träffar på pinnade kategorier i receptet.",
-    lblCumulativeEff: "Egenskapssynergi & Effekt",
-    thProp: "Egenskap",
-    thSyn: "Synergi",
-    thEff: "Effekt",
-    noFormulaProps: "Inga aktiva egenskaper i formeln",
-    lblSearchTitle: "Filtersök efter gemensamma egenskaper",
-    searchPlaceholder: "Skriv egenskaper separerade med kommatecken...",
-    btnAddFilter: "+ Lägg till filter",
-    thResObj: "Objekt",
-    thResMatch: "Matchning",
-    thResShared: "Matchade egenskaper",
-    searchNoFilterPrompt: "Lägg till egenskaper ovan för att filtrera databasen",
-    lblModalAssign: "Tilldela egenskap till:",
-    lblModalPrompt: "Skriv egenskapsnamn (minst 2 tecken för förslag):",
-    btnModalAssign: "Tilldela",
-    btnModalCancel: "Avbryt",
-    promptNewObj: "Ange namn på det nya objektet:",
-    promptNewPropCat: "Ange kategori för ny egenskap '{0}':",
-    confirmLoadTemplate: "Vill du läsa in kategorier och egenskaper från 'Herbal Master Tag Index'? (Dina egna objekt sparas)",
-    templateLoaded: "Herbal Master Tag Index har lästs in i aktivt bibliotek!",
-    dbImported: "Biblioteken har lästs in och sparats!",
-    synonymHit: '💡 <b>Synonymträff:</b> "{0}" är en registrerad synonym till <b>{1}</b>. <br><a href="#" style="color:#0055ea;" onclick="applySynonymTarget(\'{1}\')">Använd \'{1}\' istället?</a>',
     fromText: "från",
     categoryText: "Kategori",
+    thFormComp: "Komponent",
+    thFormRole: "Roll",
+    thFormQty: "Mängd",
+    thFormShare: "Andel",
+    lblPolarity: "Polaritetsbalans (Motsatspar):",
+    lblCumulativeEff: "Synergivärde & Effekt:",
+    thFormProp: "Egenskap",
+    thFormSyn: "Synergi",
+    thFormEff: "Effekt",
+    lblSearchTitle: "Filtersök efter gemensamma egenskaper",
+    searchPlaceholder: "Skriv egenskaper eller synonymer (separera med kommatecken)...",
+    btnApplyFilter: "+ Applicera Filter",
+    thSearchObj: "Objekt",
+    thSearchRel: "Relevans",
+    thSearchProps: "Matchade egenskaper",
+    noSearchFilterPrompt: "Lägg till egenskaper ovan för att filtrera.",
+    lblModalTitle: "Tilldela egenskap",
+    lblModalPrompt: "Egenskapsnamn (skriv minst 2 tecken för förslag):",
+    btnModalAssign: "Tilldela",
+    btnModalCancel: "Avbryt",
     promptNewLibName: "Ange namn på det nya biblioteket:",
-    promptRenameLib: "Ange nytt namn på biblioteket:",
-    confirmDeleteLib: "Är du säker på att du vill radera biblioteket '{0}'?",
-    cannotDeleteLastLib: "Du kan inte radera det enda återstående biblioteket.",
-    promptBatchAdd: "Skriv in flera egenskaper separerade med kommatecken (systemet placerar dem i passande kategorier):",
-    confirmCreateBatchProp: "Egenskapen '{0}' existerar inte i indexet. Vill du lägga till den ändå?",
-    confirmRemoveTagFromObj: "Vill du ta bort egenskapen '{0}' från objektet '{1}'? (Den finns kvar i Master Index)",
-    confirmRemoveObjFromProp: "Vill du koppla bort egenskapen från '{0}'?",
-    btnActionEdit: "✏ Redigera i Index Manager",
-    btnActionRemove: "🗑 Ta bort från objekt"
+    promptBatchAdd: "Skriv in flera egenskaper separerade med kommatecken (t.ex. Roots, Warming, Tea):",
+    promptPickObjConnect: "Välj objekt att tilldela egenskapen:\n",
+    allObjsHaveProp: "Alla objekt har redan denna egenskap.",
+    metaSavedAlert: "Metadata sparad!",
+    revivedAlert: "Markerade element har återställts till sina platser!",
+    noReviveSelected: "Inga element är bockade för att återställas.",
+    purgeConfirm: "Är du säker på att du vill radera {0} obockade element permanent från papperskorgen?",
+    templateLoadedAlert: "Master Index inläst!",
+    backupImportedAlert: "Backup inläst!",
+    confirmLoadTemplate: "Läs in kompletta Herbal Master Index taxonomier?"
   },
   en: {
-    appTitle: "Universal Multi-Library System v0.13",
-    saveStatusSaved: "Autosaved: ",
-    btnLoadTemplate: "🌿 Load 'Herbal Master Index'",
-    btnExport: "💾 Export Backup",
-    btnImport: "📂 Import Backup",
-    txtLocalSubtext: "Local & independent sandbox",
-    lblLibSelect: "📚 Library:",
-    btnNewLib: "+ New",
-    btnRenameLib: "Rename",
-    btnDeleteLib: "Delete",
-    tabObj: "1. Object Manager",
-    tabProp: "2. Index Manager",
-    tabForm: "3. Formula Module",
-    tabSearch: "4. Filter Search",
-    lblObjects: "Objects",
-    btnNewObj: "+ New Object",
+    topLib: "Library:",
+    btnTopNewLib: "+ New",
+    btnModeFormula: "⚗ Formula Module",
+    btnModeSearch: "🔍 Filter Search",
+    btnLoadTemplate: "🌿 Load Master Index",
+    btnExport: "💾 Backup",
+    btnImport: "📂 Import",
+    treeSearchPlaceholder: "🔍 Quick filter tree...",
+    treeObjects: "📁 Objects",
+    treeIndex: "📁 Tag Index (Taxonomies)",
+    treeTrash: "Trash Bin",
     objProfilePrefix: "Object Profile: ",
-    lblHideEmpty: "Hide empty",
     btnBatchAdd: "+ Add multiple (comma)",
     btnAssignProp: "+ Assign Property",
-    noPropsAssigned: "[No properties assigned]",
-    btnAddTagShort: "+ Add",
-    lblCategories: "Categories",
-    lblProperties: "Properties",
-    lblPropDetails: "Metadata, Sources & Objects",
-    lblPropName: "Property Name:",
-    lblPropCat: "Category:",
-    lblPropSyn: "Synonyms (comma separated):",
-    lblPropDesc: "Description:",
-    lblPropLinks: "Web links (one per line):",
-    lblPropSources: "Book Sources / References:",
-    lblPropOpp: "Opposite (Polarity):",
-    noOpp: "-- No Polarity --",
-    btnSaveProp: "Save Metadata",
-    lblConnectedObjects: "Connected Objects:",
-    btnConnectObj: "+ Connect to object",
-    lblFormula: "Formula",
-    btnAddRow: "+ Add Row",
-    thComp: "Component",
-    thRole: "Role",
-    thQty: "Qty",
-    thShare: "Share",
-    lblPolarity: "Polarity Balance (Opposites):",
+    noPropsInCat: "[No properties assigned in this category]",
+    btnAddShort: "+ Add",
+    lblPropName: "Property Name",
+    lblPropCat: "Category & System",
+    lblPropDesc: "Description [Type here]",
+    lblPropLinks: "Web links (External Links)",
+    lblPropSources: "Book Sources & References",
+    lblPropOpp: "Opposite (Polarity)",
+    noPolarity: "-- No polarity --",
+    btnSaveProp: "Save Changes",
+    lblFeaturedObjs: "Featured in Objects",
+    btnConnectObj: "+ Connect Object",
+    noFeaturedObjs: "No objects have this property yet.",
+    disconnectBtn: "Disconnect",
+    lblTrashTitle: "Trash Bin",
+    lblTrashSubtitle: "Deleted objects and properties are temporarily stored here",
+    thTrashKeep: "Keep",
+    thTrashName: "Element / Name",
+    thTrashType: "Type",
+    thTrashDate: "Date Removed",
+    thTrashOrig: "Original Place",
+    emptyTrashText: "Trash bin is empty.",
+    btnPurgeTrash: "Remove Unkept Permanently",
+    btnReviveTrash: "Revive Kept Files",
+    lblFormulaTitle: "Formula Module",
+    btnFormulaAdd: "+ New Component",
     lblPinnedPanel: "📌 Pinned Status & Warning Categories",
     btnManagePins: "⚙ Manage Pins",
     noPinnedHits: "No active hits on pinned categories in this formula.",
-    lblCumulativeEff: "Cumulative Effects & Synergy",
-    thProp: "Property",
-    thSyn: "Synergy",
-    thEff: "Effect",
-    noFormulaProps: "No active formula properties",
-    lblSearchTitle: "Filter Search by Property Match",
-    searchPlaceholder: "Type properties separated by commas...",
-    btnAddFilter: "+ Add Filter",
-    thResObj: "Object",
-    thResMatch: "Match",
-    thResShared: "Matched Properties",
-    searchNoFilterPrompt: "Add properties above to filter the database",
-    lblModalAssign: "Assign Property to:",
-    lblModalPrompt: "Type property name (min 2 chars for suggestions):",
-    btnModalAssign: "Assign",
-    btnModalCancel: "Cancel",
-    promptNewObj: "Enter new Object name:",
-    promptNewPropCat: "Assign category for new property '{0}':",
-    confirmLoadTemplate: "Load complete 'Herbal Master Tag Index' categories & properties? (Existing objects remain)",
-    templateLoaded: "Herbal Master Tag Index loaded into active library!",
-    dbImported: "Libraries imported successfully!",
-    synonymHit: '💡 <b>Synonym match:</b> "{0}" is a registered synonym of <b>{1}</b>. <br><a href="#" style="color:#0055ea;" onclick="applySynonymTarget(\'{1}\')">Use \'{1}\' instead?</a>',
     fromText: "from",
     categoryText: "Category",
+    thFormComp: "Component",
+    thFormRole: "Role",
+    thFormQty: "Qty",
+    thFormShare: "Share",
+    lblPolarity: "Polarity Balance (Opposites):",
+    lblCumulativeEff: "Synergy & Cumulative Effect:",
+    thFormProp: "Property",
+    thFormSyn: "Synergy",
+    thFormEff: "Effect",
+    lblSearchTitle: "Filter Search by Property Match",
+    searchPlaceholder: "Type properties or synonyms separated by commas...",
+    btnApplyFilter: "+ Apply Filter",
+    thSearchObj: "Object",
+    thSearchRel: "Relevance",
+    thSearchProps: "Matched Properties",
+    noSearchFilterPrompt: "Add properties above to filter the database.",
+    lblModalTitle: "Assign Property",
+    lblModalPrompt: "Property name (min 2 chars for suggestions):",
+    btnModalAssign: "Assign",
+    btnModalCancel: "Cancel",
     promptNewLibName: "Enter name of new library:",
-    promptRenameLib: "Enter new library name:",
-    confirmDeleteLib: "Are you sure you want to delete library '{0}'?",
-    cannotDeleteLastLib: "You cannot delete the only remaining library.",
-    promptBatchAdd: "Enter multiple properties separated by commas (system places them in matching categories):",
-    confirmCreateBatchProp: "Property '{0}' does not exist in the index. Create it anyway?",
-    confirmRemoveTagFromObj: "Remove property '{0}' from object '{1}'? (Remains in Master Index)",
-    confirmRemoveObjFromProp: "Disconnect property from '{0}'?",
-    btnActionEdit: "✏ Edit in Index Manager",
-    btnActionRemove: "🗑 Remove from object"
+    promptBatchAdd: "Enter multiple properties separated by commas (e.g. Roots, Warming, Tea):",
+    promptPickObjConnect: "Select object to assign this property:\n",
+    allObjsHaveProp: "All objects already have this property.",
+    metaSavedAlert: "Metadata saved!",
+    revivedAlert: "Selected items have been restored to their original places!",
+    noReviveSelected: "No items checked to revive.",
+    purgeConfirm: "Are you sure you want to permanently purge {0} unkept items from trash?",
+    templateLoadedAlert: "Master Index loaded!",
+    backupImportedAlert: "Backup imported!",
+    confirmLoadTemplate: "Load complete Herbal Master Index taxonomies?"
   }
 };
 
-let currentLang = localStorage.getItem("app_lang") || "sv";
+let currentLang = localStorage.getItem("ide_lang") || "sv";
 function t(key, ...args) {
   let str = i18n[currentLang][key] || key;
   args.forEach((val, idx) => { str = str.replace(`{${idx}}`, val); });
@@ -678,122 +759,130 @@ function t(key, ...args) {
 
 function changeLanguage(lang) {
   currentLang = lang;
-  localStorage.setItem("app_lang", lang);
+  localStorage.setItem("ide_lang", lang);
   updateUILanguage();
-  renderAllViews();
+  renderTree();
+  if (activeView === 'OBJECT') renderObjectView();
+  if (activeView === 'PROPERTY') renderPropertyView();
+  if (activeView === 'TRASH') renderTrashView();
+  if (activeView === 'FORMULA') renderFormulaView();
+  if (activeView === 'SEARCH') renderSearchView();
 }
 
 function updateUILanguage() {
   document.documentElement.lang = currentLang;
-  document.getElementById("lang-select").value = currentLang;
-  document.getElementById("txt-app-title").innerText = t("appTitle");
+  document.getElementById("sel-lang").value = currentLang;
+  document.getElementById("lbl-top-lib").innerText = t("topLib");
+  document.getElementById("btn-top-new-lib").innerText = t("btnTopNewLib");
+  document.getElementById("btn-mode-formula").innerText = t("btnModeFormula");
+  document.getElementById("btn-mode-search").innerText = t("btnModeSearch");
   document.getElementById("btn-load-template").innerText = t("btnLoadTemplate");
   document.getElementById("btn-export").innerText = t("btnExport");
   document.getElementById("btn-import").innerText = t("btnImport");
-  document.getElementById("txt-local-subtext").innerText = t("txtLocalSubtext");
-  
-  document.getElementById("lbl-lib-select").innerText = t("lblLibSelect");
-  document.getElementById("btn-new-lib").innerText = t("btnNewLib");
-  document.getElementById("btn-rename-lib").innerText = t("btnRenameLib");
-  document.getElementById("btn-delete-lib").innerText = t("btnDeleteLib");
+  document.getElementById("tree-filter-input").placeholder = t("treeSearchPlaceholder");
 
-  document.getElementById("tab-obj").innerText = t("tabObj");
-  document.getElementById("tab-prop").innerText = t("tabProp");
-  document.getElementById("tab-form").innerText = t("tabForm");
-  document.getElementById("tab-search").innerText = t("tabSearch");
-
-  document.getElementById("lbl-objects").innerText = t("lblObjects");
-  document.getElementById("btn-new-obj").innerText = t("btnNewObj");
-  document.getElementById("lbl-hide-empty").innerText = t("lblHideEmpty");
   document.getElementById("btn-batch-add").innerText = t("btnBatchAdd");
   document.getElementById("btn-assign-prop").innerText = t("btnAssignProp");
 
-  document.getElementById("lbl-categories").innerText = t("lblCategories");
-  document.getElementById("lbl-properties").innerText = t("lblProperties");
-  document.getElementById("lbl-prop-details").innerText = t("lblPropDetails");
   document.getElementById("lbl-prop-name").innerText = t("lblPropName");
   document.getElementById("lbl-prop-cat").innerText = t("lblPropCat");
-  document.getElementById("lbl-prop-syn").innerText = t("lblPropSyn");
   document.getElementById("lbl-prop-desc").innerText = t("lblPropDesc");
   document.getElementById("lbl-prop-links").innerText = t("lblPropLinks");
   document.getElementById("lbl-prop-sources").innerText = t("lblPropSources");
   document.getElementById("lbl-prop-opp").innerText = t("lblPropOpp");
   document.getElementById("btn-save-prop").innerText = t("btnSaveProp");
-  document.getElementById("lbl-connected-objects").innerText = t("lblConnectedObjects");
+  document.getElementById("lbl-featured-objs").innerText = t("lblFeaturedObjs");
   document.getElementById("btn-connect-obj").innerText = t("btnConnectObj");
 
-  document.getElementById("lbl-formula").innerText = t("lblFormula");
-  document.getElementById("btn-add-row").innerText = t("btnAddRow");
-  document.getElementById("th-comp").innerText = t("thComp");
-  document.getElementById("th-role").innerText = t("thRole");
-  document.getElementById("th-qty").innerText = t("thQty");
-  document.getElementById("th-share").innerText = t("thShare");
-  document.getElementById("lbl-polarity").innerText = t("lblPolarity");
+  document.getElementById("lbl-trash-title").innerText = t("lblTrashTitle");
+  document.getElementById("lbl-trash-subtitle").innerText = t("lblTrashSubtitle");
+  document.getElementById("th-trash-keep").innerText = t("thTrashKeep");
+  document.getElementById("th-trash-name").innerText = t("thTrashName");
+  document.getElementById("th-trash-type").innerText = t("thTrashType");
+  document.getElementById("th-trash-date").innerText = t("thTrashDate");
+  document.getElementById("th-trash-orig").innerText = t("thTrashOrig");
+  document.getElementById("btn-purge-trash").innerText = t("btnPurgeTrash");
+  document.getElementById("btn-revive-trash").innerText = t("btnReviveTrash");
+
+  document.getElementById("lbl-formula-title").innerText = t("lblFormulaTitle");
+  document.getElementById("btn-formula-add").innerText = t("btnFormulaAdd");
   document.getElementById("lbl-pinned-panel").innerText = t("lblPinnedPanel");
   document.getElementById("btn-manage-pins").innerText = t("btnManagePins");
+  document.getElementById("th-form-comp").innerText = t("thFormComp");
+  document.getElementById("th-form-role").innerText = t("thFormRole");
+  document.getElementById("th-form-qty").innerText = t("thFormQty");
+  document.getElementById("th-form-share").innerText = t("thFormShare");
+  document.getElementById("lbl-polarity").innerText = t("lblPolarity");
   document.getElementById("lbl-cumulative-eff").innerText = t("lblCumulativeEff");
-  document.getElementById("th-prop").innerText = t("thProp");
-  document.getElementById("th-syn").innerText = t("thSyn");
-  document.getElementById("th-eff").innerText = t("thEff");
+  document.getElementById("th-form-prop").innerText = t("thFormProp");
+  document.getElementById("th-form-syn").innerText = t("thFormSyn");
+  document.getElementById("th-form-eff").innerText = t("thFormEff");
 
   document.getElementById("lbl-search-title").innerText = t("lblSearchTitle");
-  document.getElementById("search-input").placeholder = t("searchPlaceholder");
-  document.getElementById("btn-add-filter").innerText = t("btnAddFilter");
-  document.getElementById("th-res-obj").innerText = t("thResObj");
-  document.getElementById("th-res-match").innerText = t("thResMatch");
-  document.getElementById("th-res-shared").innerText = t("thResShared");
+  document.getElementById("filter-search-input").placeholder = t("searchPlaceholder");
+  document.getElementById("btn-apply-filter").innerText = t("btnApplyFilter");
+  document.getElementById("th-search-obj").innerText = t("thSearchObj");
+  document.getElementById("th-search-rel").innerText = t("thSearchRel");
+  document.getElementById("th-search-props").innerText = t("thSearchProps");
 
-  document.getElementById("lbl-modal-assign").innerText = t("lblModalAssign");
+  document.getElementById("lbl-modal-title").innerText = t("lblModalTitle");
   document.getElementById("lbl-modal-prompt").innerText = t("lblModalPrompt");
   document.getElementById("btn-modal-assign").innerText = t("btnModalAssign");
   document.getElementById("btn-modal-cancel").innerText = t("btnModalCancel");
-  document.getElementById("btn-action-edit").innerText = t("btnActionEdit");
-  document.getElementById("btn-action-remove").innerText = t("btnActionRemove");
 }
 
-// ==================== DATABAS & MIGRERING ====================
+// ==================== DATABAS & LOCALSTORAGE ====================
 const defaultAppData = {
   activeLibId: "herbal",
   libraries: {
     "herbal": {
-      name: "Örter (Herbalism)",
-      categoryOrder: ["Part Used", "Western Energetics", "Western Actions", "Ayurveda Gunas", "Symptoms", "Precautions"],
-      categories: {
-        "Part Used": { system: "Botany" },
-        "Ingestion forms": { system: "Pharmacology" },
-        "Western Actions": { system: "Herbalism" },
-        "Western Energetics": { system: "Energetics" },
-        "Ayurveda Gunas": { system: "Ayurveda" },
-        "Symptoms": { system: "Pathology" },
-        "Precautions": { system: "Safety" }
+      name: "Örtkunskap (Herbal)",
+      treeOpen: { "objects": true, "taxonomies": true },
+      categoryOrder: ["Part Used", "Ingestion forms", "Western Energetics", "Western Actions", "Ayurveda Gunas", "Symptoms", "Precautions"],
+      systems: {
+        "Energetik": { categories: ["Western Energetics", "Ayurveda Gunas"] },
+        "Fysiologi": { categories: ["Part Used", "Ingestion forms", "Western Actions", "Symptoms"] },
+        "Säkerhet":  { categories: ["Precautions"] }
       },
-      pinnedConfigs: { "Precautions": "⚠️" },
+      categories: {
+        "Part Used":          { system: "Fysiologi" },
+        "Ingestion forms":    { system: "Fysiologi" },
+        "Western Actions":    { system: "Fysiologi" },
+        "Western Energetics": { system: "Energetik" },
+        "Ayurveda Gunas":     { system: "Energetik" },
+        "Symptoms":           { system: "Fysiologi" },
+        "Precautions":        { system: "Säkerhet" }
+      },
+      pinnedConfigs: {
+        "Precautions": "⚠️"
+      },
       properties: {
-        "Sheeta (Cold)": { category: "Ayurveda Gunas", synonyms: ["Cold", "Cooling", "Kall", "Kylande"], opposite: "Ushna (Hot)", links: "", sources: "" },
-        "Ushna (Hot)":   { category: "Ayurveda Gunas", synonyms: ["Hot", "Warming", "Varm", "Värmande"], opposite: "Sheeta (Cold)", links: "", sources: "" },
-        "Adaptogen":     { category: "Western Actions", synonyms: ["Stress support"], links: "", sources: "" },
-        "Bitter Tonic":  { category: "Western Actions", synonyms: ["Digestive bitter"], links: "", sources: "" },
-        "Roots":         { category: "Part Used", synonyms: ["Rot", "Rhizome"], links: "", sources: "" },
-        "Tea":           { category: "Ingestion forms", synonyms: ["Te", "Infusion"], links: "", sources: "" },
-        "Digestion":     { category: "Symptoms", synonyms: ["Matsmältning", "Acid reflux"], links: "", sources: "" }
+        "Sheeta (Cold)": { category: "Ayurveda Gunas", synonyms: ["Cold", "Kall"], opposite: "Ushna (Hot)", desc: "Kylande metabol kvalitet", links: "", sources: "Vasant Lad, Ayurveda Textbook s.42" },
+        "Ushna (Hot)":   { category: "Ayurveda Gunas", synonyms: ["Hot", "Varm"], opposite: "Sheeta (Cold)", desc: "Värmande metabol stimulans", links: "", sources: "" },
+        "Warming":       { category: "Western Energetics", synonyms: ["Värmande"], opposite: "Cooling", desc: "Ökar cirkulation", links: "", sources: "" },
+        "Cooling":       { category: "Western Energetics", synonyms: ["Kylande"], opposite: "Warming", desc: "Dämpar irritation", links: "", sources: "" },
+        "Roots":         { category: "Part Used", synonyms: ["Rhizome", "Rot"], desc: "Underjordisk rotstock", links: "", sources: "" },
+        "Tea":           { category: "Ingestion forms", synonyms: ["Infusion"], desc: "Varmt vattenutdrag", links: "", sources: "" },
+        "Digestion":     { category: "Symptoms", synonyms: ["Mage", "Acid reflux"], desc: "Stödjer matsmältning", links: "", sources: "" }
       },
       objects: [
-        { id: "ginger", name: "Ingefära (Zingiber officinale)", defaultRole: "Drivande rot", props: { "Ushna (Hot)": {}, "Roots": {}, "Tea": {} } },
-        { id: "peppermint", name: "Pepparmynta (Mentha x piperita)", defaultRole: "Kylande balans", props: { "Sheeta (Cold)": {}, "Tea": {}, "Digestion": {} } }
+        { id: "ginger", name: "Ingefära (Zingiber officinale)", defaultRole: "Katalysator", props: { "Ushna (Hot)": {}, "Roots": {}, "Tea": {} } },
+        { id: "peppermint", name: "Pepparmynta (Mentha piperita)", defaultRole: "Kylande balans", props: { "Sheeta (Cold)": {}, "Cooling": {}, "Tea": {}, "Digestion": {} } }
       ],
       formula: [
         { objId: "ginger", role: "Drivande rot", qty: 2 },
         { objId: "peppermint", role: "Kylande balans", qty: 3 }
-      ]
+      ],
+      trash: []
     }
   }
 };
 
 let appData = defaultAppData;
-const storedApp = localStorage.getItem("multi_lib_v13") || localStorage.getItem("multi_lib_v12");
-if (storedApp) {
+const stored = localStorage.getItem("taxonomy_ide_v15") || localStorage.getItem("taxonomy_ide_v14") || localStorage.getItem("multi_lib_v13");
+if (stored) {
   try {
-    const parsed = JSON.parse(storedApp);
+    const parsed = JSON.parse(stored);
     if (parsed.libraries) appData = parsed;
   } catch(e) { appData = defaultAppData; }
 }
@@ -803,184 +892,200 @@ function currentLib() {
     appData.activeLibId = Object.keys(appData.libraries)[0];
   }
   const lib = appData.libraries[appData.activeLibId];
+  if (!lib.trash) lib.trash = [];
+  if (!lib.treeOpen) lib.treeOpen = { "objects": true, "taxonomies": true };
+  if (!lib.pinnedConfigs) lib.pinnedConfigs = { "Precautions": "⚠️" };
   if (!lib.categoryOrder) lib.categoryOrder = Object.keys(lib.categories);
   return lib;
 }
 
 function persist() {
-  localStorage.setItem("multi_lib_v13", JSON.stringify(appData));
-  const el = document.getElementById("save-status");
-  el.innerText = t("saveStatusSaved") + new Date().toLocaleTimeString();
+  localStorage.setItem("taxonomy_ide_v15", JSON.stringify(appData));
 }
 
-function updateLibraryDropdown() {
-  const sel = document.getElementById("library-select");
-  sel.innerHTML = Object.entries(appData.libraries).map(([id, lib]) => 
-    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${lib.name}</option>`
-  ).join("");
+// ==================== TILLSTÅND ====================
+let activeView = "OBJECT";
+let selectedObjId = "ginger";
+let selectedPropName = "Sheeta (Cold)";
+let activeSearchFilters = [];
+
+function setWorkspaceView(viewType) {
+  activeView = viewType;
+  document.getElementById("view-object").style.display = (viewType === 'OBJECT') ? 'flex' : 'none';
+  document.getElementById("view-property").style.display = (viewType === 'PROPERTY') ? 'flex' : 'none';
+  document.getElementById("view-trash").style.display = (viewType === 'TRASH') ? 'flex' : 'none';
+  document.getElementById("view-formula").style.display = (viewType === 'FORMULA') ? 'flex' : 'none';
+  document.getElementById("view-search").style.display = (viewType === 'SEARCH') ? 'flex' : 'none';
+
+  if (viewType === 'OBJECT') renderObjectView();
+  if (viewType === 'PROPERTY') renderPropertyView();
+  if (viewType === 'TRASH') renderTrashView();
+  if (viewType === 'FORMULA') renderFormulaView();
+  if (viewType === 'SEARCH') renderSearchView();
+  renderTree();
 }
 
-function switchLibrary(newLibId) {
-  if (!appData.libraries[newLibId]) return;
-  appData.activeLibId = newLibId;
-  persist();
-  initSelectionDefaults();
-  renderAllViews();
-}
-
-function createNewLibraryPrompt() {
-  const name = prompt(t("promptNewLibName"));
-  if (!name) return;
-  const id = "lib_" + Date.now();
-  appData.libraries[id] = {
-    name: name,
-    categoryOrder: ["Generellt"],
-    categories: { "Generellt": { system: "Grund" } },
-    properties: {},
-    objects: [],
-    pinnedConfigs: {},
-    formula: []
-  };
-  appData.activeLibId = id;
-  persist();
-  updateLibraryDropdown();
-  initSelectionDefaults();
-  renderAllViews();
-}
-
-function renameCurrentLibraryPrompt() {
+// ==================== 1. EXPLORER-TRÄD (VÄNSTER) ====================
+function renderTree() {
   const lib = currentLib();
-  const newName = prompt(t("promptRenameLib"), lib.name);
-  if (!newName || newName.trim() === "") return;
-  lib.name = newName.trim();
-  persist();
-  updateLibraryDropdown();
-}
+  const root = document.getElementById("tree-root");
+  root.innerHTML = "";
+  const filter = document.getElementById("tree-filter-input").value.trim().toLowerCase();
 
-function deleteCurrentLibraryPrompt() {
-  const keys = Object.keys(appData.libraries);
-  if (keys.length <= 1) {
-    alert(t("cannotDeleteLastLib"));
-    return;
-  }
-  const lib = currentLib();
-  if (confirm(t("confirmDeleteLib", lib.name))) {
-    delete appData.libraries[appData.activeLibId];
-    appData.activeLibId = Object.keys(appData.libraries)[0];
-    persist();
-    updateLibraryDropdown();
-    initSelectionDefaults();
-    renderAllViews();
-  }
-}
+  // OBJECTS
+  const objCount = lib.objects.length;
+  const isObjOpen = lib.treeOpen["objects"] || filter.length > 0;
+  const objNode = document.createElement("div");
+  objNode.innerHTML = `
+    <div class="tree-node ${activeView === 'OBJECT' ? 'active' : ''}" onclick="toggleTree('objects')">
+      <span class="tree-toggle">${isObjOpen ? '▼' : '▶'}</span>
+      <span>${t("treeObjects")}</span>
+      <span class="tree-badge">${objCount}</span>
+    </div>
+  `;
+  root.appendChild(objNode);
 
-let selectedObjId = "";
-let selectedCat = "";
-let selectedProp = "";
-let hideEmpty = false;
-let searchFilters = [];
-
-function initSelectionDefaults() {
-  const lib = currentLib();
-  selectedObjId = lib.objects.length > 0 ? lib.objects[0].id : "";
-  const catKeys = lib.categoryOrder || Object.keys(lib.categories);
-  selectedCat = catKeys.length > 0 ? catKeys[0] : "";
-  const propKeys = Object.keys(lib.properties);
-  selectedProp = propKeys.length > 0 ? propKeys[0] : "";
-  searchFilters = [];
-}
-
-function renderAllViews() {
-  updateLibraryDropdown();
-  renderM1();
-  renderM2();
-  renderFormula();
-  renderSearch();
-}
-
-function switchTab(viewId, btn) {
-  document.getElementById("obj-view").style.display = (viewId === 'obj-view') ? 'block' : 'none';
-  document.getElementById("prop-view").style.display = (viewId === 'prop-view') ? 'block' : 'none';
-  document.getElementById("form-view").style.display = (viewId === 'form-view') ? 'block' : 'none';
-  document.getElementById("search-view").style.display = (viewId === 'search-view') ? 'block' : 'none';
-
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  if (viewId === 'obj-view') renderM1();
-  if (viewId === 'prop-view') renderM2();
-  if (viewId === 'form-view') renderFormula();
-  if (viewId === 'search-view') renderSearch();
-}
-
-function toggleHideEmpty(val) {
-  hideEmpty = val;
-  renderM1();
-}
-
-// ==================== 1. OBJEKTHANTERAREN ====================
-function renderM1() {
-  const lib = currentLib();
-  const list = document.getElementById("obj-list-ui");
-  list.innerHTML = "";
-
-  if (!lib.objects.some(o => o.id === selectedObjId) && lib.objects.length > 0) {
-    selectedObjId = lib.objects[0].id;
+  if (isObjOpen) {
+    const childWrap = document.createElement("div");
+    childWrap.className = "tree-children";
+    lib.objects
+      .filter(o => !filter || o.name.toLowerCase().includes(filter))
+      .forEach(obj => {
+        const leaf = document.createElement("div");
+        leaf.className = `tree-node ${activeView === 'OBJECT' && selectedObjId === obj.id ? 'active' : ''}`;
+        leaf.innerHTML = `<span>📄</span> <span>${obj.name}</span>`;
+        leaf.onclick = (e) => {
+          e.stopPropagation();
+          selectedObjId = obj.id;
+          setWorkspaceView("OBJECT");
+        };
+        childWrap.appendChild(leaf);
+      });
+    root.appendChild(childWrap);
   }
 
-  lib.objects.forEach(o => {
-    const d = document.createElement("div");
-    d.className = `list-item ${o.id === selectedObjId ? 'selected' : ''}`;
-    d.innerHTML = `<span>${o.name}</span><span style="font-size:9px;">${Object.keys(o.props).length}</span>`;
-    d.onclick = () => { selectedObjId = o.id; renderM1(); };
-    list.appendChild(d);
-  });
+  // TAG INDEX
+  const isTaxOpen = lib.treeOpen["taxonomies"] || filter.length > 0;
+  const taxNode = document.createElement("div");
+  taxNode.innerHTML = `
+    <div class="tree-node ${activeView === 'PROPERTY' ? 'active' : ''}" onclick="toggleTree('taxonomies')">
+      <span class="tree-toggle">${isTaxOpen ? '▼' : '▶'}</span>
+      <span>${t("treeIndex")}</span>
+      <span class="tree-badge">${Object.keys(lib.properties).length}</span>
+    </div>
+  `;
+  root.appendChild(taxNode);
 
+  if (isTaxOpen) {
+    const taxWrap = document.createElement("div");
+    taxWrap.className = "tree-children";
+
+    const systemMap = {};
+    Object.entries(lib.categories).forEach(([cName, cData]) => {
+      const sys = cData.system || "Generellt";
+      if (!systemMap[sys]) systemMap[sys] = [];
+      systemMap[sys].push(cName);
+    });
+
+    Object.entries(systemMap).forEach(([sysName, cats]) => {
+      const sysDiv = document.createElement("div");
+      sysDiv.className = "tree-node";
+      sysDiv.innerHTML = `<span>🗂</span> <b>${sysName}</b>`;
+      taxWrap.appendChild(sysDiv);
+
+      const sysChildren = document.createElement("div");
+      sysChildren.className = "tree-children";
+
+      cats.forEach(cName => {
+        const catDiv = document.createElement("div");
+        catDiv.className = "tree-node";
+        catDiv.innerHTML = `<span>📂</span> <span>${cName}</span>`;
+        sysChildren.appendChild(catDiv);
+
+        const props = Object.entries(lib.properties).filter(([p, data]) => data.category === cName);
+        if (props.length > 0) {
+          const propWrap = document.createElement("div");
+          propWrap.className = "tree-children";
+          props
+            .filter(([p]) => !filter || p.toLowerCase().includes(filter))
+            .forEach(([p]) => {
+              const pLeaf = document.createElement("div");
+              pLeaf.className = `tree-node ${activeView === 'PROPERTY' && selectedPropName === p ? 'active' : ''}`;
+              pLeaf.innerHTML = `<span>🏷</span> <span>${p}</span>`;
+              pLeaf.onclick = (e) => {
+                e.stopPropagation();
+                selectedPropName = p;
+                setWorkspaceView("PROPERTY");
+              };
+              propWrap.appendChild(pLeaf);
+            });
+          sysChildren.appendChild(propWrap);
+        }
+      });
+      taxWrap.appendChild(sysChildren);
+    });
+    root.appendChild(taxWrap);
+  }
+
+  // TRASH BIN
+  const trashCount = lib.trash.length;
+  const trashNode = document.createElement("div");
+  trashNode.innerHTML = `
+    <div class="tree-node ${activeView === 'TRASH' ? 'active' : ''}" style="margin-top:10px; color:${trashCount > 0 ? 'var(--danger)' : 'inherit'};" onclick="setWorkspaceView('TRASH')">
+      <span>🗑</span> <b>${t("treeTrash")}</b>
+      <span class="tree-badge">${trashCount}</span>
+    </div>
+  `;
+  root.appendChild(trashNode);
+}
+
+function toggleTree(nodeKey) {
+  const lib = currentLib();
+  lib.treeOpen[nodeKey] = !lib.treeOpen[nodeKey];
+  persist();
+  renderTree();
+}
+
+// ==================== 2. OBJEKTPROFIL ====================
+function renderObjectView() {
+  const lib = currentLib();
   const obj = lib.objects.find(o => o.id === selectedObjId);
-  const cont = document.getElementById("profile-cats-ui");
+  if (!obj) return;
+
+  document.getElementById("obj-title-name").innerText = `${t("objProfilePrefix")}${obj.name}`;
+  const cont = document.getElementById("obj-categories-container");
   cont.innerHTML = "";
-
-  if (!obj) {
-    document.getElementById("obj-profile-title").innerText = t("lblObjects");
-    cont.innerHTML = `<div style="color:#777; padding:10px; font-style:italic;">Inga objekt. Klicka '+ Nytt Objekt' för att börja.</div>`;
-    return;
-  }
-
-  document.getElementById("obj-profile-title").innerText = t("objProfilePrefix") + obj.name;
 
   const cats = lib.categoryOrder || Object.keys(lib.categories);
   cats.forEach((cat, idx) => {
-    let propsInCat = [];
+    let assigned = [];
     Object.keys(obj.props).forEach(pName => {
-      if (lib.properties[pName]?.category === cat) propsInCat.push(pName);
+      if (lib.properties[pName]?.category === cat) assigned.push(pName);
     });
 
-    const isEmpty = propsInCat.length === 0;
-    if (isEmpty && hideEmpty) return;
+    const box = document.createElement("div");
+    box.className = "cat-box";
+    let tagsHtml = assigned.length === 0 
+      ? `<span style="color:#666; font-style:italic;">${t("noPropsInCat")}</span>`
+      : assigned.map(p => `
+          <span class="tag-badge">
+            <span onclick="inspectPropFromObj('${p}')">${p}</span>
+            <span style="color:var(--danger); margin-left:4px; font-weight:bold;" onclick="trashPropFromObj('${p}')" title="Trash bin">✕</span>
+          </span>
+        `).join("");
 
-    const blk = document.createElement("div");
-    blk.className = "cat-block";
-
-    let tagsHtml = isEmpty 
-      ? `<span style="color:#888; font-style:italic; font-size:10px;">${t("noPropsAssigned")}</span>`
-      : propsInCat.map(p => 
-          `<span class="tag-badge" onclick="openTagActionModal('${p}')">
-            <span>${p}</span>
-          </span>`
-        ).join("");
-
-    blk.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+    box.innerHTML = `
+      <div class="cat-box-header">
         <div style="display:flex; align-items:center; gap:4px;">
-          <span class="cat-header">${cat}</span>
-          <button style="font-size:9px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
-          <button style="font-size:9px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, 1)" ${idx === cats.length - 1 ? 'disabled' : ''}>▼</button>
+          <span class="cat-title-text">${cat}</span>
+          <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
+          <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, 1)" ${idx === cats.length - 1 ? 'disabled' : ''}>▼</button>
         </div>
-        <button style="font-size:9px;" onclick="openAddTagModal('${cat}')">${t("btnAddTagShort")}</button>
+        <button style="font-size:9px;" onclick="openAddTagModal('${cat}')">${t("btnAddShort")}</button>
       </div>
-      <div class="tag-container">${tagsHtml}</div>
+      <div style="display:flex; flex-wrap:wrap; gap:4px;">${tagsHtml}</div>
     `;
-    cont.appendChild(blk);
+    cont.appendChild(box);
   });
 }
 
@@ -992,347 +1097,262 @@ function moveCategoryOrder(idx, delta) {
   lib.categoryOrder[idx] = lib.categoryOrder[target];
   lib.categoryOrder[target] = temp;
   persist();
-  renderM1();
+  renderObjectView();
 }
 
-function createObjectPrompt() {
-  const name = prompt(t("promptNewObj"));
-  if (!name) return;
-  const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_') + "_" + Date.now().toString().slice(-4);
-  const lib = currentLib();
-  lib.objects.push({ id, name, defaultRole: "Komponent", props: {} });
-  selectedObjId = id;
-  persist();
-  renderM1();
+function inspectPropFromObj(pName) {
+  selectedPropName = pName;
+  setWorkspaceView("PROPERTY");
 }
 
-// BATCH-TILLDELNING VIA KOMMA
-function openBatchAddPrompt() {
-  const input = prompt(t("promptBatchAdd"));
-  if (!input) return;
-  const rawTerms = input.split(",").map(s => s.trim()).filter(Boolean);
-  if (rawTerms.length === 0) return;
-
+function trashPropFromObj(propName) {
   const lib = currentLib();
   const obj = lib.objects.find(o => o.id === selectedObjId);
   if (!obj) return;
 
-  rawTerms.forEach(term => {
-    // 1. Matcha direkt
-    let canonical = term;
-    if (!lib.properties[canonical]) {
-      // 2. Matcha synonym
-      for (const [pName, meta] of Object.entries(lib.properties)) {
-        if (meta.synonyms && meta.synonyms.some(s => s.toLowerCase() === term.toLowerCase())) {
-          canonical = pName;
+  lib.trash.push({
+    id: "del_" + Date.now(),
+    name: propName,
+    type: "Objektkoppling",
+    originalPlace: `${obj.name} (${lib.properties[propName]?.category || 'General'})`,
+    deletedAt: new Date().toLocaleString(),
+    restoreData: { targetType: "object_prop", objId: obj.id, propName: propName },
+    keep: false
+  });
+
+  delete obj.props[propName];
+  persist();
+  renderObjectView();
+  renderTree();
+}
+
+function openBatchAddPrompt() {
+  const input = prompt(t("promptBatchAdd"));
+  if (!input) return;
+  const terms = input.split(",").map(s => s.trim()).filter(Boolean);
+  const lib = currentLib();
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+
+  terms.forEach(term => {
+    let resolved = term;
+    if (!lib.properties[resolved]) {
+      for (const [p, m] of Object.entries(lib.properties)) {
+        if (m.synonyms && m.synonyms.some(s => s.toLowerCase() === term.toLowerCase())) {
+          resolved = p;
           break;
         }
       }
     }
-
-    if (lib.properties[canonical]) {
-      obj.props[canonical] = {};
+    if (lib.properties[resolved]) {
+      obj.props[resolved] = {};
     } else {
-      if (confirm(t("confirmCreateBatchProp", term))) {
-        const cat = prompt(t("promptNewPropCat", term), lib.categoryOrder[0] || "General") || "General";
-        if (!lib.categories[cat]) {
-          lib.categories[cat] = { system: "Custom" };
-          lib.categoryOrder.push(cat);
-        }
-        lib.properties[term] = { category: cat, synonyms: [], links: "", sources: "" };
-        obj.props[term] = {};
+      const cat = prompt(`'${term}' finns inte. Ange kategori:`, lib.categoryOrder[0] || Object.keys(lib.categories)[0]) || "Generellt";
+      if (!lib.categories[cat]) {
+        lib.categories[cat] = { system: "Generellt" };
+        lib.categoryOrder.push(cat);
       }
+      lib.properties[term] = { category: cat, synonyms: [], desc: "", links: "", sources: "" };
+      obj.props[term] = {};
     }
   });
 
   persist();
-  renderM1();
+  renderObjectView();
+  renderTree();
 }
 
-// ==================== TAGG-ÅTGÄRDER (EDIT & REMOVE) ====================
-let activeActionTag = "";
-function openTagActionModal(propName) {
-  activeActionTag = propName;
-  document.getElementById("action-tag-name").innerText = propName;
-  document.getElementById("tag-action-modal").style.display = "flex";
-}
-
-function closeTagActionModal() {
-  document.getElementById("tag-action-modal").style.display = "none";
-}
-
-function jumpToTagInIndex() {
+// ==================== 3. EGENSKAPSDETALJER & KÄLLOR ====================
+function renderPropertyView() {
   const lib = currentLib();
-  const meta = lib.properties[activeActionTag];
-  closeTagActionModal();
-  if (meta) {
-    selectedCat = meta.category;
-    selectedProp = activeActionTag;
-    switchTab('prop-view', document.getElementById("tab-prop"));
-  }
-}
+  const meta = lib.properties[selectedPropName];
+  if (!meta) return;
 
-function removeTagFromCurrentObject() {
-  const lib = currentLib();
-  const obj = lib.objects.find(o => o.id === selectedObjId);
-  if (!obj) return;
+  document.getElementById("prop-title-name").innerText = `${selectedPropName}`;
+  document.getElementById("prop-edit-name").value = selectedPropName;
+  document.getElementById("prop-edit-desc").value = meta.desc || "";
+  document.getElementById("prop-edit-links").value = meta.links || "";
+  document.getElementById("prop-edit-sources").value = meta.sources || "";
 
-  if (confirm(t("confirmRemoveTagFromObj", activeActionTag, obj.name))) {
-    delete obj.props[activeActionTag];
-    persist();
-    closeTagActionModal();
-    renderM1();
-  }
-}
-
-// ==================== AUTO-SUGGEST & SYNONYMER ====================
-let activeTargetCat = "";
-function openAddTagModal(catName = "") {
-  activeTargetCat = catName;
-  const lib = currentLib();
-  const obj = lib.objects.find(o => o.id === selectedObjId);
-  if (!obj) return;
-  document.getElementById("modal-obj-title").innerText = obj.name;
-  document.getElementById("tag-autocomplete-input").value = "";
-  document.getElementById("tag-suggestions").style.display = "none";
-  document.getElementById("synonym-alert").style.display = "none";
-  document.getElementById("add-tag-modal").style.display = "flex";
-  document.getElementById("tag-autocomplete-input").focus();
-}
-
-function closeTagModal() {
-  document.getElementById("add-tag-modal").style.display = "none";
-}
-
-function handleTagInput(query) {
-  const lib = currentLib();
-  const sugBox = document.getElementById("tag-suggestions");
-  const synAlert = document.getElementById("synonym-alert");
-  sugBox.innerHTML = "";
-  synAlert.style.display = "none";
-
-  const q = query.trim().toLowerCase();
-  if (q.length < 2) {
-    sugBox.style.display = "none";
-    return;
-  }
-
-  const propMatches = Object.keys(lib.properties).filter(p => p.toLowerCase().includes(q));
-  if (propMatches.length > 0) {
-    sugBox.style.display = "block";
-    propMatches.forEach(match => {
-      const item = document.createElement("div");
-      item.className = "suggest-item";
-      item.innerText = match;
-      item.onclick = () => {
-        document.getElementById("tag-autocomplete-input").value = match;
-        sugBox.style.display = "none";
-      };
-      sugBox.appendChild(item);
-    });
-  } else {
-    sugBox.style.display = "none";
-  }
-
-  let matchedSynonymTarget = null;
-  Object.entries(lib.properties).forEach(([pName, meta]) => {
-    if (meta.synonyms && meta.synonyms.some(s => s.toLowerCase() === q)) {
-      matchedSynonymTarget = pName;
-    }
-  });
-
-  if (matchedSynonymTarget) {
-    synAlert.style.display = "block";
-    synAlert.innerHTML = t("synonymHit", query, matchedSynonymTarget);
-  }
-}
-
-function applySynonymTarget(propName) {
-  document.getElementById("tag-autocomplete-input").value = propName;
-  document.getElementById("synonym-alert").style.display = "none";
-}
-
-function submitAssignTag() {
-  const val = document.getElementById("tag-autocomplete-input").value.trim();
-  if (!val) return;
-
-  const lib = currentLib();
-  const obj = lib.objects.find(o => o.id === selectedObjId);
-  if (!lib.properties[val]) {
-    const cat = activeTargetCat || prompt(t("promptNewPropCat", val), lib.categoryOrder[0] || "General") || "General";
-    if (!lib.categories[cat]) {
-      lib.categories[cat] = { system: "Custom" };
-      lib.categoryOrder.push(cat);
-    }
-    lib.properties[val] = { category: cat, synonyms: [], links: "", sources: "" };
-  }
-
-  obj.props[val] = {};
-  persist();
-  closeTagModal();
-  renderM1();
-}
-
-// ==================== 2. INDEX MANAGER ====================
-function renderM2() {
-  const lib = currentLib();
-  const cList = document.getElementById("cat-list-ui");
-  cList.innerHTML = "";
-
-  const catKeys = lib.categoryOrder || Object.keys(lib.categories);
-  if (!catKeys.includes(selectedCat) && catKeys.length > 0) selectedCat = catKeys[0];
-
-  catKeys.forEach(c => {
-    const d = document.createElement("div");
-    d.className = `list-item ${c === selectedCat ? 'selected' : ''}`;
-    d.innerText = c;
-    d.onclick = () => { selectedCat = c; renderM2(); };
-    cList.appendChild(d);
-  });
-
-  const pList = document.getElementById("prop-list-ui");
-  pList.innerHTML = "";
-
-  const matchingProps = Object.entries(lib.properties).filter(([_, data]) => data.category === selectedCat);
-  if (!matchingProps.some(([p]) => p === selectedProp) && matchingProps.length > 0) {
-    selectedProp = matchingProps[0][0];
-  }
-
-  matchingProps.forEach(([p, data]) => {
-    const d = document.createElement("div");
-    d.className = `list-item ${p === selectedProp ? 'selected' : ''}`;
-    d.innerHTML = `<span>${p}</span>${data.opposite ? '<span style="font-size:9px; color:#5b7bb2;">[Polär]</span>' : ''}`;
-    d.onclick = () => { selectedProp = p; renderM2(); };
-    pList.appendChild(d);
-  });
-
-  const meta = lib.properties[selectedProp];
-  if (!meta) {
-    document.getElementById("det-name").value = "";
-    document.getElementById("det-synonyms").value = "";
-    document.getElementById("det-desc").value = "";
-    document.getElementById("det-links").value = "";
-    document.getElementById("det-sources").value = "";
-    document.getElementById("prop-connected-objs-ui").innerHTML = "";
-    return;
-  }
-
-  document.getElementById("det-name").value = selectedProp;
-  document.getElementById("det-synonyms").value = meta.synonyms ? meta.synonyms.join(", ") : "";
-  document.getElementById("det-desc").value = meta.desc || "";
-  document.getElementById("det-links").value = meta.links || "";
-  document.getElementById("det-sources").value = meta.sources || "";
-
-  const catSel = document.getElementById("det-cat");
-  catSel.innerHTML = catKeys.map(c => 
-    `<option value="${c}" ${c === meta.category ? 'selected' : ''}>${c}</option>`
+  const catSel = document.getElementById("prop-edit-cat");
+  catSel.innerHTML = Object.keys(lib.categories).map(c => 
+    `<option value="${c}" ${c === meta.category ? 'selected' : ''}>${c} (${lib.categories[c].system || 'System'})</option>`
   ).join("");
 
-  const oppSel = document.getElementById("det-opposite");
-  oppSel.innerHTML = `<option value="">${t("noOpp")}</option>` + 
-    Object.keys(lib.properties).filter(p => p !== selectedProp).map(p => 
+  const oppSel = document.getElementById("prop-edit-opposite");
+  oppSel.innerHTML = `<option value="">${t("noPolarity")}</option>` + 
+    Object.keys(lib.properties).filter(p => p !== selectedPropName).map(p => 
       `<option value="${p}" ${p === meta.opposite ? 'selected' : ''}>${p}</option>`
     ).join("");
 
-  // Rendera kopplade objekt
-  const objListUi = document.getElementById("prop-connected-objs-ui");
-  objListUi.innerHTML = "";
-  const connectedObjs = lib.objects.filter(o => o.props[selectedProp] !== undefined);
+  const featCont = document.getElementById("prop-featured-objs-list");
+  featCont.innerHTML = "";
+  const matchingObjs = lib.objects.filter(o => o.props[selectedPropName] !== undefined);
 
-  if (connectedObjs.length === 0) {
-    objListUi.innerHTML = `<div style="color:#777; font-style:italic; padding:6px;">Inga objekt har denna egenskap ännu.</div>`;
+  if (matchingObjs.length === 0) {
+    featCont.innerHTML = `<div style="color:#666; font-style:italic; padding:6px;">${t("noFeaturedObjs")}</div>`;
   } else {
-    connectedObjs.forEach(o => {
-      const d = document.createElement("div");
-      d.className = "list-item";
-      d.innerHTML = `
-        <span><b>${o.name}</b></span>
-        <div style="display:flex; gap:4px;">
-          <button style="font-size:9px;" onclick="jumpToObjectFromIndex('${o.id}')">Granska</button>
-          <button style="font-size:9px; color:red;" onclick="disconnectObjFromProp('${o.id}')">Koppla bort</button>
-        </div>
+    matchingObjs.forEach(o => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:4px 6px; border-bottom:1px solid #2d303f;";
+      row.innerHTML = `
+        <span style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="jumpToObj('${o.id}')">${o.name}</span>
+        <button style="font-size:9px;" onclick="disconnectPropFromSpecificObj('${o.id}')">${t("disconnectBtn")}</button>
       `;
-      objListUi.appendChild(d);
+      featCont.appendChild(row);
     });
   }
 }
 
-function jumpToObjectFromIndex(objId) {
+function jumpToObj(objId) {
   selectedObjId = objId;
-  switchTab('obj-view', document.getElementById("tab-obj"));
+  setWorkspaceView("OBJECT");
 }
 
-function disconnectObjFromProp(objId) {
+function disconnectPropFromSpecificObj(objId) {
   const lib = currentLib();
   const obj = lib.objects.find(o => o.id === objId);
   if (!obj) return;
-  if (confirm(t("confirmRemoveObjFromProp", obj.name))) {
-    delete obj.props[selectedProp];
+  delete obj.props[selectedPropName];
+  persist();
+  renderPropertyView();
+}
+
+function promptAssignActivePropToObj() {
+  const lib = currentLib();
+  const unassigned = lib.objects.filter(o => o.props[selectedPropName] === undefined);
+  if (unassigned.length === 0) { alert(t("allObjsHaveProp")); return; }
+  const names = unassigned.map((o, i) => `${i+1}. ${o.name}`).join("\n");
+  const pick = prompt(t("promptPickObjConnect") + names);
+  if (!pick) return;
+  const idx = parseInt(pick) - 1;
+  if (unassigned[idx]) {
+    unassigned[idx].props[selectedPropName] = {};
     persist();
-    renderM2();
+    renderPropertyView();
   }
 }
 
-function promptConnectObjectToActiveProp() {
+function saveActiveProperty() {
   const lib = currentLib();
-  if (lib.objects.length === 0) return;
-  const available = lib.objects.filter(o => o.props[selectedProp] === undefined);
-  if (available.length === 0) {
-    alert("Alla existerande objekt har redan denna egenskap!");
-    return;
-  }
-  const choiceStr = available.map((o, idx) => `${idx + 1}. ${o.name}`).join("\n");
-  const choice = prompt("Välj objekt att koppla egenskapen till:\n" + choiceStr);
-  if (!choice) return;
-  const idx = parseInt(choice) - 1;
-  const chosenObj = available[idx];
-  if (chosenObj) {
-    chosenObj.props[selectedProp] = {};
-    persist();
-    renderM2();
-  }
-}
+  const newName = document.getElementById("prop-edit-name").value.trim();
+  const cat = document.getElementById("prop-edit-cat").value;
+  const desc = document.getElementById("prop-edit-desc").value;
+  const links = document.getElementById("prop-edit-links").value;
+  const sources = document.getElementById("prop-edit-sources").value;
+  const opp = document.getElementById("prop-edit-opposite").value;
 
-function savePropertyDetails() {
-  const lib = currentLib();
-  const newName = document.getElementById("det-name").value.trim();
-  const newCat = document.getElementById("det-cat").value;
-  const syns = document.getElementById("det-synonyms").value.split(",").map(s => s.trim()).filter(Boolean);
-  const desc = document.getElementById("det-desc").value;
-  const links = document.getElementById("det-links").value;
-  const sources = document.getElementById("det-sources").value;
-  const opp = document.getElementById("det-opposite").value;
-
-  const old = selectedProp;
+  const old = selectedPropName;
   const data = lib.properties[old];
-  if (!data) return;
-
-  data.category = newCat;
-  data.synonyms = syns;
+  data.category = cat;
   data.desc = desc;
   data.links = links;
   data.sources = sources;
   data.opposite = opp;
 
-  if (newName !== old) {
+  if (newName !== old && newName !== "") {
     lib.properties[newName] = data;
     delete lib.properties[old];
     lib.objects.forEach(o => {
       if (o.props[old]) { o.props[newName] = o.props[old]; delete o.props[old]; }
     });
-    selectedProp = newName;
+    selectedPropName = newName;
   }
+
   persist();
-  renderM2();
+  renderPropertyView();
+  renderTree();
+  alert(t("metaSavedAlert"));
 }
 
-// ==================== 3. FORMELMODULEN ====================
-function renderFormula() {
+// ==================== 4. PAPPERSKORG (TRASH BIN) ====================
+function renderTrashView() {
   const lib = currentLib();
-  if (!lib.formula) lib.formula = [];
-  const tbody = document.getElementById("formula-body");
+  const tbody = document.getElementById("trash-table-body");
   tbody.innerHTML = "";
-  const total = lib.formula.reduce((s, r) => s + r.qty, 0);
+
+  if (lib.trash.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#666; padding:20px;">${t("emptyTrashText")}</td></tr>`;
+    return;
+  }
+
+  lib.trash.forEach((item, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="text-align:center;">
+        <input type="checkbox" ${item.keep ? 'checked' : ''} onchange="toggleTrashKeep(${idx}, this.checked)">
+      </td>
+      <td style="font-weight:600; color:#fff;">${item.name}</td>
+      <td style="color:var(--text-muted);">${item.type}</td>
+      <td>${item.deletedAt}</td>
+      <td style="color:var(--accent);">${item.originalPlace}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleTrashKeep(idx, isChecked) {
+  currentLib().trash[idx].keep = isChecked;
+  persist();
+}
+
+function reviveKeptTrash() {
+  const lib = currentLib();
+  const kept = lib.trash.filter(item => item.keep);
+  if (kept.length === 0) { alert(t("noReviveSelected")); return; }
+
+  kept.forEach(item => {
+    if (item.restoreData.targetType === "object_prop") {
+      const obj = lib.objects.find(o => o.id === item.restoreData.objId);
+      if (obj) obj.props[item.restoreData.propName] = {};
+    }
+  });
+
+  lib.trash = lib.trash.filter(item => !item.keep);
+  persist();
+  renderTrashView();
+  renderTree();
+  alert(t("revivedAlert"));
+}
+
+function purgeUnkeptTrash() {
+  const lib = currentLib();
+  const unkeptCount = lib.trash.filter(item => !item.keep).length;
+  if (unkeptCount === 0) return;
+
+  if (confirm(t("purgeConfirm", unkeptCount))) {
+    lib.trash = lib.trash.filter(item => item.keep);
+    persist();
+    renderTrashView();
+    renderTree();
+  }
+}
+
+// ==================== 5. FORMELMODULEN (MED PINNADE STATUSAR) ====================
+function promptManagePins() {
+  const lib = currentLib();
+  if (!lib.pinnedConfigs) lib.pinnedConfigs = {};
+  const catNames = Object.keys(lib.categories);
+  const choice = prompt("Välj kategori att pinna eller av-pinna:\n" + catNames.map((c, i) => `${i+1}. ${c} ${lib.pinnedConfigs[c] ? '[' + lib.pinnedConfigs[c] + ']' : ''}`).join("\n"));
+  if (!choice) return;
+  const idx = parseInt(choice) - 1;
+  const selectedCat = catNames[idx];
+  if (!selectedCat) return;
+
+  if (lib.pinnedConfigs[selectedCat]) {
+    if (confirm(`Ta bort pin för '${selectedCat}'?`)) delete lib.pinnedConfigs[selectedCat];
+  } else {
+    const symbol = prompt(`Ange symbol/emoji för [${selectedCat}]:`, "⚠️") || "⚠️";
+    lib.pinnedConfigs[selectedCat] = symbol;
+  }
+  persist();
+  renderFormulaView();
+}
+
+function renderFormulaView() {
+  const lib = currentLib();
+  const tbody = document.getElementById("formula-table-body");
+  tbody.innerHTML = "";
+  const total = lib.formula.reduce((sum, r) => sum + r.qty, 0);
 
   lib.formula.forEach((row, i) => {
     const tr = document.createElement("tr");
@@ -1340,16 +1360,16 @@ function renderFormula() {
     const opts = lib.objects.map(o => `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${o.name}</option>`).join("");
 
     tr.innerHTML = `
-      <td class="row-num">${i+1}</td>
-      <td><select onchange="updateRow(${i}, 'objId', this.value)">${opts}</select></td>
-      <td><input type="text" class="cell-input" value="${row.role}" onchange="updateRow(${i}, 'role', this.value)"></td>
+      <td>${i+1}</td>
+      <td><select onchange="updateFormulaRow(${i}, 'objId', this.value)">${opts}</select></td>
+      <td><input type="text" value="${row.role}" onchange="updateFormulaRow(${i}, 'role', this.value)"></td>
       <td>
         <button onclick="updateQty(${i}, -1)">-</button>
-        <span style="font-weight:bold;">${row.qty}</span>
+        <b>${row.qty}</b>
         <button onclick="updateQty(${i}, 1)">+</button>
       </td>
-      <td class="calculated-cell">${share}%</td>
-      <td style="color:red; cursor:pointer;" onclick="deleteRow(${i})">✕</td>
+      <td style="font-family:monospace;">${share}%</td>
+      <td style="color:var(--danger); cursor:pointer;" onclick="deleteFormulaRow(${i})">✕</td>
     `;
     tbody.appendChild(tr);
   });
@@ -1357,45 +1377,25 @@ function renderFormula() {
   calculateEffects(total);
 }
 
-function updateRow(i, f, v) { currentLib().formula[i][f] = v; persist(); renderFormula(); }
-function updateQty(i, delta) { currentLib().formula[i].qty = Math.max(0, currentLib().formula[i].qty + delta); persist(); renderFormula(); }
-function deleteRow(i) { currentLib().formula.splice(i, 1); persist(); renderFormula(); }
+function updateFormulaRow(i, f, v) { currentLib().formula[i][f] = v; persist(); renderFormulaView(); }
+function updateQty(i, d) { currentLib().formula[i].qty = Math.max(0, currentLib().formula[i].qty + d); persist(); renderFormulaView(); }
+function deleteFormulaRow(i) { currentLib().formula.splice(i, 1); persist(); renderFormulaView(); }
 function addFormulaRow() { 
   const lib = currentLib();
   if (lib.objects.length > 0) {
     lib.formula.push({ objId: lib.objects[0].id, role: "Komponent", qty: 1 });
     persist();
-    renderFormula();
+    renderFormulaView();
   }
-}
-
-function promptManagePins() {
-  const lib = currentLib();
-  if (!lib.pinnedConfigs) lib.pinnedConfigs = {};
-  const catNames = Object.keys(lib.categories);
-  const choice = prompt("Välj kategori / Select category:\n" + catNames.map((c, i) => `${i+1}. ${c} ${lib.pinnedConfigs[c] ? '[' + lib.pinnedConfigs[c] + ']' : ''}`).join("\n"));
-  if (!choice) return;
-  const idx = parseInt(choice) - 1;
-  const selectedCat = catNames[idx];
-  if (!selectedCat) return;
-
-  if (lib.pinnedConfigs[selectedCat]) {
-    if (confirm(`Ta bort / Remove pin '${selectedCat}'?`)) delete lib.pinnedConfigs[selectedCat];
-  } else {
-    const symbol = prompt(`Ange symbol/emoji / Enter symbol:`, "📌") || "📌";
-    lib.pinnedConfigs[selectedCat] = symbol;
-  }
-  persist();
-  renderFormula();
 }
 
 function calculateEffects(total) {
   const lib = currentLib();
   let pSum = {};
   let pSyn = {};
-  let pinnedItems = [];
+  let pinnedFindings = [];
 
-  if (total > 0 && lib.formula) {
+  if (total > 0) {
     lib.formula.forEach(r => {
       if (r.qty <= 0) return;
       const obj = lib.objects.find(o => o.id === r.objId);
@@ -1403,47 +1403,49 @@ function calculateEffects(total) {
 
       Object.keys(obj.props).forEach(p => {
         const cat = lib.properties[p]?.category;
+        // Om kategorin är pinnad, lyft ut till pinnade rutan
         if (lib.pinnedConfigs && lib.pinnedConfigs[cat]) {
-          pinnedItems.push({ symbol: lib.pinnedConfigs[cat], prop: p, source: obj.name, cat: cat });
+          pinnedFindings.push({
+            symbol: lib.pinnedConfigs[cat],
+            prop: p,
+            source: obj.name,
+            cat: cat
+          });
           return;
         }
+
         pSum[p] = (pSum[p] || 0) + r.qty;
         pSyn[p] = (pSyn[p] || 0) + 1;
       });
     });
   }
 
-  const pinDiv = document.getElementById("formula-pinned-items");
-  if (pinnedItems.length > 0) {
-    pinDiv.innerHTML = pinnedItems.map(it => `
-      <div style="padding:2px 0;">
-        <span>${it.symbol}</span> <b>[${it.prop}]</b> 
-        <span style="color:#555;">(${t("fromText")} ${it.source} • ${t("categoryText")}: ${it.cat})</span>
+  // Pinnade rutan
+  const pinCont = document.getElementById("formula-pinned-items");
+  if (pinnedFindings.length > 0) {
+    pinCont.innerHTML = pinnedFindings.map(item => `
+      <div class="pinned-status-item">
+        <span style="font-size:14px;">${item.symbol}</span>
+        <b>[${item.prop}]</b>
+        <span style="color:var(--text-muted);">(${t("fromText")} ${item.source} • ${t("categoryText")}: ${item.cat})</span>
       </div>
     `).join("");
   } else {
-    pinDiv.innerHTML = `<span style="color:#888; font-style:italic; font-size:10px;">${t("noPinnedHits")}</span>`;
+    pinCont.innerHTML = `<span style="color:#777; font-style:italic;">${t("noPinnedHits")}</span>`;
   }
 
+  // Kvantitativ lista
   const tbody = document.getElementById("formula-props-body");
   tbody.innerHTML = "";
   let list = Object.keys(pSum).map(p => ({ name: p, syn: pSyn[p], eff: Math.round((pSum[p] / total) * 100) }));
   list.sort((a, b) => b.syn - a.syn || b.eff - a.eff);
 
-  if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:12px;">${t("noFormulaProps")}</td></tr>`;
-  } else {
-    list.forEach((it, i) => {
-      tbody.innerHTML += `<tr><td class="row-num">${i+1}</td><td><b>${it.name}</b></td><td style="text-align:center;">${it.syn}</td><td class="calculated-cell">${it.eff}%</td></tr>`;
-    });
-  }
+  list.forEach((it, i) => {
+    tbody.innerHTML += `<tr><td>${i+1}</td><td><b>${it.name}</b></td><td style="color:var(--accent);">${it.syn}</td><td style="text-align:right;">${it.eff}%</td></tr>`;
+  });
 
-  renderBalance(pSum, total);
-}
-
-function renderBalance(pSum, total) {
-  const lib = currentLib();
-  const cont = document.getElementById("balance-meter-ui");
+  // Balans
+  const cont = document.getElementById("formula-balance-container");
   cont.innerHTML = "";
   const evaled = new Set();
 
@@ -1452,150 +1454,222 @@ function renderBalance(pSum, total) {
     if (opp && !evaled.has([p, opp].sort().join("::"))) {
       evaled.add([p, opp].sort().join("::"));
       const diff = ((pSum[p] || 0) - (pSum[opp] || 0)) / total;
-      cont.innerHTML += `<div style="display:flex; justify-content:space-between; margin:2px 0;"><span>[${opp}]</span><b>Balance: ${diff > 0 ? '+' : ''}${diff.toFixed(2)}</b><span>[${p}]</span></div>`;
+      cont.innerHTML += `
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span>[${opp}]</span> <b>${diff > 0 ? '+' : ''}${diff.toFixed(2)}</b> <span>[${p}]</span>
+        </div>
+      `;
     }
   });
 }
 
-// ==================== 4. FILTERSÖK (KOMMA & SYNONYMER) ====================
-function addSearchFilterFromInput() {
-  const raw = document.getElementById("search-input").value.trim();
+// ==================== 6. FILTERSÖK ====================
+function applySearchFilter() {
+  const raw = document.getElementById("filter-search-input").value.trim();
   if (!raw) return;
   const terms = raw.split(",").map(s => s.trim()).filter(Boolean);
   const lib = currentLib();
 
-  terms.forEach(term => {
-    let resolved = term;
+  terms.forEach(t => {
+    let resolved = t;
     if (!lib.properties[resolved]) {
-      // Sök synonym
-      for (const [pName, meta] of Object.entries(lib.properties)) {
-        if (meta.synonyms && meta.synonyms.some(s => s.toLowerCase() === term.toLowerCase())) {
-          resolved = pName;
+      for (const [p, m] of Object.entries(lib.properties)) {
+        if (m.synonyms && m.synonyms.some(s => s.toLowerCase() === t.toLowerCase())) {
+          resolved = p;
           break;
         }
       }
     }
-    if (!searchFilters.includes(resolved)) {
-      searchFilters.push(resolved);
-    }
+    if (!activeSearchFilters.includes(resolved)) activeSearchFilters.push(resolved);
   });
 
-  document.getElementById("search-input").value = "";
-  renderSearch();
+  document.getElementById("filter-search-input").value = "";
+  renderSearchView();
 }
 
-function removeFilter(f) {
-  searchFilters = searchFilters.filter(x => x !== f);
-  renderSearch();
+function removeSearchFilter(f) {
+  activeSearchFilters = activeSearchFilters.filter(x => x !== f);
+  renderSearchView();
 }
 
-function renderSearch() {
+function renderSearchView() {
   const lib = currentLib();
-  const fCont = document.getElementById("active-filters");
-  fCont.innerHTML = searchFilters.map(f => 
-    `<span class="tag-badge"><span>${f}</span><b style="color:red; margin-left:4px; cursor:pointer;" onclick="removeFilter('${f}')">✕</b></span>`
-  ).join("");
+  const chipCont = document.getElementById("filter-chips-container");
+  chipCont.innerHTML = activeSearchFilters.map(f => `
+    <span class="tag-badge">
+      <span>${f}</span>
+      <span style="color:var(--danger); cursor:pointer;" onclick="removeSearchFilter('${f}')">✕</span>
+    </span>
+  `).join("");
 
-  const tbody = document.getElementById("search-results-body");
+  const tbody = document.getElementById("search-table-body");
   tbody.innerHTML = "";
 
-  if (searchFilters.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">${t("searchNoFilterPrompt")}</td></tr>`;
+  if (activeSearchFilters.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#666; padding:15px;">${t("noSearchFilterPrompt")}</td></tr>`;
     return;
   }
 
   let res = [];
   lib.objects.forEach(obj => {
-    let match = searchFilters.filter(f => obj.props[f] !== undefined);
+    let match = activeSearchFilters.filter(f => obj.props[f] !== undefined);
     if (match.length > 0) {
-      res.push({ name: obj.name, pct: Math.round((match.length / searchFilters.length) * 100), match });
+      res.push({ id: obj.id, name: obj.name, pct: Math.round((match.length / activeSearchFilters.length) * 100), match });
     }
   });
   res.sort((a, b) => b.pct - a.pct);
 
   res.forEach((r, i) => {
-    tbody.innerHTML += `<tr><td class="row-num">${i+1}</td><td><b>${r.name}</b></td><td class="calculated-cell">${r.pct}%</td><td>${r.match.join(", ")}</td></tr>`;
+    tbody.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td><b style="color:var(--accent); cursor:pointer;" onclick="jumpToObj('${r.id}')">${r.name}</b></td>
+        <td style="font-family:monospace;">${r.pct}%</td>
+        <td>${r.match.join(", ")}</td>
+      </tr>
+    `;
   });
 }
 
-// ==================== MALLAR OCH FILHANTERING ====================
+// ==================== MODALER ====================
+let modalTargetCat = "";
+function openAddTagModal(cat = "") {
+  modalTargetCat = cat;
+  document.getElementById("modal-tag-input").value = "";
+  document.getElementById("modal-tag-suggestions").style.display = "none";
+  document.getElementById("modal-add-tag").style.display = "flex";
+  document.getElementById("modal-tag-input").focus();
+}
+
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+function handleTagSuggestions(val) {
+  const lib = currentLib();
+  const box = document.getElementById("modal-tag-suggestions");
+  box.innerHTML = "";
+  if (val.trim().length < 2) { box.style.display = "none"; return; }
+
+  const matches = Object.keys(lib.properties).filter(p => p.toLowerCase().includes(val.toLowerCase()));
+  if (matches.length > 0) {
+    box.style.display = "block";
+    matches.forEach(m => {
+      const item = document.createElement("div");
+      item.style.cssText = "padding:4px 8px; cursor:pointer;";
+      item.innerText = m;
+      item.onclick = () => { document.getElementById("modal-tag-input").value = m; box.style.display = "none"; };
+      box.appendChild(item);
+    });
+  } else {
+    box.style.display = "none";
+  }
+}
+
+function confirmAssignTag() {
+  const val = document.getElementById("modal-tag-input").value.trim();
+  if (!val) return;
+  const lib = currentLib();
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (!obj) return;
+
+  if (!lib.properties[val]) {
+    const cat = modalTargetCat || prompt(`Ange kategori för '${val}':`, lib.categoryOrder[0] || Object.keys(lib.categories)[0]) || "Generellt";
+    if (!lib.categories[cat]) {
+      lib.categories[cat] = { system: "Generellt" };
+      lib.categoryOrder.push(cat);
+    }
+    lib.properties[val] = { category: cat, synonyms: [], desc: "", links: "", sources: "" };
+  }
+
+  obj.props[val] = {};
+  persist();
+  closeModal('modal-add-tag');
+  renderObjectView();
+  renderTree();
+}
+
+// ==================== BIBLIOTEK OCH BACKUP ====================
+function updateLibrarySelect() {
+  const sel = document.getElementById("sel-library");
+  sel.innerHTML = Object.entries(appData.libraries).map(([id, lib]) => 
+    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${lib.name}</option>`
+  ).join("");
+}
+
+function switchLibrary(libId) {
+  appData.activeLibId = libId;
+  persist();
+  const lib = currentLib();
+  selectedObjId = lib.objects[0]?.id || "";
+  selectedPropName = Object.keys(lib.properties)[0] || "";
+  renderTree();
+  setWorkspaceView("OBJECT");
+}
+
+function createNewLibraryPrompt() {
+  const name = prompt(t("promptNewLibName"));
+  if (!name) return;
+  const id = "lib_" + Date.now();
+  appData.libraries[id] = {
+    name: name,
+    treeOpen: { "objects": true, "taxonomies": true },
+    categoryOrder: ["Generellt"],
+    systems: { "Generellt": { categories: ["Generellt"] } },
+    categories: { "Generellt": { system: "Generellt" } },
+    properties: {},
+    objects: [],
+    formula: [],
+    trash: [],
+    pinnedConfigs: {}
+  };
+  switchLibrary(id);
+  updateLibrarySelect();
+}
+
+function exportBackup() {
+  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "taxonomy_ide_backup_" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+}
+
+function importBackup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = (ev) => {
+    try {
+      appData = JSON.parse(ev.target.result);
+      persist();
+      updateLibrarySelect();
+      switchLibrary(appData.activeLibId);
+      alert(t("backupImportedAlert"));
+    } catch(err) { alert("Ogiltig JSON-fil."); }
+  };
+  r.readAsText(file);
+}
+
 function loadMasterTemplate() {
   if (!confirm(t("confirmLoadTemplate"))) return;
   const lib = currentLib();
-
-  const masterCats = [
-    "Part Used", "Ingestion forms", "External Forms of Use", "Evidence of Effectiveness",
-    "Adverse Effects", "Conservation Status", "Diets", "Remedy Classifications",
-    "Ayurveda & Doshas", "Gunas (Metabolic Qualities)", "TCM Actions", "Six Tissue States",
-    "Western Energetics", "Western Actions", "Nutritional Actions", "Phytochemical Constituents",
-    "Nutrients", "Planetary Rulers", "Magical & Spiritual Uses", "Symptoms", "Precautions"
-  ];
-
+  const masterCats = ["Part Used", "Ingestion forms", "Western Energetics", "Western Actions", "Ayurveda Gunas", "Symptoms", "Precautions"];
   masterCats.forEach(c => {
     if (!lib.categories[c]) {
       lib.categories[c] = { system: "Master Taxonomy" };
       lib.categoryOrder.push(c);
     }
   });
-
-  const masterProps = {
-    "Warming": { category: "Western Energetics", opposite: "Cooling", synonyms: ["Varm", "Hot"], links: "", sources: "" },
-    "Cooling": { category: "Western Energetics", opposite: "Warming", synonyms: ["Kall", "Cold"], links: "", sources: "" },
-    "Drying":  { category: "Western Energetics", opposite: "Moistening", synonyms: ["Torr"], links: "", sources: "" },
-    "Moistening": { category: "Western Energetics", opposite: "Drying", synonyms: ["Fuktande"], links: "", sources: "" },
-    "Roots":   { category: "Part Used", synonyms: ["Rot", "Rhizome"], links: "", sources: "" },
-    "Leaves":  { category: "Part Used", synonyms: ["Blad"], links: "", sources: "" },
-    "Flowers": { category: "Part Used", synonyms: ["Blommor"], links: "", sources: "" },
-    "Tea":     { category: "Ingestion forms", synonyms: ["Te"], links: "", sources: "" },
-    "Tincture":{ category: "Ingestion forms", synonyms: ["Tinktur"], links: "", sources: "" },
-    "Anti-inflammatory": { category: "Western Actions", synonyms: ["Antiinflammatorisk"], links: "", sources: "" },
-    "Antimicrobial":     { category: "Western Actions", synonyms: ["Antimikrobiell"], links: "", sources: "" },
-    "Carminative":       { category: "Western Actions", synonyms: ["Väderdrivande"], links: "", sources: "" },
-    "Nervine Relaxant":  { category: "Western Actions", synonyms: ["Lugnande"], links: "", sources: "" }
-  };
-
-  Object.entries(masterProps).forEach(([p, data]) => {
-    if (!lib.properties[p]) lib.properties[p] = data;
-  });
-
   persist();
-  renderAllViews();
-  alert(t("templateLoaded"));
-}
-
-function exportDatabaseFile() {
-  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "all_libraries_backup_" + new Date().toISOString().slice(0,10) + ".json";
-  a.click();
-}
-
-function importDatabaseFile(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const r = new FileReader();
-  r.onload = (ev) => {
-    try {
-      const imported = JSON.parse(ev.target.result);
-      if (imported.libraries) {
-        appData = imported;
-      }
-      persist();
-      initSelectionDefaults();
-      renderAllViews();
-      alert(t("dbImported"));
-    } catch(err) {
-      alert("Kunde inte läsa JSON-filen.");
-    }
-  };
-  r.readAsText(file);
+  renderTree();
+  renderObjectView();
+  alert(t("templateLoadedAlert"));
 }
 
 // Uppstart
 updateUILanguage();
-initSelectionDefaults();
-renderAllViews();
+updateLibrarySelect();
+renderTree();
+setWorkspaceView("OBJECT");
 </script>
 
 </body>
