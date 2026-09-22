@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Universal Taxonomy IDE v0.17.4 [Mobile Drawer Fix]</title>
+  <title>Universal Taxonomy IDE v0.17.5 [Clean Tree & Rename Systems]</title>
   <style>
     /* ==================== TEMA 1: IDE / DARK ==================== */
     [data-theme="ide"] {
@@ -120,7 +120,6 @@
       gap: 6px;
     }
 
-    /* HAMBURGERKNAPP (Endast mobil) */
     .btn-menu-toggle {
       display: none;
       background: var(--accent);
@@ -155,7 +154,7 @@
     button.primary:hover { background: var(--accent-hover); }
     button.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
-    /* WORKSPACE (DESKTOP DEFAULT: 3 KOLUMNER) */
+    /* WORKSPACE */
     .workspace-container {
       display: grid;
       grid-template-columns: 290px 1fr auto;
@@ -269,19 +268,27 @@
       border-radius: 10px;
     }
 
-    .tree-create-btn {
-      color: var(--accent) !important;
-      font-style: italic;
-      padding: 2px 6px;
-      margin-bottom: 3px;
-      opacity: 0.85;
-      font-size: 10px;
-      border-bottom: 1px dashed var(--border);
+    /* DISKRETA FOLDER ACTION-KNAPPAR (VS CODE STYLE) */
+    .tree-action-btn {
+      font-size: 11px;
+      padding: 0 4px;
+      line-height: 14px;
+      height: 16px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      border-radius: var(--radius);
+      margin-left: 2px;
+      opacity: 0.6;
+      transition: opacity 0.15s, background 0.15s;
     }
-    .tree-create-btn:hover {
+    .tree-node:hover .tree-action-btn {
       opacity: 1;
-      background: var(--bg-card-hover) !important;
-      color: #fff !important;
+    }
+    .tree-action-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border);
+      color: var(--accent-active);
     }
 
     /* MITTEN: ARBETSYTA */
@@ -318,7 +325,6 @@
       gap: 8px;
     }
 
-    /* KATEGORIKORT & GRID */
     .categories-layout-container {
       display: flex;
       flex-direction: column;
@@ -402,6 +408,10 @@
       color: var(--accent-active);
       font-size: 10px;
       margin-left: 2px;
+    }
+    [data-theme="modern"] .tag-comment-text {
+      color: #64748b;
+      font-weight: 400;
     }
 
     .tag-bullet-list {
@@ -513,7 +523,6 @@
       gap: 8px;
     }
 
-    /* BACKDROP FÖR MOBIL-DRAWER */
     .mobile-backdrop {
       display: none;
       position: fixed;
@@ -522,64 +531,41 @@
       z-index: 2500;
     }
 
-    /* ==================== MOBILANPASSNING (RESPONSIVE DRAWER) ==================== */
     @media (max-width: 820px) {
-      .btn-menu-toggle {
-        display: inline-flex;
-      }
-      .workspace-container {
-        grid-template-columns: 1fr; /* Fullbredd på mobilen */
-      }
-      /* Vänster filmeny blir en skjutbar panel */
+      .btn-menu-toggle { display: inline-flex; }
+      .workspace-container { grid-template-columns: 1fr; }
       .sidebar {
         position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: 85%;
-        max-width: 320px;
+        top: 0; left: 0; bottom: 0;
+        width: 85%; max-width: 320px;
         z-index: 3000;
         box-shadow: 6px 0 25px rgba(0,0,0,0.6);
         transform: translateX(-100%);
         transition: transform 0.25s ease-in-out;
       }
-      .sidebar.open {
-        transform: translateX(0);
-      }
-      /* Inspector-panel blir en skjutbar panel från höger */
+      .sidebar.open { transform: translateX(0); }
       .inspector-sidebar {
         position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        width: 90%;
-        max-width: 340px;
+        top: 0; right: 0; bottom: 0;
+        width: 90%; max-width: 340px;
         z-index: 3000;
         box-shadow: -6px 0 25px rgba(0,0,0,0.6);
       }
-      .main-content {
-        padding: 8px;
-      }
-      [data-theme="modern"] .categories-layout-container {
-        grid-template-columns: 1fr; /* 1 kort per rad på telefon */
-      }
-      .top-bar {
-        padding: 6px 8px;
-      }
+      .main-content { padding: 8px; }
+      [data-theme="modern"] .categories-layout-container { grid-template-columns: 1fr; }
+      .top-bar { padding: 6px 8px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- MOBIL-BACKDROP (Klick för att stänga sidomeny) -->
   <div class="mobile-backdrop" id="mobile-backdrop" onclick="closeMobileSidebar()"></div>
 
   <!-- TOPP-VERKTYGSFÄLT -->
   <div class="top-bar">
     <div class="top-left">
-      <!-- HAMBURGERKNAPP FÖR MOBIL -->
       <button class="btn-menu-toggle" onclick="toggleMobileSidebar()" id="btn-toggle-menu">☰ Meny</button>
-      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.17.4</span></span>
+      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.17.5</span></span>
       <div style="display:flex; align-items:center; gap:4px; margin-left:4px;">
         <span style="color:var(--text-muted);" id="lbl-top-lib">Bibliotek:</span>
         <select id="sel-library" onchange="switchLibrary(this.value)" title="Välj bibliotek"></select>
@@ -618,7 +604,6 @@
     
     <!-- VÄNSTER: FILMENY -->
     <div class="sidebar" id="sidebar-panel">
-      <!-- Stäng-knapp för mobillådan -->
       <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid var(--border);">
         <b style="color:var(--accent-active);">EXPLORER</b>
         <button onclick="closeMobileSidebar()" style="font-size:11px; padding:2px 6px;">✕ Stäng</button>
@@ -918,12 +903,6 @@ const i18n = {
     treeObjects: "📁 Objekt (Object Index)",
     treeIndex: "📁 Egenskapsindex (Tag Index)",
     treeFormulas: "📁 Formler",
-    btnNewObjTree: "➕ Skapa nytt objekt...",
-    btnNewSysTree: "➕ Skapa nytt system...",
-    btnNewCatTree: "➕ Skapa ny kategori...",
-    btnNewSubCatTree: "➕ Skapa ny sub-kategori...",
-    btnNewPropTree: "➕ Skapa ny egenskap...",
-    btnNewFormulaTree: "➕ Skapa ny formel...",
     btnObjCreateDirect: "+ Nytt Objekt",
     btnAddToFormula: "⚗ Lägg till i formel",
     objProfilePrefix: "Objektprofil: ",
@@ -996,7 +975,8 @@ const i18n = {
     btnCancelAddForm: "Avbryt",
     btnBackPrefix: "Tillbaka till ",
     promptNewObj: "Ange namn på det nya objektet:",
-    promptNewSys: "Ange namn på det nya systemet (t.ex. Energetik, Fysiologi):",
+    promptNewSys: "Ange namn på det nya systemet:",
+    promptRenameSys: "Ange nytt namn på systemet '{0}':",
     promptNewCat: "Ange namn på ny kategori under systemet '{0}':",
     promptNewSubCat: "Ange namn på ny sub-kategori under '{0}':",
     promptNewProp: "Ange namn på ny egenskap under '{0}':",
@@ -1024,12 +1004,6 @@ const i18n = {
     treeObjects: "📁 Object Index",
     treeIndex: "📁 Tag Index",
     treeFormulas: "📁 Formulas",
-    btnNewObjTree: "➕ Create new object...",
-    btnNewSysTree: "➕ Create new system...",
-    btnNewCatTree: "➕ Create new category...",
-    btnNewSubCatTree: "➕ Create new subcategory...",
-    btnNewPropTree: "➕ Create new property...",
-    btnNewFormulaTree: "➕ Create new formula...",
     btnObjCreateDirect: "+ New Object",
     btnAddToFormula: "⚗ Add to Formula",
     objProfilePrefix: "Object Profile: ",
@@ -1102,7 +1076,8 @@ const i18n = {
     btnCancelAddForm: "Cancel",
     btnBackPrefix: "Back to ",
     promptNewObj: "Enter name of new object:",
-    promptNewSys: "Enter name of new system (e.g. Energetics, Physiology):",
+    promptNewSys: "Enter name of new system:",
+    promptRenameSys: "Enter new name for system '{0}':",
     promptNewCat: "Enter name of new category under system '{0}':",
     promptNewSubCat: "Enter name of new subcategory under '{0}':",
     promptNewProp: "Enter name of new property under '{0}':",
@@ -1289,7 +1264,7 @@ const defaultAppData = {
 };
 
 let appData = defaultAppData;
-const stored = localStorage.getItem("taxonomy_ide_v17_3") || localStorage.getItem("taxonomy_ide_v17_2") || localStorage.getItem("taxonomy_ide_v17_1");
+const stored = localStorage.getItem("taxonomy_ide_v17_5") || localStorage.getItem("taxonomy_ide_v17_3");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -1318,10 +1293,9 @@ function currentLib() {
 }
 
 function persist() {
-  localStorage.setItem("taxonomy_ide_v17_3", JSON.stringify(appData));
+  localStorage.setItem("taxonomy_ide_v17_5", JSON.stringify(appData));
 }
 
-// HJÄLPFUNKTIONER FÖR ATT VISA ENGELSKA FÖR STANDARD-OBJEKT/FORMLER
 function getDisplayObjName(obj) {
   if (obj.id === "ginger") return currentLang === "en" ? "Ginger (Zingiber officinale)" : "Ingefära (Zingiber officinale)";
   if (obj.id === "peppermint") return currentLang === "en" ? "Peppermint (Mentha piperita)" : "Pepparmynta (Mentha piperita)";
@@ -1356,7 +1330,6 @@ let activeSearchFilters = [];
 let navigatedFromObjectId = null;
 let activeCommentTag = null;
 
-// MOBILNAVIGATION (DRAWER)
 function toggleMobileSidebar() {
   const sb = document.getElementById("sidebar-panel");
   const bd = document.getElementById("mobile-backdrop");
@@ -1474,7 +1447,8 @@ function toggleTreeNode(key) {
   renderTree();
 }
 
-function createObjectPrompt() {
+function createObjectPrompt(event) {
+  if (event) event.stopPropagation();
   const name = prompt(t("promptNewObj"));
   if (!name || name.trim() === "") return;
   const lib = currentLib();
@@ -1487,19 +1461,57 @@ function createObjectPrompt() {
   renderTree();
 }
 
-function createSystemPrompt() {
+function createSystemPrompt(event) {
+  if (event) event.stopPropagation();
   const name = prompt(t("promptNewSys"));
   if (!name || name.trim() === "") return;
   const lib = currentLib();
   if (!lib.systems) lib.systems = {};
-  if (!lib.systems[name.trim()]) {
-    lib.systems[name.trim()] = { categories: [] };
+  const cleanName = name.trim();
+  if (!lib.systems[cleanName]) {
+    lib.systems[cleanName] = { categories: [] };
     persist();
     renderTree();
   }
 }
 
-function createCategoryPrompt(sysNameVal) {
+// FRANKS ÖNSKEMÅL: DÖP OM SYSTEM DIREKT
+function renameSystemPrompt(oldSysName, event) {
+  if (event) event.stopPropagation();
+  const lib = currentLib();
+  const newName = prompt(t("promptRenameSys", oldSysName), oldSysName);
+  if (!newName || newName.trim() === "" || newName.trim() === oldSysName) return;
+  const cleanNew = newName.trim();
+
+  if (lib.systems[cleanNew]) {
+    alert("Ett system med det namnet finns redan.");
+    return;
+  }
+
+  // Flytta systemet och bevara kategorier
+  lib.systems[cleanNew] = lib.systems[oldSysName] || { categories: [] };
+  delete lib.systems[oldSysName];
+
+  // Uppdatera referenser i alla kategorier
+  Object.keys(lib.categories).forEach(cName => {
+    if (lib.categories[cName].system === oldSysName) {
+      lib.categories[cName].system = cleanNew;
+    }
+  });
+
+  // Bevara fäll-läge
+  if (lib.treeOpen["sys_" + oldSysName] !== undefined) {
+    lib.treeOpen["sys_" + cleanNew] = lib.treeOpen["sys_" + oldSysName];
+    delete lib.treeOpen["sys_" + oldSysName];
+  }
+
+  persist();
+  renderTree();
+  if (activeView === 'OBJECT') renderObjectView();
+}
+
+function createCategoryPrompt(sysNameVal, event) {
+  if (event) event.stopPropagation();
   const name = prompt(t("promptNewCat", sysName(sysNameVal)));
   if (!name || name.trim() === "") return;
   const lib = currentLib();
@@ -1514,20 +1526,8 @@ function createCategoryPrompt(sysNameVal) {
   }
 }
 
-function createSubCategoryPrompt(catName) {
-  const name = prompt(t("promptNewSubCat", catName));
-  if (!name || name.trim() === "") return;
-  const lib = currentLib();
-  const subName = name.trim();
-  if (!lib.categories[catName].subcategories) lib.categories[catName].subcategories = [];
-  if (!lib.categories[catName].subcategories.includes(subName)) {
-    lib.categories[catName].subcategories.push(subName);
-    persist();
-    renderTree();
-  }
-}
-
-function createPropertyPrompt(catName, subCatName = "") {
+function createPropertyPrompt(catName, subCatName = "", event) {
+  if (event) event.stopPropagation();
   const name = prompt(t("promptNewProp", subCatName || catName));
   if (!name || name.trim() === "") return;
   const lib = currentLib();
@@ -1550,7 +1550,8 @@ function createPropertyPrompt(catName, subCatName = "") {
   }
 }
 
-function promptCreateFormula() {
+function promptCreateFormula(event) {
+  if (event) event.stopPropagation();
   const name = prompt(t("promptNewFormulaName"));
   if (!name || name.trim() === "") return;
   const lib = currentLib();
@@ -1562,6 +1563,7 @@ function promptCreateFormula() {
   renderTree();
 }
 
+// RENDER TREE (HELT STÄDAT MED DISKRETA KNAPPAR PÅ MAPPENS RAD)
 function renderTree() {
   const lib = currentLib();
   const root = document.getElementById("tree-root");
@@ -1575,6 +1577,7 @@ function renderTree() {
       <span class="tree-toggle">${isObjOpen ? '▼' : '▶'}</span>
       <span>${t("treeObjects")}</span>
       <span class="tree-badge">${lib.objects.length}</span>
+      <button class="tree-action-btn" onclick="createObjectPrompt(event)" title="Nytt objekt">+</button>
     </div>
   `;
   root.appendChild(objFolder);
@@ -1582,12 +1585,6 @@ function renderTree() {
   if (isObjOpen) {
     const wrap = document.createElement("div");
     wrap.className = "tree-children";
-
-    const createBtn = document.createElement("div");
-    createBtn.className = "tree-node tree-create-btn";
-    createBtn.innerHTML = `<span>➕</span> <span>${t("btnNewObjTree")}</span>`;
-    createBtn.onclick = (e) => { e.stopPropagation(); createObjectPrompt(); };
-    wrap.appendChild(createBtn);
 
     lib.objects.forEach(obj => {
       const leaf = document.createElement("div");
@@ -1604,7 +1601,7 @@ function renderTree() {
     root.appendChild(wrap);
   }
 
-  // 2. TAG INDEX (SYSTEM -> KATEGORI -> SUBKATEGORI -> EGENSKAP)
+  // 2. TAG INDEX
   const isTaxOpen = !!lib.treeOpen["taxonomies"];
   const taxFolder = document.createElement("div");
   taxFolder.innerHTML = `
@@ -1612,6 +1609,7 @@ function renderTree() {
       <span class="tree-toggle">${isTaxOpen ? '▼' : '▶'}</span>
       <span>${t("treeIndex")}</span>
       <span class="tree-badge">${Object.keys(lib.properties).length}</span>
+      <button class="tree-action-btn" onclick="createSystemPrompt(event)" title="Nytt system">+</button>
     </div>
   `;
   root.appendChild(taxFolder);
@@ -1619,12 +1617,6 @@ function renderTree() {
   if (isTaxOpen) {
     const taxWrap = document.createElement("div");
     taxWrap.className = "tree-children";
-
-    const newSysBtn = document.createElement("div");
-    newSysBtn.className = "tree-node tree-create-btn";
-    newSysBtn.innerHTML = `<span>➕</span> <span>${t("btnNewSysTree")}</span>`;
-    newSysBtn.onclick = (e) => { e.stopPropagation(); createSystemPrompt(); };
-    taxWrap.appendChild(newSysBtn);
 
     Object.entries(lib.systems).forEach(([sysNameVal, sysData]) => {
       const sysKey = "sys_" + sysNameVal;
@@ -1634,6 +1626,10 @@ function renderTree() {
       sysDiv.innerHTML = `
         <span class="tree-toggle">${isSysOpen ? '▼' : '▶'}</span>
         <span>🗂</span> <b>${sysName(sysNameVal)}</b>
+        <span style="margin-left:auto; display:flex; gap:2px;">
+          <button class="tree-action-btn" onclick="createCategoryPrompt('${sysNameVal}', event)" title="Ny kategori under systemet">+</button>
+          <button class="tree-action-btn" onclick="renameSystemPrompt('${sysNameVal}', event)" title="Döp om system">✏</button>
+        </span>
       `;
       sysDiv.onclick = () => toggleTreeNode(sysKey);
       taxWrap.appendChild(sysDiv);
@@ -1642,21 +1638,17 @@ function renderTree() {
         const sysChildren = document.createElement("div");
         sysChildren.className = "tree-children";
 
-        const newCatBtn = document.createElement("div");
-        newCatBtn.className = "tree-node tree-create-btn";
-        newCatBtn.innerHTML = `<span>➕</span> <span>${t("btnNewCatTree")}</span>`;
-        newCatBtn.onclick = (e) => { e.stopPropagation(); createCategoryPrompt(sysNameVal); };
-        sysChildren.appendChild(newCatBtn);
-
         (sysData.categories || []).forEach(cName => {
           const catKey = "cat_" + cName;
           const isCatOpen = !!lib.treeOpen[catKey];
-          const catData = lib.categories[cName] || {};
           const catDiv = document.createElement("div");
           catDiv.className = "tree-node";
           catDiv.innerHTML = `
             <span class="tree-toggle">${isCatOpen ? '▼' : '▶'}</span>
             <span>📂</span> <span>${cName}</span>
+            <span style="margin-left:auto; display:flex; gap:2px;">
+              <button class="tree-action-btn" onclick="createPropertyPrompt('${cName}', '', event)" title="Ny egenskap">+</button>
+            </span>
           `;
           catDiv.onclick = (e) => { e.stopPropagation(); toggleTreeNode(catKey); };
           sysChildren.appendChild(catDiv);
@@ -1665,60 +1657,8 @@ function renderTree() {
             const catChildren = document.createElement("div");
             catChildren.className = "tree-children";
 
-            const newSubCatBtn = document.createElement("div");
-            newSubCatBtn.className = "tree-node tree-create-btn";
-            newSubCatBtn.innerHTML = `<span>➕</span> <span>${t("btnNewSubCatTree")}</span>`;
-            newSubCatBtn.onclick = (e) => { e.stopPropagation(); createSubCategoryPrompt(cName); };
-            catChildren.appendChild(newSubCatBtn);
-
-            const newPropBtn = document.createElement("div");
-            newPropBtn.className = "tree-node tree-create-btn";
-            newPropBtn.innerHTML = `<span>➕</span> <span>${t("btnNewPropTree")}</span>`;
-            newPropBtn.onclick = (e) => { e.stopPropagation(); createPropertyPrompt(cName); };
-            catChildren.appendChild(newPropBtn);
-
-            (catData.subcategories || []).forEach(subName => {
-              const subKey = "sub_" + cName + "_" + subName;
-              const isSubOpen = !!lib.treeOpen[subKey];
-              const subDiv = document.createElement("div");
-              subDiv.className = "tree-node";
-              subDiv.innerHTML = `
-                <span class="tree-toggle">${isSubOpen ? '▼' : '▶'}</span>
-                <span>📁</span> <i>${subName}</i>
-              `;
-              subDiv.onclick = (e) => { e.stopPropagation(); toggleTreeNode(subKey); };
-              catChildren.appendChild(subDiv);
-
-              if (isSubOpen) {
-                const subWrap = document.createElement("div");
-                subWrap.className = "tree-children";
-
-                const newSubPropBtn = document.createElement("div");
-                newSubPropBtn.className = "tree-node tree-create-btn";
-                newSubPropBtn.innerHTML = `<span>➕</span> <span>${t("btnNewPropTree")}</span>`;
-                newSubPropBtn.onclick = (e) => { e.stopPropagation(); createPropertyPrompt(cName, subName); };
-                subWrap.appendChild(newSubPropBtn);
-
-                Object.entries(lib.properties)
-                  .filter(([_, p]) => p.category === cName && p.subcategory === subName)
-                  .forEach(([pName]) => {
-                    const pLeaf = document.createElement("div");
-                    pLeaf.className = `tree-node ${activeView === 'PROPERTY' && selectedPropName === pName ? 'active' : ''}`;
-                    pLeaf.innerHTML = `<span>🏷</span> <span>${pName}</span>`;
-                    pLeaf.onclick = (e) => {
-                      e.stopPropagation();
-                      selectedPropName = pName;
-                      closeMobileSidebar();
-                      setWorkspaceView("PROPERTY");
-                    };
-                    subWrap.appendChild(pLeaf);
-                  });
-                catChildren.appendChild(subWrap);
-              }
-            });
-
             Object.entries(lib.properties)
-              .filter(([_, p]) => p.category === cName && !p.subcategory)
+              .filter(([_, p]) => p.category === cName)
               .forEach(([pName]) => {
                 const pLeaf = document.createElement("div");
                 pLeaf.className = `tree-node ${activeView === 'PROPERTY' && selectedPropName === pName ? 'active' : ''}`;
@@ -1749,6 +1689,7 @@ function renderTree() {
       <span class="tree-toggle">${isFormOpen ? '▼' : '▶'}</span>
       <span>${t("treeFormulas")}</span>
       <span class="tree-badge">${Object.keys(lib.formulas).length}</span>
+      <button class="tree-action-btn" onclick="promptCreateFormula(event)" title="Ny formel">+</button>
     </div>
   `;
   root.appendChild(formFolder);
@@ -1756,12 +1697,6 @@ function renderTree() {
   if (isFormOpen) {
     const fWrap = document.createElement("div");
     fWrap.className = "tree-children";
-
-    const createFBtn = document.createElement("div");
-    createFBtn.className = "tree-node tree-create-btn";
-    createFBtn.innerHTML = `<span>➕</span> <span>${t("btnNewFormulaTree")}</span>`;
-    createFBtn.onclick = (e) => { e.stopPropagation(); promptCreateFormula(); };
-    fWrap.appendChild(createFBtn);
 
     Object.keys(lib.formulas).forEach(fName => {
       const fLeaf = document.createElement("div");
@@ -1790,7 +1725,7 @@ function renderTree() {
   root.appendChild(trashNode);
 }
 
-// ==================== 2. OBJEKTPROFIL (FÄRGSÄTTNING) ====================
+// ==================== 2. OBJEKTPROFIL ====================
 function toggleSystemColors(isChecked) {
   currentLib().useSystemColors = isChecked;
   persist();
