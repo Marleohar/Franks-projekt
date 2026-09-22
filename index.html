@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Universal Taxonomy IDE v0.15.1 [Tree Toggle & Highlight Fix]</title>
+  <title>Universal Taxonomy IDE v0.15.2 [Batch & New Object Connect]</title>
   <style>
     :root {
       --bg-main: #18191f;
@@ -92,7 +92,7 @@
     button.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
     button.danger:hover { background: var(--danger); color: #fff; }
 
-    /* LAYOUT: EXPLORER TRÄD (VÄNSTER) + WORKSPACE (HÖGER) */
+    /* WORKSPACE GRID */
     .workspace-container {
       display: grid;
       grid-template-columns: 290px 1fr;
@@ -158,7 +158,6 @@
       color: #777c91;
     }
 
-    /* GUL HIGHLIGHT FÖR SÖKTRÄFFAR */
     mark.tree-highlight {
       background: #ffb703;
       color: #000;
@@ -243,7 +242,7 @@
       color: #fff;
     }
 
-    /* FORMULÄR FÖR METADATA */
+    /* FORMULÄR */
     .meta-grid {
       display: grid;
       grid-template-columns: 1.2fr 1fr;
@@ -358,7 +357,7 @@
       background: var(--bg-panel);
       border: 1px solid var(--border);
       border-radius: 6px;
-      width: 440px;
+      width: 460px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.8);
       overflow: hidden;
     }
@@ -384,7 +383,7 @@
   <!-- TOPP-VERKTYGSFÄLT -->
   <div class="top-bar">
     <div class="top-left">
-      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.15.1</span></span>
+      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.15.2</span></span>
       <div style="display:flex; align-items:center; gap:4px; margin-left:12px;">
         <span style="color:var(--text-muted);" id="lbl-top-lib">Bibliotek:</span>
         <select id="sel-library" onchange="switchLibrary(this.value)" title="Välj vilket bibliotek du vill arbeta i"></select>
@@ -480,7 +479,7 @@
           <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:3px; padding:10px; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <span style="font-weight:700; color:var(--text-muted); text-transform:uppercase;" id="lbl-featured-objs">Förekommer i objekt (Featured in Objects)</span>
-              <button onclick="promptAssignActivePropToObj()" id="btn-connect-obj" title="Koppla denna egenskap till fler objekt">+ Koppla objekt</button>
+              <button onclick="openConnectObjectsModal()" id="btn-connect-obj" title="Koppla flera objekt (både gamla och nya) samtidigt">+ Koppla objekt</button>
             </div>
             <div id="prop-featured-objs-list" style="flex-grow:1; overflow-y:auto; border:1px solid var(--border); background:var(--bg-input); border-radius:3px; padding:4px;"></div>
           </div>
@@ -577,7 +576,7 @@
     </div>
   </div>
 
-  <!-- MODAL FÖR NY EGENSKAP -->
+  <!-- MODAL: TILLDELA EGENSKAP TILL OBJEKT -->
   <div class="modal-overlay" id="modal-add-tag">
     <div class="modal-box">
       <div class="modal-header">
@@ -591,6 +590,30 @@
         <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
           <button class="primary" onclick="confirmAssignTag()" id="btn-modal-assign">Tilldela</button>
           <button onclick="closeModal('modal-add-tag')" id="btn-modal-cancel">Avbryt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KOPPLA FLERA OBJEKT (BÅDE GAMLA OCH NYA) TILL EN EGENSKAP -->
+  <div class="modal-overlay" id="modal-connect-objs">
+    <div class="modal-box" style="width:480px;">
+      <div class="modal-header">
+        <span><span id="lbl-modal-conn-title">Koppla objekt till:</span> <b id="modal-conn-prop-title" style="color:var(--accent);"></b></span>
+        <span style="cursor:pointer;" onclick="closeModal('modal-connect-objs')">✕</span>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label id="lbl-conn-input">Skriv objekt (kommaseparerat – nya skapas automatiskt):</label>
+          <textarea id="modal-conn-input" rows="2" placeholder="t.ex. Ingefära, Kamomill, Ny Ört..."></textarea>
+        </div>
+        <div class="form-group" style="margin-top:4px;">
+          <label id="lbl-conn-checklist">Eller bocka i bland existerande objekt:</label>
+          <div id="modal-conn-checklist" style="max-height:140px; overflow-y:auto; border:1px solid var(--border); background:var(--bg-input); border-radius:3px; padding:6px; display:flex; flex-direction:column; gap:4px;"></div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
+          <button class="primary" onclick="confirmBatchConnectObjects()" id="btn-conn-submit">Koppla valda & nya objekt</button>
+          <button onclick="closeModal('modal-connect-objs')" id="btn-conn-cancel">Avbryt</button>
         </div>
       </div>
     </div>
@@ -665,10 +688,14 @@ const i18n = {
     lblModalPrompt: "Egenskapsnamn (skriv minst 2 tecken för förslag):",
     btnModalAssign: "Tilldela",
     btnModalCancel: "Avbryt",
+    lblModalConnTitle: "Koppla objekt till:",
+    lblConnInput: "Skriv objekt (kommaseparerat – nya skapas automatiskt):",
+    lblConnChecklist: "Eller bocka i bland existerande objekt:",
+    allObjsHavePropHint: "Alla existerande objekt har redan denna egenskap. Skriv ovan för att skapa och koppla nya objekt.",
+    btnConnSubmit: "Koppla valda & nya objekt",
+    btnConnCancel: "Avbryt",
     promptNewLibName: "Ange namn på det nya biblioteket:",
     promptBatchAdd: "Skriv in flera egenskaper separerade med kommatecken (t.ex. Roots, Warming, Tea):",
-    promptPickObjConnect: "Välj objekt att tilldela egenskapen:\n",
-    allObjsHaveProp: "Alla objekt har redan denna egenskap.",
     metaSavedAlert: "Metadata sparad!",
     revivedAlert: "Markerade element har återställts till sina platser!",
     noReviveSelected: "Inga element är bockade för att återställas.",
@@ -703,7 +730,7 @@ const i18n = {
     noPolarity: "-- No polarity --",
     btnSaveProp: "Save Changes",
     lblFeaturedObjs: "Featured in Objects",
-    btnConnectObj: "+ Connect Object",
+    btnConnectObj: "+ Connect Objects",
     noFeaturedObjs: "No objects have this property yet.",
     disconnectBtn: "Disconnect",
     lblTrashTitle: "Trash Bin",
@@ -743,10 +770,14 @@ const i18n = {
     lblModalPrompt: "Property name (min 2 chars for suggestions):",
     btnModalAssign: "Assign",
     btnModalCancel: "Cancel",
+    lblModalConnTitle: "Connect objects to:",
+    lblConnInput: "Enter objects (comma-separated – new ones created automatically):",
+    lblConnChecklist: "Or select from existing objects:",
+    allObjsHavePropHint: "All existing objects already have this property. Type above to create and connect new ones.",
+    btnConnSubmit: "Connect selected & new objects",
+    btnConnCancel: "Cancel",
     promptNewLibName: "Enter name of new library:",
     promptBatchAdd: "Enter multiple properties separated by commas (e.g. Roots, Warming, Tea):",
-    promptPickObjConnect: "Select object to assign this property:\n",
-    allObjsHaveProp: "All objects already have this property.",
     metaSavedAlert: "Metadata saved!",
     revivedAlert: "Selected items have been restored to their original places!",
     noReviveSelected: "No items checked to revive.",
@@ -836,6 +867,12 @@ function updateUILanguage() {
   document.getElementById("lbl-modal-prompt").innerText = t("lblModalPrompt");
   document.getElementById("btn-modal-assign").innerText = t("btnModalAssign");
   document.getElementById("btn-modal-cancel").innerText = t("btnModalCancel");
+
+  document.getElementById("lbl-modal-conn-title").innerText = t("lblModalConnTitle");
+  document.getElementById("lbl-conn-input").innerText = t("lblConnInput");
+  document.getElementById("lbl-conn-checklist").innerText = t("lblConnChecklist");
+  document.getElementById("btn-conn-submit").innerText = t("btnConnSubmit");
+  document.getElementById("btn-conn-cancel").innerText = t("btnConnCancel");
 }
 
 // ==================== DATABAS & LOCALSTORAGE ====================
@@ -886,7 +923,7 @@ const defaultAppData = {
 };
 
 let appData = defaultAppData;
-const stored = localStorage.getItem("taxonomy_ide_v15_1") || localStorage.getItem("taxonomy_ide_v15") || localStorage.getItem("taxonomy_ide_v14") || localStorage.getItem("multi_lib_v13");
+const stored = localStorage.getItem("taxonomy_ide_v15_2") || localStorage.getItem("taxonomy_ide_v15_1") || localStorage.getItem("taxonomy_ide_v15");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -907,7 +944,7 @@ function currentLib() {
 }
 
 function persist() {
-  localStorage.setItem("taxonomy_ide_v15_1", JSON.stringify(appData));
+  localStorage.setItem("taxonomy_ide_v15_2", JSON.stringify(appData));
 }
 
 // ==================== TILLSTÅND ====================
@@ -932,7 +969,7 @@ function setWorkspaceView(viewType) {
   renderTree();
 }
 
-// ==================== 1. EXPLORER-TRÄD MED FULL TOGGLE & HIGHLIGHT ====================
+// ==================== 1. EXPLORER-TRÄD ====================
 function escapeHtml(text) {
   return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -950,10 +987,10 @@ function highlightMatch(text, query) {
 }
 
 function isNodeOpen(key, isFiltering) {
-  if (isFiltering) return true; // Under sökning expanderas alla matchande grenar automatiskt
+  if (isFiltering) return true;
   const lib = currentLib();
   if (!lib.treeOpen) lib.treeOpen = {};
-  return lib.treeOpen[key] !== false; // Öppet som standard, stängs till false vid klick
+  return lib.treeOpen[key] !== false;
 }
 
 function toggleTreeNode(key) {
@@ -978,7 +1015,7 @@ function renderTree() {
   const filter = document.getElementById("tree-filter-input").value.trim().toLowerCase();
   const isFiltering = filter.length > 0;
 
-  // --- SEKTION: OBJECTS ---
+  // OBJECTS
   const matchingObjs = lib.objects.filter(o => !isFiltering || o.name.toLowerCase().includes(filter));
   if (!isFiltering || matchingObjs.length > 0) {
     const isObjOpen = isNodeOpen("objects", isFiltering);
@@ -1010,7 +1047,7 @@ function renderTree() {
     }
   }
 
-  // --- SEKTION: TAG INDEX (SYSTEM -> KATEGORI -> EGENSKAP) ---
+  // TAG INDEX
   const systemMap = {};
   Object.entries(lib.categories).forEach(([cName, cData]) => {
     const sys = cData.system || "Generellt";
@@ -1018,7 +1055,6 @@ function renderTree() {
     systemMap[sys].push(cName);
   });
 
-  // Filtrera fram vilka system och kategorier som har träffar
   const filteredSystems = {};
   let totalPropMatches = 0;
 
@@ -1117,7 +1153,7 @@ function renderTree() {
     }
   }
 
-  // --- SEKTION: TRASH BIN ---
+  // TRASH BIN
   const trashCount = lib.trash.length;
   const trashNode = document.createElement("div");
   trashNode.innerHTML = `
@@ -1244,7 +1280,7 @@ function openBatchAddPrompt() {
   renderTree();
 }
 
-// ==================== 3. EGENSKAPSDETALJER & KÄLLOR ====================
+// ==================== 3. EGENSKAPSDETALJER & KOPPLA FLERA OBJEKT ====================
 function renderPropertyView() {
   const lib = currentLib();
   const meta = lib.properties[selectedPropName];
@@ -1300,19 +1336,63 @@ function disconnectPropFromSpecificObj(objId) {
   renderPropertyView();
 }
 
-function promptAssignActivePropToObj() {
+// ÖPPNA MODAL FÖR ATT KOPPLA BÅDE GAMLA OCH NYA OBJEKT
+function openConnectObjectsModal() {
   const lib = currentLib();
+  document.getElementById("modal-conn-prop-title").innerText = selectedPropName;
+  document.getElementById("modal-conn-input").value = "";
+  const list = document.getElementById("modal-conn-checklist");
+  list.innerHTML = "";
+
   const unassigned = lib.objects.filter(o => o.props[selectedPropName] === undefined);
-  if (unassigned.length === 0) { alert(t("allObjsHaveProp")); return; }
-  const names = unassigned.map((o, i) => `${i+1}. ${o.name}`).join("\n");
-  const pick = prompt(t("promptPickObjConnect") + names);
-  if (!pick) return;
-  const idx = parseInt(pick) - 1;
-  if (unassigned[idx]) {
-    unassigned[idx].props[selectedPropName] = {};
-    persist();
-    renderPropertyView();
+  if (unassigned.length === 0) {
+    list.innerHTML = `<span style="color:#777; font-style:italic; font-size:10px;">${t("allObjsHavePropHint")}</span>`;
+  } else {
+    unassigned.forEach(obj => {
+      const label = document.createElement("label");
+      label.style.cssText = "display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--text); font-size:11px;";
+      label.innerHTML = `
+        <input type="checkbox" value="${obj.id}" class="conn-obj-check">
+        <span>${obj.name}</span>
+      `;
+      list.appendChild(label);
+    });
   }
+  document.getElementById("modal-connect-objs").style.display = "flex";
+}
+
+function confirmBatchConnectObjects() {
+  const lib = currentLib();
+  const rawInput = document.getElementById("modal-conn-input").value.trim();
+  const names = rawInput.split(",").map(s => s.trim()).filter(Boolean);
+  const checked = Array.from(document.querySelectorAll('.conn-obj-check:checked')).map(cb => cb.value);
+
+  // 1. Koppla alla bockade befintliga objekt
+  checked.forEach(objId => {
+    const obj = lib.objects.find(o => o.id === objId);
+    if (obj) obj.props[selectedPropName] = {};
+  });
+
+  // 2. Koppla inskrivna namn (hittar befintliga eller skapar helt nya)
+  names.forEach(name => {
+    let existing = lib.objects.find(o => o.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      existing.props[selectedPropName] = {};
+    } else {
+      const newId = "obj_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
+      lib.objects.push({
+        id: newId,
+        name: name,
+        defaultRole: "Komponent",
+        props: { [selectedPropName]: {} }
+      });
+    }
+  });
+
+  persist();
+  closeModal('modal-connect-objs');
+  renderPropertyView();
+  renderTree();
 }
 
 function saveActiveProperty() {
