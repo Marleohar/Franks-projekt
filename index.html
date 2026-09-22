@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Universal Taxonomy IDE v0.15.2 [Batch & New Object Connect]</title>
+  <title>Universal Taxonomy IDE v0.16 [Multi-Formula & Direct Add]</title>
   <style>
     :root {
       --bg-main: #18191f;
@@ -95,7 +95,7 @@
     /* WORKSPACE GRID */
     .workspace-container {
       display: grid;
-      grid-template-columns: 290px 1fr;
+      grid-template-columns: 300px 1fr;
       flex-grow: 1;
       height: calc(100vh - 42px);
       overflow: hidden;
@@ -156,6 +156,21 @@
       padding: 1px 5px;
       border-radius: 10px;
       color: #777c91;
+    }
+
+    .tree-create-btn {
+      color: var(--accent) !important;
+      font-style: italic;
+      padding: 2px 6px;
+      margin-bottom: 3px;
+      opacity: 0.85;
+      font-size: 10.5px;
+      border-bottom: 1px dashed #2d3142;
+    }
+    .tree-create-btn:hover {
+      opacity: 1;
+      background: #252a3a !important;
+      color: #fff !important;
     }
 
     mark.tree-highlight {
@@ -383,24 +398,24 @@
   <!-- TOPP-VERKTYGSFÄLT -->
   <div class="top-bar">
     <div class="top-left">
-      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.15.2</span></span>
+      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.16</span></span>
       <div style="display:flex; align-items:center; gap:4px; margin-left:12px;">
         <span style="color:var(--text-muted);" id="lbl-top-lib">Bibliotek:</span>
-        <select id="sel-library" onchange="switchLibrary(this.value)" title="Välj vilket bibliotek du vill arbeta i"></select>
+        <select id="sel-library" onchange="switchLibrary(this.value)" title="Välj bibliotek"></select>
         <button onclick="createNewLibraryPrompt()" id="btn-top-new-lib" title="Skapa ett nytt tomt bibliotek">+ Nytt</button>
       </div>
     </div>
 
     <div class="top-right">
-      <button onclick="setWorkspaceView('FORMULA')" id="btn-mode-formula" title="Öppna formel- och receptmotorn">⚗ Formelmodul</button>
-      <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search" title="Filtrera och sök objekt baserat på egenskaper">🔍 Filtersök</button>
-      <button onclick="loadMasterTemplate()" id="btn-load-template" title="Läs in Franks Herbal Master Tag Index taxonomier">🌿 Läs in Master Index</button>
-      <button onclick="exportBackup()" id="btn-export" title="Ladda ner en fullständig säkerhetskopia som .json">💾 Backup</button>
-      <button onclick="document.getElementById('file-import').click()" id="btn-import" title="Läs in en sparad .json-fil">📂 Importera</button>
+      <button onclick="setWorkspaceView('FORMULA')" id="btn-mode-formula" title="Öppna formelmodulen">⚗ Formelmodul</button>
+      <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search" title="Filtrera och sök objekt">🔍 Filtersök</button>
+      <button onclick="loadMasterTemplate()" id="btn-load-template" title="Läs in Franks Herbal Master Tag Index">🌿 Läs in Master Index</button>
+      <button onclick="exportBackup()" id="btn-export" title="Spara backupfil (.json)">💾 Backup</button>
+      <button onclick="document.getElementById('file-import').click()" id="btn-import" title="Läs in backupfil">📂 Importera</button>
       <input type="file" id="file-import" style="display:none;" accept=".json" onchange="importBackup(event)">
       <div style="display:flex; align-items:center; gap:4px; margin-left:6px;">
         <span style="font-size:12px;">🌐</span>
-        <select id="sel-lang" onchange="changeLanguage(this.value)" title="Växla språk mellan Svenska och Engelska">
+        <select id="sel-lang" onchange="changeLanguage(this.value)" title="Växla språk">
           <option value="sv">Svenska</option>
           <option value="en">English</option>
         </select>
@@ -415,7 +430,7 @@
     <div class="sidebar">
       <div class="tree-search-box">
         <input type="text" id="tree-filter-input" placeholder="🔍 Snabbfilter i trädet (Enter för att öppna)..." 
-               oninput="renderTree()" onkeydown="handleTreeFilterKey(event)" title="Skriv för att filtrera och markera i trädet">
+               oninput="renderTree()" onkeydown="handleTreeFilterKey(event)" title="Filtrera bland objekt och taggar">
       </div>
       <div class="tree-view" id="tree-root"></div>
     </div>
@@ -431,8 +446,10 @@
             <span id="obj-title-name">Objektprofil</span>
           </div>
           <div style="display:flex; gap:6px;">
-            <button onclick="openBatchAddPrompt()" id="btn-batch-add" title="Klistra in flera egenskaper separerade med kommatecken">+ Lägg till fler (komma)</button>
-            <button onclick="openAddTagModal()" id="btn-assign-prop" title="Sök och lägg till en egenskap på detta objekt">+ Tilldela egenskap</button>
+            <button onclick="createObjectPrompt()" id="btn-obj-create-direct">+ Nytt Objekt</button>
+            <button onclick="openAddToFormulaModal()" id="btn-add-to-formula" style="background:#3b2d18; border-color:var(--accent-active); color:var(--accent-active); font-weight:600;" title="Lägg till detta objekt i en formel">⚗ Lägg till i formel</button>
+            <button onclick="openBatchAddPrompt()" id="btn-batch-add">+ Lägg till fler (komma)</button>
+            <button onclick="openAddTagModal()" id="btn-assign-prop">+ Tilldela egenskap</button>
           </div>
         </div>
         <div id="obj-categories-container" style="overflow-y:auto; flex-grow:1;"></div>
@@ -445,7 +462,7 @@
             <span style="color:var(--accent-active);">🏷</span>
             <span id="prop-title-name">Egenskapsdetaljer</span>
           </div>
-          <button class="primary" onclick="saveActiveProperty()" id="btn-save-prop" title="Spara ändringar för denna egenskap">Spara Ändringar</button>
+          <button class="primary" onclick="saveActiveProperty()" id="btn-save-prop">Spara Ändringar</button>
         </div>
 
         <div class="meta-grid">
@@ -479,7 +496,7 @@
           <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:3px; padding:10px; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <span style="font-weight:700; color:var(--text-muted); text-transform:uppercase;" id="lbl-featured-objs">Förekommer i objekt (Featured in Objects)</span>
-              <button onclick="openConnectObjectsModal()" id="btn-connect-obj" title="Koppla flera objekt (både gamla och nya) samtidigt">+ Koppla objekt</button>
+              <button onclick="openConnectObjectsModal()" id="btn-connect-obj">+ Koppla objekt</button>
             </div>
             <div id="prop-featured-objs-list" style="flex-grow:1; overflow-y:auto; border:1px solid var(--border); background:var(--bg-input); border-radius:3px; padding:4px;"></div>
           </div>
@@ -512,16 +529,24 @@
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:8px;">
-          <button class="danger" onclick="purgeUnkeptTrash()" id="btn-purge-trash" title="Radera permanent alla element som inte har en bock">Rensa obockade permanent (Remove Unkept)</button>
-          <button class="primary" onclick="reviveKeptTrash()" id="btn-revive-trash" title="Återställ alla bockade element till sina platser">Återställ bockade (Revive kept files)</button>
+          <button class="danger" onclick="purgeUnkeptTrash()" id="btn-purge-trash">Rensa obockade permanent (Remove Unkept)</button>
+          <button class="primary" onclick="reviveKeptTrash()" id="btn-revive-trash">Återställ bockade (Revive kept files)</button>
         </div>
       </div>
 
-      <!-- VY 4: FORMELMODULEN -->
+      <!-- VY 4: FORMELMODULEN MED TILLBAKA-KNAPP & MULTI-FORMELVÄLJARE -->
       <div class="content-panel" id="view-formula" style="display:none;">
         <div class="panel-header">
           <div class="panel-title">
-            <span>⚗</span> <span id="lbl-formula-title">Formelmodulen</span>
+            <!-- TILLBAKA TILL OBJEKT-KNAPP (Franks önskemål) -->
+            <button id="btn-formula-back" style="display:none; background:#293754; border-color:var(--accent); color:#fff; font-weight:600;" onclick="navigateBackToObject()">⬅ Tillbaka till objekt</button>
+            <span>⚗</span>
+            <span id="lbl-formula-title">Formel:</span>
+            <!-- FORMELVÄLJARE -->
+            <select id="sel-active-formula" onchange="switchActiveFormula(this.value)" style="margin-left:4px; font-weight:bold; color:var(--accent-active);"></select>
+            <button onclick="promptCreateFormula()" style="font-size:9px;" title="Skapa ny formel">+ Ny</button>
+            <button onclick="promptRenameFormula()" style="font-size:9px;" title="Döp om formel">Döp om</button>
+            <button onclick="promptDeleteFormula()" style="font-size:9px; color:var(--danger);" title="Radera formel">Radera</button>
           </div>
           <button onclick="addFormulaRow()" id="btn-formula-add">+ Ny Komponent</button>
         </div>
@@ -595,7 +620,7 @@
     </div>
   </div>
 
-  <!-- MODAL: KOPPLA FLERA OBJEKT (BÅDE GAMLA OCH NYA) TILL EN EGENSKAP -->
+  <!-- MODAL: KOPPLA FLERA OBJEKT TILL EN EGENSKAP -->
   <div class="modal-overlay" id="modal-connect-objs">
     <div class="modal-box" style="width:480px;">
       <div class="modal-header">
@@ -619,6 +644,36 @@
     </div>
   </div>
 
+  <!-- MODAL: LÄGG TILL OBJEKT I FORMEL (FRANKS NYA FUNKTION) -->
+  <div class="modal-overlay" id="modal-add-to-formula">
+    <div class="modal-box" style="width:420px;">
+      <div class="modal-header">
+        <span id="lbl-modal-add-form-title">Lägg till objekt i formel</span>
+        <span style="cursor:pointer;" onclick="closeModal('modal-add-to-formula')">✕</span>
+      </div>
+      <div class="modal-body">
+        <div style="font-weight:600; color:#fff;" id="modal-add-form-obj-display"></div>
+        
+        <div class="form-group" style="margin-top:4px;">
+          <label id="lbl-choose-existing-form">Välj existerande formel:</label>
+          <select id="modal-sel-existing-formula"></select>
+        </div>
+
+        <div style="text-align:center; color:var(--text-muted); font-size:10px; margin:2px 0;">— ELLER / OR —</div>
+
+        <div class="form-group">
+          <label id="lbl-create-new-form-name">Skapa och lägg till i ny formel:</label>
+          <input type="text" id="modal-input-new-formula" placeholder="T.ex. Förkylningsbrygd, Mag-te...">
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
+          <button class="primary" onclick="confirmAddObjectToFormula()" id="btn-confirm-add-form">Lägg till & Öppna</button>
+          <button onclick="closeModal('modal-add-to-formula')" id="btn-cancel-add-form">Avbryt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
 // ==================== SPRÅKMOTOR (I18N) ====================
 const i18n = {
@@ -634,6 +689,12 @@ const i18n = {
     treeObjects: "📁 Objekt (Objects)",
     treeIndex: "📁 Egenskapsindex (Tag Index)",
     treeTrash: "Papperskorg (Trash Bin)",
+    btnNewObjTree: "➕ Skapa nytt objekt...",
+    btnNewSysTree: "➕ Skapa nytt system...",
+    btnNewCatTree: "➕ Skapa ny kategori...",
+    btnNewPropTree: "➕ Skapa ny egenskap...",
+    btnObjCreateDirect: "+ Nytt Objekt",
+    btnAddToFormula: "⚗ Lägg till i formel",
     objProfilePrefix: "Objektprofil: ",
     btnBatchAdd: "+ Lägg till fler (komma)",
     btnAssignProp: "+ Tilldela egenskap",
@@ -661,7 +722,7 @@ const i18n = {
     emptyTrashText: "Papperskorgen är tom.",
     btnPurgeTrash: "Rensa obockade permanent (Remove Unkept)",
     btnReviveTrash: "Återställ bockade (Revive kept files)",
-    lblFormulaTitle: "Formelmodulen",
+    lblFormulaTitle: "Formel:",
     btnFormulaAdd: "+ Ny Komponent",
     lblPinnedPanel: "📌 Pinnade Status- & Varningskategorier",
     btnManagePins: "⚙ Hantera pinnar",
@@ -691,10 +752,24 @@ const i18n = {
     lblModalConnTitle: "Koppla objekt till:",
     lblConnInput: "Skriv objekt (kommaseparerat – nya skapas automatiskt):",
     lblConnChecklist: "Eller bocka i bland existerande objekt:",
-    allObjsHavePropHint: "Alla existerande objekt har redan denna egenskap. Skriv ovan för att skapa och koppla nya objekt.",
+    allObjsHavePropHint: "Alla existerande objekt har redan denna egenskap.",
     btnConnSubmit: "Koppla valda & nya objekt",
     btnConnCancel: "Avbryt",
+    lblModalAddFormTitle: "Lägg till objekt i formel",
+    lblChooseExistingForm: "Välj existerande formel:",
+    lblCreateNewFormName: "Skapa och lägg till i ny formel:",
+    btnConfirmAddForm: "Lägg till & Öppna",
+    btnCancelAddForm: "Avbryt",
+    btnBackPrefix: "Tillbaka till ",
+    promptNewObj: "Ange namn på det nya objektet:",
+    promptNewSys: "Ange namn på det nya systemet (t.ex. Energetik, Geografi):",
+    promptNewCat: "Ange namn på ny kategori under systemet '{0}':",
+    promptNewProp: "Ange namn på ny egenskap under kategorin '{0}':",
     promptNewLibName: "Ange namn på det nya biblioteket:",
+    promptNewFormulaName: "Ange namn på den nya formeln:",
+    promptRenameFormula: "Ange nytt namn på formeln:",
+    confirmDeleteFormula: "Är du säker på att du vill radera formeln '{0}'?",
+    cannotDeleteOnlyFormula: "Du kan inte radera den enda återstående formeln.",
     promptBatchAdd: "Skriv in flera egenskaper separerade med kommatecken (t.ex. Roots, Warming, Tea):",
     metaSavedAlert: "Metadata sparad!",
     revivedAlert: "Markerade element har återställts till sina platser!",
@@ -716,6 +791,12 @@ const i18n = {
     treeObjects: "📁 Objects",
     treeIndex: "📁 Tag Index (Taxonomies)",
     treeTrash: "Trash Bin",
+    btnNewObjTree: "➕ Create new object...",
+    btnNewSysTree: "➕ Create new system...",
+    btnNewCatTree: "➕ Create new category...",
+    btnNewPropTree: "➕ Create new property...",
+    btnObjCreateDirect: "+ New Object",
+    btnAddToFormula: "⚗ Add to Formula",
     objProfilePrefix: "Object Profile: ",
     btnBatchAdd: "+ Add multiple (comma)",
     btnAssignProp: "+ Assign Property",
@@ -743,7 +824,7 @@ const i18n = {
     emptyTrashText: "Trash bin is empty.",
     btnPurgeTrash: "Remove Unkept Permanently",
     btnReviveTrash: "Revive Kept Files",
-    lblFormulaTitle: "Formula Module",
+    lblFormulaTitle: "Formula:",
     btnFormulaAdd: "+ New Component",
     lblPinnedPanel: "📌 Pinned Status & Warning Categories",
     btnManagePins: "⚙ Manage Pins",
@@ -773,10 +854,24 @@ const i18n = {
     lblModalConnTitle: "Connect objects to:",
     lblConnInput: "Enter objects (comma-separated – new ones created automatically):",
     lblConnChecklist: "Or select from existing objects:",
-    allObjsHavePropHint: "All existing objects already have this property. Type above to create and connect new ones.",
+    allObjsHavePropHint: "All existing objects already have this property.",
     btnConnSubmit: "Connect selected & new objects",
     btnConnCancel: "Cancel",
+    lblModalAddFormTitle: "Add object to formula",
+    lblChooseExistingForm: "Choose existing formula:",
+    lblCreateNewFormName: "Create and add to new formula:",
+    btnConfirmAddForm: "Add & Open",
+    btnCancelAddForm: "Cancel",
+    btnBackPrefix: "Back to ",
+    promptNewObj: "Enter name of new object:",
+    promptNewSys: "Enter name of new system (e.g. Energetics, Physiology):",
+    promptNewCat: "Enter name of new category under system '{0}':",
+    promptNewProp: "Enter name of new property under category '{0}':",
     promptNewLibName: "Enter name of new library:",
+    promptNewFormulaName: "Enter name for new formula:",
+    promptRenameFormula: "Enter new name for formula:",
+    confirmDeleteFormula: "Are you sure you want to delete formula '{0}'?",
+    cannotDeleteOnlyFormula: "You cannot delete the only remaining formula.",
     promptBatchAdd: "Enter multiple properties separated by commas (e.g. Roots, Warming, Tea):",
     metaSavedAlert: "Metadata saved!",
     revivedAlert: "Selected items have been restored to their original places!",
@@ -819,6 +914,8 @@ function updateUILanguage() {
   document.getElementById("btn-import").innerText = t("btnImport");
   document.getElementById("tree-filter-input").placeholder = t("treeSearchPlaceholder");
 
+  document.getElementById("btn-obj-create-direct").innerText = t("btnObjCreateDirect");
+  document.getElementById("btn-add-to-formula").innerText = t("btnAddToFormula");
   document.getElementById("btn-batch-add").innerText = t("btnBatchAdd");
   document.getElementById("btn-assign-prop").innerText = t("btnAssignProp");
 
@@ -873,9 +970,15 @@ function updateUILanguage() {
   document.getElementById("lbl-conn-checklist").innerText = t("lblConnChecklist");
   document.getElementById("btn-conn-submit").innerText = t("btnConnSubmit");
   document.getElementById("btn-conn-cancel").innerText = t("btnConnCancel");
+
+  document.getElementById("lbl-modal-add-form-title").innerText = t("lblModalAddFormTitle");
+  document.getElementById("lbl-choose-existing-form").innerText = t("lblChooseExistingForm");
+  document.getElementById("lbl-create-new-form-name").innerText = t("lblCreateNewFormName");
+  document.getElementById("btn-confirm-add-form").innerText = t("btnConfirmAddForm");
+  document.getElementById("btn-cancel-add-form").innerText = t("btnCancelAddForm");
 }
 
-// ==================== DATABAS & LOCALSTORAGE ====================
+// ==================== DATABAS & MIGRERING TILL MULTI-FORMEL ====================
 const defaultAppData = {
   activeLibId: "herbal",
   libraries: {
@@ -897,9 +1000,7 @@ const defaultAppData = {
         "Symptoms":           { system: "Fysiologi" },
         "Precautions":        { system: "Säkerhet" }
       },
-      pinnedConfigs: {
-        "Precautions": "⚠️"
-      },
+      pinnedConfigs: { "Precautions": "⚠️" },
       properties: {
         "Sheeta (Cold)": { category: "Ayurveda Gunas", synonyms: ["Cold", "Kall"], opposite: "Ushna (Hot)", desc: "Kylande metabol kvalitet", links: "", sources: "Vasant Lad, Ayurveda Textbook s.42" },
         "Ushna (Hot)":   { category: "Ayurveda Gunas", synonyms: ["Hot", "Varm"], opposite: "Sheeta (Cold)", desc: "Värmande metabol stimulans", links: "", sources: "" },
@@ -913,17 +1014,21 @@ const defaultAppData = {
         { id: "ginger", name: "Ingefära (Zingiber officinale)", defaultRole: "Katalysator", props: { "Ushna (Hot)": {}, "Roots": {}, "Tea": {} } },
         { id: "peppermint", name: "Pepparmynta (Mentha piperita)", defaultRole: "Kylande balans", props: { "Sheeta (Cold)": {}, "Cooling": {}, "Tea": {}, "Digestion": {} } }
       ],
-      formula: [
-        { objId: "ginger", role: "Drivande rot", qty: 2 },
-        { objId: "peppermint", role: "Kylande balans", qty: 3 }
-      ],
+      // Stöd för multipla formler
+      activeFormulaName: "Standardrecept",
+      formulas: {
+        "Standardrecept": [
+          { objId: "ginger", role: "Drivande rot", qty: 2 },
+          { objId: "peppermint", role: "Kylande balans", qty: 3 }
+        ]
+      },
       trash: []
     }
   }
 };
 
 let appData = defaultAppData;
-const stored = localStorage.getItem("taxonomy_ide_v15_2") || localStorage.getItem("taxonomy_ide_v15_1") || localStorage.getItem("taxonomy_ide_v15");
+const stored = localStorage.getItem("taxonomy_ide_v16") || localStorage.getItem("taxonomy_ide_v15_4") || localStorage.getItem("taxonomy_ide_v15");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -940,18 +1045,35 @@ function currentLib() {
   if (!lib.treeOpen) lib.treeOpen = { "objects": true, "taxonomies": true };
   if (!lib.pinnedConfigs) lib.pinnedConfigs = { "Precautions": "⚠️" };
   if (!lib.categoryOrder) lib.categoryOrder = Object.keys(lib.categories);
+  if (!lib.systems) lib.systems = { "Generellt": { categories: [] } };
+
+  // Migrera från enkel formula till objekt med formler
+  if (!lib.formulas) {
+    lib.formulas = { "Standardrecept": lib.formula || [] };
+    lib.activeFormulaName = "Standardrecept";
+  }
+  if (!lib.activeFormulaName || !lib.formulas[lib.activeFormulaName]) {
+    lib.activeFormulaName = Object.keys(lib.formulas)[0] || "Recept 1";
+    if (!lib.formulas[lib.activeFormulaName]) lib.formulas[lib.activeFormulaName] = [];
+  }
   return lib;
 }
 
-function persist() {
-  localStorage.setItem("taxonomy_ide_v15_2", JSON.stringify(appData));
+function currentFormulaRows() {
+  const lib = currentLib();
+  return lib.formulas[lib.activeFormulaName];
 }
 
-// ==================== TILLSTÅND ====================
+function persist() {
+  localStorage.setItem("taxonomy_ide_v16", JSON.stringify(appData));
+}
+
+// ==================== TILLSTÅND & HISTORIK ====================
 let activeView = "OBJECT";
 let selectedObjId = "ginger";
 let selectedPropName = "Sheeta (Cold)";
 let activeSearchFilters = [];
+let navigatedFromObjectId = null; // Håller koll på vilket objekt man kom ifrån
 
 function setWorkspaceView(viewType) {
   activeView = viewType;
@@ -1008,6 +1130,71 @@ function handleTreeFilterKey(e) {
   }
 }
 
+function createObjectPrompt() {
+  const name = prompt(t("promptNewObj"));
+  if (!name || name.trim() === "") return;
+  const lib = currentLib();
+  const newId = "obj_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
+  lib.objects.push({
+    id: newId,
+    name: name.trim(),
+    defaultRole: "Komponent",
+    props: {}
+  });
+  selectedObjId = newId;
+  persist();
+  setWorkspaceView("OBJECT");
+  renderTree();
+}
+
+function createSystemPrompt() {
+  const name = prompt(t("promptNewSys"));
+  if (!name || name.trim() === "") return;
+  const lib = currentLib();
+  if (!lib.systems) lib.systems = {};
+  if (!lib.systems[name.trim()]) {
+    lib.systems[name.trim()] = { categories: [] };
+    persist();
+    renderTree();
+  }
+}
+
+function createCategoryPrompt(sysName) {
+  const name = prompt(t("promptNewCat", sysName));
+  if (!name || name.trim() === "") return;
+  const lib = currentLib();
+  const catName = name.trim();
+  if (!lib.categories[catName]) {
+    lib.categories[catName] = { system: sysName };
+    if (!lib.categoryOrder.includes(catName)) lib.categoryOrder.push(catName);
+    if (!lib.systems[sysName]) lib.systems[sysName] = { categories: [] };
+    if (!lib.systems[sysName].categories.includes(catName)) lib.systems[sysName].categories.push(catName);
+    persist();
+    renderTree();
+  }
+}
+
+function createPropertyPrompt(catName) {
+  const name = prompt(t("promptNewProp", catName));
+  if (!name || name.trim() === "") return;
+  const lib = currentLib();
+  const propName = name.trim();
+  if (!lib.properties[propName]) {
+    lib.properties[propName] = {
+      category: catName,
+      synonyms: [],
+      desc: "",
+      links: "",
+      sources: "",
+      opposite: ""
+    };
+    selectedPropName = propName;
+    persist();
+    setWorkspaceView("PROPERTY");
+    renderTree();
+  }
+}
+
 function renderTree() {
   const lib = currentLib();
   const root = document.getElementById("tree-root");
@@ -1032,6 +1219,13 @@ function renderTree() {
     if (isObjOpen) {
       const childWrap = document.createElement("div");
       childWrap.className = "tree-children";
+
+      const newObjBtn = document.createElement("div");
+      newObjBtn.className = "tree-node tree-create-btn";
+      newObjBtn.innerHTML = `<span>➕</span> <span>${t("btnNewObjTree")}</span>`;
+      newObjBtn.onclick = (e) => { e.stopPropagation(); createObjectPrompt(); };
+      childWrap.appendChild(newObjBtn);
+
       matchingObjs.forEach(obj => {
         const leaf = document.createElement("div");
         leaf.className = `tree-node search-match-leaf ${activeView === 'OBJECT' && selectedObjId === obj.id ? 'active' : ''}`;
@@ -1049,108 +1243,112 @@ function renderTree() {
 
   // TAG INDEX
   const systemMap = {};
+  if (lib.systems) {
+    Object.keys(lib.systems).forEach(sys => { systemMap[sys] = []; });
+  }
   Object.entries(lib.categories).forEach(([cName, cData]) => {
     const sys = cData.system || "Generellt";
     if (!systemMap[sys]) systemMap[sys] = [];
-    systemMap[sys].push(cName);
+    if (!systemMap[sys].includes(cName)) systemMap[sys].push(cName);
   });
 
-  const filteredSystems = {};
-  let totalPropMatches = 0;
+  const isTaxOpen = isNodeOpen("taxonomies", isFiltering);
+  const taxNode = document.createElement("div");
+  taxNode.innerHTML = `
+    <div class="tree-node ${activeView === 'PROPERTY' ? 'active' : ''}" onclick="toggleTreeNode('taxonomies')">
+      <span class="tree-toggle">${isTaxOpen ? '▼' : '▶'}</span>
+      <span>${t("treeIndex")}</span>
+      <span class="tree-badge">${Object.keys(lib.properties).length}</span>
+    </div>
+  `;
+  root.appendChild(taxNode);
 
-  Object.entries(systemMap).forEach(([sysName, cats]) => {
-    cats.forEach(cName => {
-      const props = Object.entries(lib.properties).filter(([pName, pData]) => {
-        if (pData.category !== cName) return false;
-        if (!isFiltering) return true;
-        const nameHit = pName.toLowerCase().includes(filter);
-        const synHit = pData.synonyms && pData.synonyms.some(s => s.toLowerCase().includes(filter));
-        return nameHit || synHit;
-      });
+  if (isTaxOpen) {
+    const taxWrap = document.createElement("div");
+    taxWrap.className = "tree-children";
 
-      const catMatches = isFiltering && cName.toLowerCase().includes(filter);
-      if (props.length > 0 || catMatches) {
-        if (!filteredSystems[sysName]) filteredSystems[sysName] = {};
-        filteredSystems[sysName][cName] = props;
-        totalPropMatches += props.length;
+    const newSysBtn = document.createElement("div");
+    newSysBtn.className = "tree-node tree-create-btn";
+    newSysBtn.innerHTML = `<span>➕</span> <span>${t("btnNewSysTree")}</span>`;
+    newSysBtn.onclick = (e) => { e.stopPropagation(); createSystemPrompt(); };
+    taxWrap.appendChild(newSysBtn);
+
+    Object.entries(systemMap).forEach(([sysName, cats]) => {
+      const sysKey = "sys_" + sysName;
+      const isSysOpen = isNodeOpen(sysKey, isFiltering);
+
+      const sysDiv = document.createElement("div");
+      sysDiv.className = "tree-node";
+      sysDiv.innerHTML = `
+        <span class="tree-toggle">${isSysOpen ? '▼' : '▶'}</span>
+        <span>🗂</span> <b>${highlightMatch(sysName, filter)}</b>
+      `;
+      sysDiv.onclick = () => toggleTreeNode(sysKey);
+      taxWrap.appendChild(sysDiv);
+
+      if (isSysOpen) {
+        const sysChildren = document.createElement("div");
+        sysChildren.className = "tree-children";
+
+        const newCatBtn = document.createElement("div");
+        newCatBtn.className = "tree-node tree-create-btn";
+        newCatBtn.innerHTML = `<span>➕</span> <span>${t("btnNewCatTree")}</span>`;
+        newCatBtn.onclick = (e) => { e.stopPropagation(); createCategoryPrompt(sysName); };
+        sysChildren.appendChild(newCatBtn);
+
+        cats.forEach(cName => {
+          const catKey = "cat_" + cName;
+          const isCatOpen = isNodeOpen(catKey, isFiltering);
+
+          const propList = Object.entries(lib.properties).filter(([pName, pData]) => {
+            if (pData.category !== cName) return false;
+            if (!isFiltering) return true;
+            const nameHit = pName.toLowerCase().includes(filter);
+            const synHit = pData.synonyms && pData.synonyms.some(s => s.toLowerCase().includes(filter));
+            return nameHit || synHit;
+          });
+
+          const catDiv = document.createElement("div");
+          catDiv.className = "tree-node";
+          catDiv.innerHTML = `
+            <span class="tree-toggle">${isCatOpen ? '▼' : '▶'}</span>
+            <span>📂</span> <span>${highlightMatch(cName, filter)}</span>
+            <span class="tree-badge" style="margin-left:auto;">${propList.length}</span>
+          `;
+          catDiv.onclick = (e) => {
+            e.stopPropagation();
+            toggleTreeNode(catKey);
+          };
+          sysChildren.appendChild(catDiv);
+
+          if (isCatOpen) {
+            const propWrap = document.createElement("div");
+            propWrap.className = "tree-children";
+
+            const newPropBtn = document.createElement("div");
+            newPropBtn.className = "tree-node tree-create-btn";
+            newPropBtn.innerHTML = `<span>➕</span> <span>${t("btnNewPropTree")}</span>`;
+            newPropBtn.onclick = (e) => { e.stopPropagation(); createPropertyPrompt(cName); };
+            propWrap.appendChild(newPropBtn);
+
+            propList.forEach(([pName]) => {
+              const pLeaf = document.createElement("div");
+              pLeaf.className = `tree-node search-match-leaf ${activeView === 'PROPERTY' && selectedPropName === pName ? 'active' : ''}`;
+              pLeaf.innerHTML = `<span>🏷</span> <span>${highlightMatch(pName, filter)}</span>`;
+              pLeaf.onclick = (e) => {
+                e.stopPropagation();
+                selectedPropName = pName;
+                setWorkspaceView("PROPERTY");
+              };
+              propWrap.appendChild(pLeaf);
+            });
+            sysChildren.appendChild(propWrap);
+          }
+        });
+        taxWrap.appendChild(sysChildren);
       }
     });
-  });
-
-  const hasIndexMatches = !isFiltering || Object.keys(filteredSystems).length > 0;
-  if (hasIndexMatches) {
-    const isTaxOpen = isNodeOpen("taxonomies", isFiltering);
-    const taxNode = document.createElement("div");
-    taxNode.innerHTML = `
-      <div class="tree-node ${activeView === 'PROPERTY' ? 'active' : ''}" onclick="toggleTreeNode('taxonomies')">
-        <span class="tree-toggle">${isTaxOpen ? '▼' : '▶'}</span>
-        <span>${t("treeIndex")}</span>
-        <span class="tree-badge">${isFiltering ? totalPropMatches : Object.keys(lib.properties).length}</span>
-      </div>
-    `;
-    root.appendChild(taxNode);
-
-    if (isTaxOpen) {
-      const taxWrap = document.createElement("div");
-      taxWrap.className = "tree-children";
-
-      Object.entries(filteredSystems).forEach(([sysName, catsObj]) => {
-        const sysKey = "sys_" + sysName;
-        const isSysOpen = isNodeOpen(sysKey, isFiltering);
-
-        const sysDiv = document.createElement("div");
-        sysDiv.className = "tree-node";
-        sysDiv.innerHTML = `
-          <span class="tree-toggle">${isSysOpen ? '▼' : '▶'}</span>
-          <span>🗂</span> <b>${highlightMatch(sysName, filter)}</b>
-        `;
-        sysDiv.onclick = () => toggleTreeNode(sysKey);
-        taxWrap.appendChild(sysDiv);
-
-        if (isSysOpen) {
-          const sysChildren = document.createElement("div");
-          sysChildren.className = "tree-children";
-
-          Object.entries(catsObj).forEach(([cName, propList]) => {
-            const catKey = "cat_" + cName;
-            const isCatOpen = isNodeOpen(catKey, isFiltering);
-
-            const catDiv = document.createElement("div");
-            catDiv.className = "tree-node";
-            catDiv.innerHTML = `
-              <span class="tree-toggle">${isCatOpen ? '▼' : '▶'}</span>
-              <span>📂</span> <span>${highlightMatch(cName, filter)}</span>
-              <span class="tree-badge" style="margin-left:auto;">${propList.length}</span>
-            `;
-            catDiv.onclick = (e) => {
-              e.stopPropagation();
-              toggleTreeNode(catKey);
-            };
-            sysChildren.appendChild(catDiv);
-
-            if (isCatOpen && propList.length > 0) {
-              const propWrap = document.createElement("div");
-              propWrap.className = "tree-children";
-
-              propList.forEach(([pName]) => {
-                const pLeaf = document.createElement("div");
-                pLeaf.className = `tree-node search-match-leaf ${activeView === 'PROPERTY' && selectedPropName === pName ? 'active' : ''}`;
-                pLeaf.innerHTML = `<span>🏷</span> <span>${highlightMatch(pName, filter)}</span>`;
-                pLeaf.onclick = (e) => {
-                  e.stopPropagation();
-                  selectedPropName = pName;
-                  setWorkspaceView("PROPERTY");
-                };
-                propWrap.appendChild(pLeaf);
-              });
-              sysChildren.appendChild(propWrap);
-            }
-          });
-          taxWrap.appendChild(sysChildren);
-        }
-      });
-      root.appendChild(taxWrap);
-    }
+    root.appendChild(taxWrap);
   }
 
   // TRASH BIN
@@ -1188,7 +1386,7 @@ function renderObjectView() {
       ? `<span style="color:#666; font-style:italic;">${t("noPropsInCat")}</span>`
       : assigned.map(p => `
           <span class="tag-badge">
-            <span onclick="inspectPropFromObj('${p}')" title="Klicka för att inspektera i index">${p}</span>
+            <span onclick="inspectPropFromObj('${p}')" title="Inspektera i index">${p}</span>
             <span style="color:var(--danger); margin-left:4px; font-weight:bold;" onclick="trashPropFromObj('${p}')" title="Kasta till papperskorgen">✕</span>
           </span>
         `).join("");
@@ -1197,8 +1395,8 @@ function renderObjectView() {
       <div class="cat-box-header">
         <div style="display:flex; align-items:center; gap:4px;">
           <span class="cat-title-text">${cat}</span>
-          <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Flytta kategori uppåt">▲</button>
-          <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, 1)" ${idx === cats.length - 1 ? 'disabled' : ''} title="Flytta kategori nedåt">▼</button>
+          <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
+          <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, 1)" ${idx === cats.length - 1 ? 'disabled' : ''}>▼</button>
         </div>
         <button style="font-size:9px;" onclick="openAddTagModal('${cat}')">${t("btnAddShort")}</button>
       </div>
@@ -1270,7 +1468,7 @@ function openBatchAddPrompt() {
         lib.categories[cat] = { system: "Generellt" };
         lib.categoryOrder.push(cat);
       }
-      lib.properties[term] = { category: cat, synonyms: [], desc: "", links: "", sources: "" };
+      lib.properties[term] = { category: cat, synonyms: [], desc: "", links: "", sources: "", opposite: "" };
       obj.props[term] = {};
     }
   });
@@ -1280,7 +1478,55 @@ function openBatchAddPrompt() {
   renderTree();
 }
 
-// ==================== 3. EGENSKAPSDETALJER & KOPPLA FLERA OBJEKT ====================
+// FRANKS NYA FUNKTION: LÄGG TILL OBJEKT I FORMEL
+function openAddToFormulaModal() {
+  const lib = currentLib();
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (!obj) return;
+
+  document.getElementById("modal-add-form-obj-display").innerText = `Lägg till '${obj.name}' i en formel:`;
+  const sel = document.getElementById("modal-sel-existing-formula");
+  sel.innerHTML = Object.keys(lib.formulas).map(fName => 
+    `<option value="${fName}" ${fName === lib.activeFormulaName ? 'selected' : ''}>${fName}</option>`
+  ).join("");
+
+  document.getElementById("modal-input-new-formula").value = "";
+  document.getElementById("modal-add-to-formula").style.display = "flex";
+}
+
+function confirmAddObjectToFormula() {
+  const lib = currentLib();
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (!obj) return;
+
+  const newFormulaName = document.getElementById("modal-input-new-formula").value.trim();
+  let targetFormula = document.getElementById("modal-sel-existing-formula").value;
+
+  // Om användaren angav ett nytt formelnamn, skapa det
+  if (newFormulaName !== "") {
+    if (!lib.formulas[newFormulaName]) {
+      lib.formulas[newFormulaName] = [];
+    }
+    targetFormula = newFormulaName;
+  }
+
+  // Byt aktiv formel och lägg till objektet
+  lib.activeFormulaName = targetFormula;
+  lib.formulas[targetFormula].push({
+    objId: obj.id,
+    role: obj.defaultRole || "Komponent",
+    qty: 1
+  });
+
+  // Spara vem vi kom ifrån så "Tillbaka till objekt" fungerar
+  navigatedFromObjectId = obj.id;
+
+  persist();
+  closeModal('modal-add-to-formula');
+  setWorkspaceView("FORMULA");
+}
+
+// ==================== 3. EGENSKAPSDETALJER ====================
 function renderPropertyView() {
   const lib = currentLib();
   const meta = lib.properties[selectedPropName];
@@ -1336,7 +1582,6 @@ function disconnectPropFromSpecificObj(objId) {
   renderPropertyView();
 }
 
-// ÖPPNA MODAL FÖR ATT KOPPLA BÅDE GAMLA OCH NYA OBJEKT
 function openConnectObjectsModal() {
   const lib = currentLib();
   document.getElementById("modal-conn-prop-title").innerText = selectedPropName;
@@ -1367,13 +1612,11 @@ function confirmBatchConnectObjects() {
   const names = rawInput.split(",").map(s => s.trim()).filter(Boolean);
   const checked = Array.from(document.querySelectorAll('.conn-obj-check:checked')).map(cb => cb.value);
 
-  // 1. Koppla alla bockade befintliga objekt
   checked.forEach(objId => {
     const obj = lib.objects.find(o => o.id === objId);
     if (obj) obj.props[selectedPropName] = {};
   });
 
-  // 2. Koppla inskrivna namn (hittar befintliga eller skapar helt nya)
   names.forEach(name => {
     let existing = lib.objects.find(o => o.name.toLowerCase() === name.toLowerCase());
     if (existing) {
@@ -1490,7 +1733,82 @@ function purgeUnkeptTrash() {
   }
 }
 
-// ==================== 5. FORMELMODULEN ====================
+// ==================== 5. FORMELMODULEN MED FLERA FORMLER ====================
+function updateFormulaSelector() {
+  const lib = currentLib();
+  const sel = document.getElementById("sel-active-formula");
+  sel.innerHTML = Object.keys(lib.formulas).map(fName => 
+    `<option value="${fName}" ${fName === lib.activeFormulaName ? 'selected' : ''}>${fName}</option>`
+  ).join("");
+
+  // Uppdatera Tillbaka-knappen
+  const backBtn = document.getElementById("btn-formula-back");
+  if (navigatedFromObjectId) {
+    const originObj = lib.objects.find(o => o.id === navigatedFromObjectId);
+    backBtn.innerText = `⬅ ${t("btnBackPrefix")}${originObj ? originObj.name : 'objekt'}`;
+    backBtn.style.display = "inline-flex";
+  } else {
+    backBtn.style.display = "none";
+  }
+}
+
+function navigateBackToObject() {
+  if (navigatedFromObjectId) {
+    selectedObjId = navigatedFromObjectId;
+    navigatedFromObjectId = null;
+    setWorkspaceView("OBJECT");
+  }
+}
+
+function switchActiveFormula(fName) {
+  const lib = currentLib();
+  if (lib.formulas[fName]) {
+    lib.activeFormulaName = fName;
+    persist();
+    renderFormulaView();
+  }
+}
+
+function promptCreateFormula() {
+  const name = prompt(t("promptNewFormulaName"));
+  if (!name || name.trim() === "") return;
+  const lib = currentLib();
+  const fName = name.trim();
+  if (!lib.formulas[fName]) {
+    lib.formulas[fName] = [];
+    lib.activeFormulaName = fName;
+    persist();
+    renderFormulaView();
+  }
+}
+
+function promptRenameFormula() {
+  const lib = currentLib();
+  const oldName = lib.activeFormulaName;
+  const newName = prompt(t("promptRenameFormula"), oldName);
+  if (!newName || newName.trim() === "" || newName === oldName) return;
+  lib.formulas[newName.trim()] = lib.formulas[oldName];
+  delete lib.formulas[oldName];
+  lib.activeFormulaName = newName.trim();
+  persist();
+  renderFormulaView();
+}
+
+function promptDeleteFormula() {
+  const lib = currentLib();
+  const fNames = Object.keys(lib.formulas);
+  if (fNames.length <= 1) {
+    alert(t("cannotDeleteOnlyFormula"));
+    return;
+  }
+  if (confirm(t("confirmDeleteFormula", lib.activeFormulaName))) {
+    delete lib.formulas[lib.activeFormulaName];
+    lib.activeFormulaName = Object.keys(lib.formulas)[0];
+    persist();
+    renderFormulaView();
+  }
+}
+
 function promptManagePins() {
   const lib = currentLib();
   if (!lib.pinnedConfigs) lib.pinnedConfigs = {};
@@ -1512,15 +1830,16 @@ function promptManagePins() {
 }
 
 function renderFormulaView() {
-  const lib = currentLib();
+  updateFormulaSelector();
+  const rows = currentFormulaRows();
   const tbody = document.getElementById("formula-table-body");
   tbody.innerHTML = "";
-  const total = lib.formula.reduce((sum, r) => sum + r.qty, 0);
+  const total = rows.reduce((sum, r) => sum + r.qty, 0);
 
-  lib.formula.forEach((row, i) => {
+  rows.forEach((row, i) => {
     const tr = document.createElement("tr");
     const share = total > 0 ? Math.round((row.qty / total) * 100) : 0;
-    const opts = lib.objects.map(o => `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${o.name}</option>`).join("");
+    const opts = currentLib().objects.map(o => `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${o.name}</option>`).join("");
 
     tr.innerHTML = `
       <td>${i+1}</td>
@@ -1540,13 +1859,13 @@ function renderFormulaView() {
   calculateEffects(total);
 }
 
-function updateFormulaRow(i, f, v) { currentLib().formula[i][f] = v; persist(); renderFormulaView(); }
-function updateQty(i, d) { currentLib().formula[i].qty = Math.max(0, currentLib().formula[i].qty + d); persist(); renderFormulaView(); }
-function deleteFormulaRow(i) { currentLib().formula.splice(i, 1); persist(); renderFormulaView(); }
+function updateFormulaRow(i, f, v) { currentFormulaRows()[i][f] = v; persist(); renderFormulaView(); }
+function updateQty(i, d) { currentFormulaRows()[i].qty = Math.max(0, currentFormulaRows()[i].qty + d); persist(); renderFormulaView(); }
+function deleteFormulaRow(i) { currentFormulaRows().splice(i, 1); persist(); renderFormulaView(); }
 function addFormulaRow() { 
   const lib = currentLib();
   if (lib.objects.length > 0) {
-    lib.formula.push({ objId: lib.objects[0].id, role: "Komponent", qty: 1 });
+    currentFormulaRows().push({ objId: lib.objects[0].id, role: "Komponent", qty: 1 });
     persist();
     renderFormulaView();
   }
@@ -1554,12 +1873,13 @@ function addFormulaRow() {
 
 function calculateEffects(total) {
   const lib = currentLib();
+  const rows = currentFormulaRows();
   let pSum = {};
   let pSyn = {};
   let pinnedFindings = [];
 
   if (total > 0) {
-    lib.formula.forEach(r => {
+    rows.forEach(r => {
       if (r.qty <= 0) return;
       const obj = lib.objects.find(o => o.id === r.objId);
       if (!obj) return;
@@ -1736,7 +2056,7 @@ function confirmAssignTag() {
       lib.categories[cat] = { system: "Generellt" };
       lib.categoryOrder.push(cat);
     }
-    lib.properties[val] = { category: cat, synonyms: [], desc: "", links: "", sources: "" };
+    lib.properties[val] = { category: cat, synonyms: [], desc: "", links: "", sources: "", opposite: "" };
   }
 
   obj.props[val] = {};
@@ -1776,7 +2096,8 @@ function createNewLibraryPrompt() {
     categories: { "Generellt": { system: "Generellt" } },
     properties: {},
     objects: [],
-    formula: [],
+    formulas: { "Standardrecept": [] },
+    activeFormulaName: "Standardrecept",
     trash: [],
     pinnedConfigs: {}
   };
