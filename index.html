@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Universal Taxonomy IDE v0.17.1 [Complete Engine]</title>
+  <title>Universal Taxonomy IDE v0.17.2</title>
   <style>
-    /* ==================== TEMA 1: IDE / DARK (FRANK) ==================== */
+    /* ==================== TEMA 1: IDE / DARK ==================== */
     [data-theme="ide"] {
       --bg-main: #18191f;
       --bg-panel: #21232d;
@@ -30,7 +30,7 @@
       --radius: 3px;
     }
 
-    /* ==================== TEMA 2: MODERN / CLEAN (LENA & ROBERT) ==================== */
+    /* ==================== TEMA 2: MODERN / CLEAN ==================== */
     [data-theme="modern"] {
       --bg-main: #f8fafc;
       --bg-panel: #ffffff;
@@ -118,7 +118,7 @@
     button.primary:hover { background: var(--accent-hover); }
     button.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
-    /* WORKSPACE: 3 KOLUMNER (TRÄD | ARBETSYTA | INSPECTOR) */
+    /* WORKSPACE */
     .workspace-container {
       display: grid;
       grid-template-columns: 290px 1fr auto;
@@ -127,7 +127,7 @@
       overflow: hidden;
     }
 
-    /* VÄNSTER FILMENY */
+    /* VÄNSTER: FILMENY */
     .sidebar {
       background: var(--bg-panel);
       border-right: 1px solid var(--border);
@@ -264,7 +264,6 @@
       gap: 8px;
     }
 
-    /* KATEGORIER & SYSTEMFÄRGER */
     .cat-box {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -287,7 +286,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* FLÖDE VS BULLET LIST */
     .tag-flow {
       display: flex;
       flex-wrap: wrap;
@@ -325,12 +323,12 @@
       gap: 6px;
       padding: 3px 6px;
       border-radius: var(--radius);
-      background: rgba(0,0,0,0.05);
+      background: rgba(0,0,0,0.04);
       cursor: pointer;
     }
     .bullet-item:hover { background: var(--bg-card-hover); }
 
-    /* HÖGER: INSPECTOR / 3:E SPALTEN */
+    /* HÖGER: INSPECTOR */
     .inspector-sidebar {
       width: 300px;
       background: var(--bg-panel);
@@ -361,14 +359,13 @@
       padding: 5px;
     }
 
-    /* TABELLER */
     table.data-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 11px;
     }
     table.data-table th {
-      background: rgba(0,0,0,0.15);
+      background: rgba(0,0,0,0.08);
       border: 1px solid var(--border);
       padding: 6px;
       text-align: left;
@@ -389,7 +386,6 @@
       margin-bottom: 12px;
     }
 
-    /* MODAL */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -408,7 +404,7 @@
       box-shadow: 0 12px 36px rgba(0,0,0,0.6);
     }
     .modal-header {
-      background: rgba(0,0,0,0.1);
+      background: rgba(0,0,0,0.06);
       padding: 8px 12px;
       display: flex;
       justify-content: space-between;
@@ -429,7 +425,7 @@
   <!-- TOPP-VERKTYGSFÄLT -->
   <div class="top-bar">
     <div class="top-left">
-      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.17.1</span></span>
+      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.17.2</span></span>
       <div style="display:flex; align-items:center; gap:4px; margin-left:8px;">
         <span style="color:var(--text-muted);" id="lbl-top-lib">Bibliotek:</span>
         <select id="sel-library" onchange="switchLibrary(this.value)" title="Välj bibliotek"></select>
@@ -438,11 +434,12 @@
     </div>
 
     <div class="top-right">
+      <!-- TEMA-VÄLJARE UTAN PERSONNAMN -->
       <div style="display:flex; align-items:center; gap:4px; margin-right:6px;">
         <span id="lbl-theme">🎨 Tema:</span>
         <select id="sel-theme" onchange="switchTheme(this.value)">
-          <option value="ide">IDE / Dark (Frank)</option>
-          <option value="modern">Modern / Clean (Lena & Robert)</option>
+          <option value="ide">IDE / Dark</option>
+          <option value="modern">Modern / Clean</option>
         </select>
       </div>
 
@@ -710,6 +707,22 @@
   </div>
 
 <script>
+// ==================== SYSTEMFÄRGER PER TEMA ====================
+const systemThemePalettes = {
+  ide: {
+    "Energetik": { bg: "#2d2315", border: "#5c431d" },
+    "Fysiologi": { bg: "#16281e", border: "#255c3c" },
+    "Säkerhet":  { bg: "#2d161c", border: "#5c242f" },
+    "Generellt": { bg: "#212431", border: "#3b3f54" }
+  },
+  modern: {
+    "Energetik": { bg: "#fef3c7", border: "#fde68a" },
+    "Fysiologi": { bg: "#dcfce7", border: "#bbf7d0" },
+    "Säkerhet":  { bg: "#fee2e2", border: "#fecaca" },
+    "Generellt": { bg: "#f1f5f9", border: "#cbd5e1" }
+  }
+};
+
 // ==================== SPRÅKMOTOR (I18N) ====================
 const i18n = {
   sv: {
@@ -720,6 +733,8 @@ const i18n = {
     btnLoadTemplate: "🌿 Läs in Master Index",
     btnExport: "💾 Backup",
     btnImport: "📂 Importera",
+    treeObjects: "📁 Objekt (Object Index)",
+    treeIndex: "📁 Egenskapsindex (Tag Index)",
     btnNewObjTree: "➕ Skapa nytt objekt...",
     btnNewSysTree: "➕ Skapa nytt system...",
     btnNewCatTree: "➕ Skapa ny kategori...",
@@ -819,6 +834,8 @@ const i18n = {
     btnLoadTemplate: "🌿 Load Master Index",
     btnExport: "💾 Backup",
     btnImport: "📂 Import",
+    treeObjects: "📁 Object Index",
+    treeIndex: "📁 Tag Index",
     btnNewObjTree: "➕ Create new object...",
     btnNewSysTree: "➕ Create new system...",
     btnNewCatTree: "➕ Create new category...",
@@ -1008,7 +1025,7 @@ function updateUILanguage() {
   document.getElementById("btn-cancel-add-form").innerText = t("btnCancelAddForm");
 }
 
-// ==================== DATABAS & MIGRERING ====================
+// ==================== DATABAS ====================
 const defaultAppData = {
   activeLibId: "herbal",
   theme: "ide",
@@ -1021,9 +1038,9 @@ const defaultAppData = {
       useSystemColors: true,
       showComments: true,
       systems: {
-        "Energetik": { color: "#3a2c16", categories: ["Western Energetics", "Ayurveda Gunas"] },
-        "Fysiologi": { color: "#162e24", categories: ["Part Used", "Ingestion forms", "Western Actions", "Symptoms"] },
-        "Säkerhet":  { color: "#3a161f", categories: ["Precautions"] }
+        "Energetik": { categories: ["Western Energetics", "Ayurveda Gunas"] },
+        "Fysiologi": { categories: ["Part Used", "Ingestion forms", "Western Actions", "Symptoms"] },
+        "Säkerhet":  { categories: ["Precautions"] }
       },
       categories: {
         "Part Used":          { system: "Fysiologi", subcategories: ["Roots", "Leaves", "Flowers"] },
@@ -1080,7 +1097,7 @@ const defaultAppData = {
 };
 
 let appData = defaultAppData;
-const stored = localStorage.getItem("taxonomy_ide_v17_1") || localStorage.getItem("taxonomy_ide_v17") || localStorage.getItem("taxonomy_ide_v16");
+const stored = localStorage.getItem("taxonomy_ide_v17_2") || localStorage.getItem("taxonomy_ide_v17_1") || localStorage.getItem("taxonomy_ide_v17");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -1099,7 +1116,7 @@ function currentLib() {
   if (lib.useSystemColors === undefined) lib.useSystemColors = true;
   if (lib.showComments === undefined) lib.showComments = true;
   if (!lib.categoryOrder) lib.categoryOrder = Object.keys(lib.categories);
-  if (!lib.systems) lib.systems = { "Generellt": { color: "#252a3a", categories: [] } };
+  if (!lib.systems) lib.systems = { "Generellt": { categories: [] } };
   if (!lib.formulas) lib.formulas = { "Standardrecept": [] };
   if (!lib.activeFormulaName || !lib.formulas[lib.activeFormulaName]) {
     lib.activeFormulaName = Object.keys(lib.formulas)[0] || "Standardrecept";
@@ -1109,7 +1126,7 @@ function currentLib() {
 }
 
 function persist() {
-  localStorage.setItem("taxonomy_ide_v17_1", JSON.stringify(appData));
+  localStorage.setItem("taxonomy_ide_v17_2", JSON.stringify(appData));
 }
 
 // ==================== TILLSTÅND ====================
@@ -1125,6 +1142,7 @@ function switchTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   document.getElementById("sel-theme").value = theme;
   persist();
+  if (activeView === 'OBJECT') renderObjectView();
 }
 
 function setWorkspaceView(viewType) {
@@ -1233,7 +1251,7 @@ function createSystemPrompt() {
   const lib = currentLib();
   if (!lib.systems) lib.systems = {};
   if (!lib.systems[name.trim()]) {
-    lib.systems[name.trim()] = { color: "#2a2d3a", categories: [] };
+    lib.systems[name.trim()] = { categories: [] };
     persist();
     renderTree();
   }
@@ -1247,7 +1265,7 @@ function createCategoryPrompt(sysName) {
   if (!lib.categories[catName]) {
     lib.categories[catName] = { system: sysName, subcategories: [] };
     if (!lib.categoryOrder.includes(catName)) lib.categoryOrder.push(catName);
-    if (!lib.systems[sysName]) lib.systems[sysName] = { color: "#2a2d3a", categories: [] };
+    if (!lib.systems[sysName]) lib.systems[sysName] = { categories: [] };
     if (!lib.systems[sysName].categories.includes(catName)) lib.systems[sysName].categories.push(catName);
     persist();
     renderTree();
@@ -1305,7 +1323,7 @@ function renderTree() {
   const root = document.getElementById("tree-root");
   root.innerHTML = "";
 
-  // 1. OBJECT INDEX
+  // 1. OBJECT INDEX (Översatt etikett)
   const isObjOpen = !!lib.treeOpen["objects"];
   const objFolder = document.createElement("div");
   objFolder.innerHTML = `
@@ -1341,7 +1359,7 @@ function renderTree() {
     root.appendChild(wrap);
   }
 
-  // 2. TAG INDEX (SYSTEM -> KATEGORI -> SUB-KATEGORI -> EGENSKAP)
+  // 2. TAG INDEX (Översatt etikett)
   const isTaxOpen = !!lib.treeOpen["taxonomies"];
   const taxFolder = document.createElement("div");
   taxFolder.innerHTML = `
@@ -1402,7 +1420,6 @@ function renderTree() {
             const catChildren = document.createElement("div");
             catChildren.className = "tree-children";
 
-            // Knappar under kategori: Ny subkategori & Ny egenskap
             const newSubCatBtn = document.createElement("div");
             newSubCatBtn.className = "tree-node tree-create-btn";
             newSubCatBtn.innerHTML = `<span>➕</span> <span>${t("btnNewSubCatTree")}</span>`;
@@ -1415,7 +1432,6 @@ function renderTree() {
             newPropBtn.onclick = (e) => { e.stopPropagation(); createPropertyPrompt(cName); };
             catChildren.appendChild(newPropBtn);
 
-            // 1. Rendera subkategorier om sådana finns
             (catData.subcategories || []).forEach(subName => {
               const subKey = "sub_" + cName + "_" + subName;
               const isSubOpen = !!lib.treeOpen[subKey];
@@ -1455,7 +1471,6 @@ function renderTree() {
               }
             });
 
-            // 2. Rendera egenskaper utan subkategori direkt under kategorin
             Object.entries(lib.properties)
               .filter(([_, p]) => p.category === cName && !p.subcategory)
               .forEach(([pName]) => {
@@ -1527,7 +1542,7 @@ function renderTree() {
   root.appendChild(trashNode);
 }
 
-// ==================== 2. OBJEKTPROFIL ====================
+// ==================== 2. OBJEKTPROFIL (FÄRGKODAD PER TEMA) ====================
 function toggleSystemColors(isChecked) {
   currentLib().useSystemColors = isChecked;
   persist();
@@ -1571,6 +1586,9 @@ function renderObjectView() {
   const cont = document.getElementById("obj-categories-container");
   cont.innerHTML = "";
 
+  const currentTheme = appData.theme || "ide";
+  const palette = systemThemePalettes[currentTheme] || systemThemePalettes.ide;
+
   const cats = lib.categoryOrder || Object.keys(lib.categories);
   cats.forEach((cat, idx) => {
     let assigned = [];
@@ -1581,14 +1599,19 @@ function renderObjectView() {
     });
 
     const sysName = lib.categories[cat]?.system || "Generellt";
-    const sysColor = (lib.useSystemColors && lib.systems[sysName]?.color) ? lib.systems[sysName].color : "transparent";
     const layout = lib.categoryLayouts[cat] || "flow";
 
     const box = document.createElement("div");
     box.className = "cat-box";
-    if (lib.useSystemColors && sysColor !== "transparent") {
-      box.style.backgroundColor = sysColor;
-      box.style.borderColor = "rgba(255,255,255,0.15)";
+
+    // FÄRGSÄTTNING: Mörka nyanser i Dark/IDE, mjuka pasteller i Modern/Clean
+    if (lib.useSystemColors) {
+      const themeColor = palette[sysName] || palette["Generellt"];
+      box.style.backgroundColor = themeColor.bg;
+      box.style.borderColor = themeColor.border;
+    } else {
+      box.style.backgroundColor = "var(--bg-card)";
+      box.style.borderColor = "var(--border)";
     }
 
     let itemsHtml = "";
@@ -1625,7 +1648,7 @@ function renderObjectView() {
     box.innerHTML = `
       <div class="cat-box-header">
         <div style="display:flex; align-items:center; gap:4px;">
-          <span class="cat-title-text">${cat} <span style="font-size:9px; opacity:0.6;">[${sysName}]</span></span>
+          <span class="cat-title-text">${cat} <span style="font-size:9px; opacity:0.65;">[${sysName}]</span></span>
           <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Flytta upp">▲</button>
           <button style="font-size:8px; padding:0 3px;" onclick="moveCategoryOrder(${idx}, 1)" ${idx === cats.length - 1 ? 'disabled' : ''} title="Flytta ned">▼</button>
         </div>
@@ -1656,7 +1679,7 @@ function inspectTagInRightPanel(pName) {
   const sys = lib.categories[cat]?.system || "Generellt";
 
   cont.innerHTML = `
-    <div style="font-size:14px; font-weight:700; color:#fff; margin-bottom:4px;">${pName}</div>
+    <div style="font-size:14px; font-weight:700; margin-bottom:4px;">${pName}</div>
     <div style="font-size:10px; color:var(--text-muted); margin-bottom:12px;">Kategori: <b>${cat}</b> • System: <b>${sys}</b></div>
     
     <div class="form-group">
@@ -2343,7 +2366,7 @@ function createNewLibraryPrompt() {
     categoryLayouts: {},
     useSystemColors: true,
     showComments: true,
-    systems: { "Generellt": { color: "#2a2d3a", categories: ["Generellt"] } },
+    systems: { "Generellt": { categories: ["Generellt"] } },
     categories: { "Generellt": { system: "Generellt", subcategories: [] } },
     properties: {},
     objects: [],
@@ -2391,7 +2414,6 @@ function loadMasterTemplate() {
   persist();
   renderTree();
   renderObjectView();
-  alert(t("templateLoadedAlert"));
 }
 
 // ==================== UPPSTART ====================
