@@ -3,27 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Universal Taxonomy IDE v0.18.2 [Bugfix Engine]</title>
+  <title>Universal Taxonomy IDE v0.19 [Inspectors, Doc Mode & Touch Reorder]</title>
   <style>
     /* ==================== TEMA 1: IDE / DARK ==================== */
     [data-theme="ide"] {
-      --bg-main: #14151a;
-      --bg-panel: #1e2029;
-      --bg-card: #252834;
-      --bg-card-hover: #2e3242;
-      --bg-input: #111217;
-      --border: #333748;
+      --bg-main: #131418;
+      --bg-panel: #1a1c24;
+      --bg-card: #222530;
+      --bg-card-hover: #2b2f3d;
+      --bg-input: #101115;
+      --border: #323646;
       --border-focus: #4d7cfe;
       --text: #e1e3eb;
-      --text-muted: #8d93a8;
+      --text-muted: #8a90a2;
       --accent: #4d7cfe;
       --accent-hover: #3969ef;
       --accent-active: #ff9800;
       --danger: #ef476f;
       --danger-bg: #3d1b26;
-      --tag-bg: #2b354d;
-      --tag-border: #41537a;
+      --tag-bg: #273044;
+      --tag-border: #3c4b6c;
       --tag-text: #adc8ff;
+      --ghost-bg: #2b2416;
+      --ghost-border: #806018;
+      --ghost-text: #ffd166;
       --pinned-bg: #2d2a1c;
       --pinned-border: #806820;
       --pinned-text: #ffd166;
@@ -49,6 +52,9 @@
       --tag-bg: #eff6ff;
       --tag-border: #bfdbfe;
       --tag-text: #1d4ed8;
+      --ghost-bg: #fffbeb;
+      --ghost-border: #fcd34d;
+      --ghost-text: #b45309;
       --pinned-bg: #fefce8;
       --pinned-border: #fef08a;
       --pinned-text: #854d0e;
@@ -74,6 +80,9 @@
       --tag-bg: #e8eef7;
       --tag-border: #5b7bb2;
       --tag-text: #0a246a;
+      --ghost-bg: #fff6d9;
+      --ghost-border: #997a00;
+      --ghost-text: #665200;
       --pinned-bg: #fdf8e2;
       --pinned-border: #c9b36d;
       --pinned-text: #7a5d00;
@@ -143,7 +152,7 @@
     button.primary:hover { background: var(--accent-hover); }
     button.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
-    /* WORKSPACE GRID */
+    /* WORKSPACE */
     .workspace-container {
       display: grid;
       grid-template-columns: 280px 1fr auto;
@@ -153,8 +162,6 @@
       position: relative;
       transition: grid-template-columns 0.2s ease;
     }
-
-    /* NÄR SIDOMENYN FÄLLS IHOP PÅ DATORN */
     .workspace-container.sidebar-collapsed {
       grid-template-columns: 0px 1fr auto;
     }
@@ -181,7 +188,7 @@
       width: 100%;
       background: var(--bg-input);
     }
-    .quick-search-dropdown {
+    .autocomplete-dropdown {
       position: absolute;
       top: 100%;
       left: 8px;
@@ -218,7 +225,6 @@
       overflow-y: auto;
       padding: 6px 4px;
     }
-
     .tree-node {
       padding: 4px 6px;
       cursor: pointer;
@@ -231,7 +237,6 @@
     }
     .tree-node:hover { background: var(--bg-card); color: var(--text); }
     .tree-node.active { background: var(--accent); color: #fff; font-weight: 600; }
-    
     .tree-toggle {
       width: 12px;
       text-align: center;
@@ -291,7 +296,7 @@
       min-height: min-content;
     }
 
-    /* OBJEKTRUBRIK */
+    /* HERO: ÖRTENS NAMN PÅ EGEN RAD */
     .profile-hero {
       display: flex;
       justify-content: space-between;
@@ -308,56 +313,88 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    [data-theme="modern"] .hero-title, [data-theme="classic"] .hero-title {
-      color: var(--text);
-    }
+    [data-theme="modern"] .hero-title, [data-theme="classic"] .hero-title { color: var(--text); }
 
-    #obj-categories-container {
+    /* FORMULA BADGES ÖVERST I OBJEKTPROFIL */
+    .object-formula-chips {
       display: flex;
-      flex-direction: column;
-      gap: 5px;
-      width: 100%;
-    }
-
-    /* INLINE KATEGORIRAD */
-    .inline-category-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 7px 10px;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: rgba(0,0,0,0.15);
       border-radius: var(--radius);
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .formula-chip-link {
+      background: #2b2518;
+      border: 1px solid #7a5c1a;
+      color: var(--accent-active);
+      padding: 2px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 10.5px;
+    }
+    .formula-chip-link:hover { filter: brightness(1.2); }
+
+    /* KATEGORIER: FRANKS 2-RADERS LAYOUT */
+    .cat-row-box {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-left: 4px solid transparent;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .inline-category-row:hover {
-      background: var(--bg-card-hover);
-    }
-    .inline-cat-label {
-      width: 170px;
-      flex-shrink: 0;
-      font-weight: 700;
-      font-size: 11px;
-      color: var(--text);
+      border-radius: var(--radius);
+      padding: 6px 10px;
+      margin-bottom: 5px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      padding-top: 2px;
+      gap: 5px;
+      cursor: default;
+      transition: background 0.15s, border-color 0.15s;
     }
-    .inline-cat-system {
+    .cat-row-box.dragging {
+      opacity: 0.4;
+      border: 1px dashed var(--accent);
+    }
+    .cat-row-line-1 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cat-row-title {
+      font-size: 12.5px; /* Större och mjukare typsnitt */
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cat-row-title:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+    .cat-row-system {
       font-size: 9px;
-      font-weight: normal;
+      font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
+      letter-spacing: 0.4px;
     }
-    .inline-tag-list {
+    .drag-handle {
+      cursor: grab;
+      color: var(--text-muted);
+      font-size: 13px;
+      padding: 0 4px;
+    }
+    .cat-row-line-2 {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 4px;
-      flex-grow: 1;
+      min-height: 20px;
     }
 
     .tag-badge {
@@ -372,11 +409,12 @@
       gap: 4px;
       font-size: 11px;
     }
-    [data-theme="modern"] .tag-badge {
-      border-radius: 20px;
-      padding: 3px 10px;
+    .tag-badge:hover { filter: brightness(1.15); border-color: var(--accent); }
+    .tag-badge.ghost-tag {
+      background: var(--ghost-bg);
+      border: 1px dashed var(--ghost-border);
+      color: var(--ghost-text);
     }
-    .tag-badge:hover { filter: brightness(1.1); border-color: var(--accent); }
     .tag-comment-text {
       font-style: italic;
       color: var(--accent-active);
@@ -384,36 +422,39 @@
       margin-left: 2px;
     }
 
-    .btn-row-add {
-      background: transparent;
-      border: 1px dashed var(--border);
-      color: var(--accent);
-      padding: 2px 7px;
-      font-size: 11px;
+    /* DOKUMENTLÄGE (READ MODE) */
+    .document-read-view {
+      background: #faf8f5;
+      color: #1a1a1a;
+      padding: 30px 40px;
       border-radius: var(--radius);
-      font-weight: bold;
-      cursor: pointer;
+      font-family: "Georgia", Cambria, "Times New Roman", Times, serif;
+      font-size: 14px;
+      line-height: 1.7;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border: 1px solid #e3ded6;
+      max-width: 780px;
+      margin: 0 auto;
+      width: 100%;
     }
-    .btn-row-add:hover {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
+    .document-read-view h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #2d2a26;
+      padding-bottom: 6px;
     }
-    .empty-row-placeholder {
-      color: var(--text-muted);
-      font-style: italic;
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: var(--radius);
+    .document-read-section {
+      margin-bottom: 16px;
     }
-    .empty-row-placeholder:hover {
-      color: var(--accent);
-      text-decoration: underline;
+    .document-read-section strong {
+      color: #000;
+      font-size: 14px;
     }
 
-    /* HÖGER: INSPECTOR */
+    /* HÖGER: MULTI-INSPECTOR SIDOMENY */
     .inspector-sidebar {
-      width: 300px;
+      width: 310px;
       background: var(--bg-panel);
       border-left: 1px solid var(--border);
       display: flex;
@@ -421,7 +462,23 @@
       height: 100%;
       overflow-y: auto;
       padding: 12px;
-      box-shadow: -4px 0 16px rgba(0,0,0,0.15);
+      box-shadow: -4px 0 16px rgba(0,0,0,0.2);
+      z-index: 150;
+    }
+    .inspector-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .inspector-title {
+      font-weight: 700;
+      color: var(--accent-active);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .form-group {
@@ -483,7 +540,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       width: 90%;
-      max-width: 440px;
+      max-width: 460px;
       overflow: hidden;
       box-shadow: 0 12px 36px rgba(0,0,0,0.6);
     }
@@ -532,7 +589,6 @@
         gap: 6px;
         width: 100%;
       }
-
       .workspace-container {
         grid-template-columns: 1fr;
         height: calc(100vh - 74px);
@@ -555,15 +611,7 @@
         box-shadow: -6px 0 25px rgba(0,0,0,0.6);
       }
       .main-content { padding: 8px; }
-      .inline-category-row {
-        flex-direction: column;
-        gap: 4px;
-      }
-      .inline-cat-label {
-        width: 100%;
-        border-bottom: 1px dashed rgba(255,255,255,0.08);
-        padding-bottom: 3px;
-      }
+      .document-read-view { padding: 16px 20px; }
     }
   </style>
 </head>
@@ -576,7 +624,7 @@
     <div class="top-row-main">
       <div style="display:flex; align-items:center; gap:6px;">
         <button onclick="toggleSidebar()" id="btn-toggle-menu" style="font-weight:bold;">☰ Meny</button>
-        <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.18.2</span></span>
+        <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.19</span></span>
       </div>
       <div style="display:flex; align-items:center; gap:6px;">
         <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search">🔍 Sök</button>
@@ -586,7 +634,7 @@
 
     <div class="top-row-sub">
       <div style="display:flex; align-items:center; gap:4px; width:100%;">
-        <span style="color:var(--text-muted); font-size:10px;" id="lbl-top-lib">Bibliotek:</span>
+        <span style="color:var(--text-muted); font-size:10px;">Bibliotek:</span>
         <select id="sel-library" onchange="switchLibrary(this.value)" style="flex-grow:1;" title="Välj bibliotek"></select>
         <button onclick="createNewLibraryPrompt()" id="btn-top-new-lib">+ Nytt</button>
       </div>
@@ -605,7 +653,7 @@
       <div class="quick-search-box">
         <input type="text" id="quick-search-input" placeholder="Quick Search..." 
                oninput="handleQuickSearch(this.value)" autocomplete="off">
-        <div class="quick-search-dropdown" id="quick-search-dropdown"></div>
+        <div class="autocomplete-dropdown" id="quick-search-dropdown"></div>
       </div>
       <div class="tree-view" id="tree-root"></div>
 
@@ -625,25 +673,44 @@
             <span id="obj-title-name">Ingefära (Zingiber officinale)</span>
           </div>
           <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-            <label style="font-size:10px; cursor:pointer; display:flex; align-items:center; gap:3px;">
-              <input type="checkbox" id="chk-hide-untagged" onchange="toggleHideUntagged(this.checked)"> <span id="lbl-hide-untagged">Dölj otaggade</span>
-            </label>
-            <label style="font-size:10px; cursor:pointer; display:flex; align-items:center; gap:3px;">
-              <input type="checkbox" id="chk-system-colors" onchange="toggleSystemColors(this.checked)"> <span id="lbl-sys-colors">Systemfärger</span>
-            </label>
-            <label style="font-size:10px; cursor:pointer; display:flex; align-items:center; gap:3px; margin-right:4px;">
-              <input type="checkbox" id="chk-show-comments" checked onchange="toggleShowComments(this.checked)"> <span id="lbl-show-comments">Kommentarer</span>
-            </label>
+            <!-- MODE VÄXLARE: EDIT VS READ/DOKUMENT -->
+            <button onclick="toggleProfileViewMode()" id="btn-toggle-view-mode" style="font-weight:700;">📄 Dokumentläge</button>
+
+            <!-- TABLE OF CONTENTS (HOPPA DIREKT TILL KATEGORI) -->
+            <select id="sel-toc" onchange="jumpToCategory(this.value)" style="max-width:140px;" title="Table of Contents">
+              <option value="">📑 Hoppa till kategori...</option>
+            </select>
+
+            <button onclick="openAddCategoryModal()" id="btn-add-cat-direct" title="Lägg till kategori direkt">+ Kategori</button>
             <button onclick="createObjectPrompt()" id="btn-obj-create-direct">+ Ny Ört</button>
             <button onclick="openAddToFormulaModal()" id="btn-add-to-formula" style="color:var(--accent-active); font-weight:600;">⚗ Lägg till i formel</button>
-            <button onclick="openBatchAddPrompt()" id="btn-batch-add">+ Fler (komma)</button>
           </div>
         </div>
 
+        <!-- FORMELTILLHÖRIGHET ÖVERST -->
+        <div class="object-formula-chips" id="obj-formula-membership-container"></div>
+
+        <!-- REGLAGE FÖR EDIT MODE -->
+        <div id="obj-edit-controls" style="display:flex; gap:10px; align-items:center; margin-bottom:4px; font-size:10px;">
+          <label style="cursor:pointer; display:flex; align-items:center; gap:3px;">
+            <input type="checkbox" id="chk-hide-untagged" onchange="toggleHideUntagged(this.checked)"> Dölj otaggade
+          </label>
+          <label style="cursor:pointer; display:flex; align-items:center; gap:3px;">
+            <input type="checkbox" id="chk-system-colors" onchange="toggleSystemColors(this.checked)"> Systemfärger
+          </label>
+          <label style="cursor:pointer; display:flex; align-items:center; gap:3px;">
+            <input type="checkbox" id="chk-show-comments" checked onchange="toggleShowComments(this.checked)"> Kommentarer
+          </label>
+        </div>
+
+        <!-- KATEGORILISTA (EDIT MODE) -->
         <div id="obj-categories-container"></div>
+
+        <!-- DOKUMENTVY (READ MODE) -->
+        <div id="obj-document-container" class="document-read-view" style="display:none;"></div>
       </div>
 
-      <!-- VY 2: EGENSKAPSDETALJER I FULLVY -->
+      <!-- VY 2: EGENSKAPSDETALJER I FULLVY (TAG PROFILE) -->
       <div class="content-panel" id="view-property" style="display:none;">
         <div class="panel-header">
           <div class="panel-title">
@@ -652,22 +719,34 @@
           </div>
           <button class="primary" onclick="saveActiveProperty()" id="btn-save-prop">Spara Ändringar</button>
         </div>
-        <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:12px; flex-grow:1;">
-          <div>
-            <div class="form-group"><label id="lbl-prop-name">Egenskapsnamn</label><input type="text" id="prop-edit-name"></div>
-            <div class="form-group"><label id="lbl-prop-cat">Kategori & System</label><select id="prop-edit-cat"></select></div>
-            <div class="form-group"><label id="lbl-prop-desc">Beskrivning</label><textarea id="prop-edit-desc" rows="3"></textarea></div>
-            <div class="form-group"><label id="lbl-prop-links">Webblänkar</label><textarea id="prop-edit-links" rows="2"></textarea></div>
-            <div class="form-group"><label id="lbl-prop-sources">Bokkällor & Referenser</label><textarea id="prop-edit-sources" rows="2"></textarea></div>
-            <div class="form-group"><label id="lbl-prop-opp">Motsatspol (Opposite)</label><select id="prop-edit-opposite"></select></div>
+        
+        <div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="form-group"><label>Egenskapsnamn</label><input type="text" id="prop-edit-name"></div>
+            <div class="form-group"><label>Kategori & System</label><select id="prop-edit-cat"></select></div>
           </div>
-          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:10px; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <span style="font-weight:700; color:var(--text-muted); text-transform:uppercase;" id="lbl-featured-objs">Förekommer i örter</span>
-              <button onclick="openConnectObjectsModal()" id="btn-connect-obj">+ Koppla ört</button>
-            </div>
-            <div id="prop-featured-objs-list" style="flex-grow:1; overflow-y:auto; border:1px solid var(--border); background:var(--bg-input); border-radius:var(--radius); padding:4px;"></div>
+          <!-- SYNONYMER-FÄLT UNDER NAMNET ENLIGT FRANK -->
+          <div class="form-group">
+            <label>Synonymer (separera med kommatecken):</label>
+            <input type="text" id="prop-edit-synonyms" placeholder="t.ex. Varm, Het, Warming...">
           </div>
+          <div class="form-group"><label>Beskrivning</label><textarea id="prop-edit-desc" rows="3"></textarea></div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="form-group"><label>Webblänkar</label><textarea id="prop-edit-links" rows="2"></textarea></div>
+            <div class="form-group"><label>Bokkällor & Referenser</label><textarea id="prop-edit-sources" rows="2"></textarea></div>
+          </div>
+          <div class="form-group"><label>Motsatspol (Opposite)</label><select id="prop-edit-opposite"></select></div>
+        </div>
+
+        <!-- FÖREKOMMER I ÖRTER / OBJEKT (LÄNGST NER ENLIGT FRANK) -->
+        <div style="margin-top:14px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-weight:700; color:var(--text-muted); text-transform:uppercase; cursor:pointer;" onclick="openObjectInspector()" title="Klicka för att öppna Object Inspector">
+              🌿 Förekommer i örter (Klicka för Object Inspector)
+            </span>
+            <button onclick="openObjectInspector()">⚙ Öppna Object Inspector</button>
+          </div>
+          <div id="prop-featured-objs-chips" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
         </div>
       </div>
 
@@ -677,18 +756,21 @@
           <div class="panel-title">
             <button id="btn-formula-back" style="display:none;" onclick="navigateBackToObject()">⬅ Tillbaka till ört</button>
             <span>⚗</span>
-            <span id="lbl-formula-title">Formel:</span>
+            <span>Formel:</span>
             <b id="formula-header-name" style="color:var(--accent-active); margin-left:4px;"></b>
-            <button onclick="promptRenameFormula()" style="font-size:9px;" id="btn-rename-form">Döp om</button>
-            <button onclick="promptDeleteFormula()" style="font-size:9px; color:var(--danger);" id="btn-delete-form">Radera</button>
+            <button onclick="promptRenameFormula()" style="font-size:9px;">Döp om</button>
+            <button onclick="promptDeleteFormula()" style="font-size:9px; color:var(--danger);">Radera</button>
           </div>
-          <button onclick="addFormulaRow()" id="btn-formula-add">+ Ny Komponent</button>
+          <div style="display:flex; gap:6px;">
+            <button onclick="promptBatchAddFormulaComponents()">+ Fler komponenter (komma)</button>
+            <button onclick="addFormulaRow()">+ Ny Komponent</button>
+          </div>
         </div>
 
         <div class="pinned-status-panel">
           <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:10px; color:var(--pinned-text);">
-            <span id="lbl-pinned-panel">📌 Pinnade Status- & Varningskategorier</span>
-            <button onclick="promptManagePins()" style="font-size:9px;" id="btn-manage-pins">⚙ Hantera pinnar</button>
+            <span>📌 Pinnade Status- & Varningskategorier</span>
+            <button onclick="promptManagePins()" style="font-size:9px;">⚙ Hantera pinnar</button>
           </div>
           <div id="formula-pinned-items" style="margin-top:4px;"></div>
         </div>
@@ -696,18 +778,18 @@
         <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:12px; flex-grow:1;">
           <div>
             <table class="data-table">
-              <thead><tr><th>#</th><th id="th-form-comp">Komponent</th><th id="th-form-role">Roll</th><th style="width:70px;" id="th-form-qty">Mängd</th><th id="th-form-share">Andel</th><th></th></tr></thead>
+              <thead><tr><th>#</th><th>Komponent</th><th>Roll</th><th style="width:70px;">Mängd</th><th>Andel</th><th></th></tr></thead>
               <tbody id="formula-table-body"></tbody>
             </table>
             <div style="margin-top:12px; background:var(--bg-card); border:1px solid var(--border); padding:8px; border-radius:var(--radius);">
-              <span style="font-weight:700; font-size:10px; color:var(--text-muted);" id="lbl-polarity">Polaritetsbalans (Motsatspar):</span>
+              <span style="font-weight:700; font-size:10px; color:var(--text-muted);">Polaritetsbalans (Motsatspar):</span>
               <div id="formula-balance-container" style="margin-top:6px;"></div>
             </div>
           </div>
           <div>
-            <div style="font-weight:700; margin-bottom:6px; color:var(--text-muted); text-transform:uppercase;" id="lbl-cumulative-eff">Synergivärde & Effekt:</div>
+            <div style="font-weight:700; margin-bottom:6px; color:var(--text-muted); text-transform:uppercase;">Synergivärde & Effekt:</div>
             <table class="data-table">
-              <thead><tr><th>#</th><th id="th-form-prop">Egenskap</th><th id="th-form-syn">Synergi</th><th style="text-align:right;" id="th-form-eff">Effekt</th></tr></thead>
+              <thead><tr><th>#</th><th>Egenskap</th><th>Synergi</th><th style="text-align:right;">Effekt</th></tr></thead>
               <tbody id="formula-props-body"></tbody>
             </table>
           </div>
@@ -718,45 +800,49 @@
       <div class="content-panel" id="view-trash" style="display:none;">
         <div class="panel-header">
           <div class="panel-title">
-            <span style="color:var(--danger);">🗑</span> <span id="lbl-trash-title">Papperskorg (Trash Bin)</span>
+            <span style="color:var(--danger);">🗑</span> <span>Papperskorg (Trash Bin)</span>
           </div>
         </div>
         <div style="flex-grow:1; overflow-y:auto; border:1px solid var(--border); background:var(--bg-card); border-radius:var(--radius);">
           <table class="data-table">
             <thead>
-              <tr><th style="width:30px; text-align:center;" id="th-trash-keep">Behåll</th><th id="th-trash-name">Element / Namn</th><th id="th-trash-type">Typ</th><th id="th-trash-date">Borttagen</th><th id="th-trash-orig">Ursprunglig Plats</th></tr>
+              <tr><th style="width:30px; text-align:center;">Behåll</th><th>Element / Namn</th><th>Typ</th><th>Borttagen</th><th>Ursprunglig Plats</th></tr>
             </thead>
             <tbody id="trash-table-body"></tbody>
           </table>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:8px;">
-          <button class="danger" onclick="purgeUnkeptTrash()" id="btn-purge-trash">Rensa obockade permanent</button>
-          <button class="primary" onclick="reviveKeptTrash()" id="btn-revive-trash">Återställ bockade (Revive)</button>
+          <button class="danger" onclick="purgeUnkeptTrash()">Rensa obockade permanent</button>
+          <button class="primary" onclick="reviveKeptTrash()">Återställ bockade (Revive)</button>
         </div>
       </div>
 
-      <!-- VY 5: FILTERSÖK -->
+      <!-- VY 5: FILTERSÖK (MED STAVNINGSFÖRSLAG, CASE MATCH & GHOST TAGS) -->
       <div class="content-panel" id="view-search" style="display:none;">
         <div class="panel-header">
-          <div class="panel-title"><span>🔍</span> <span id="lbl-search-title">Filtersök efter gemensamma egenskaper</span></div>
+          <div class="panel-title"><span>🔍</span> <span>Filtersök efter gemensamma egenskaper</span></div>
+          <label style="font-size:10px; cursor:pointer; display:flex; align-items:center; gap:4px;">
+            <input type="checkbox" id="chk-search-case"> Match case (skiftlägeskänslig)
+          </label>
         </div>
-        <div style="display:flex; gap:6px; margin-bottom:8px;">
-          <input type="text" id="filter-search-input" placeholder="Quick Search..." style="width:360px;">
-          <button onclick="applySearchFilter()" id="btn-apply-filter">+ Applicera Filter</button>
+        <div style="position:relative; margin-bottom:8px;">
+          <input type="text" id="filter-search-input" placeholder="Skriv egenskap (tryck Enter eller använd + för flera: röd+gul+blå)..." 
+                 style="width:100%;" oninput="handleSearchAutocomplete(this.value)" onkeydown="handleSearchInputKey(event)" autocomplete="off">
+          <div class="autocomplete-dropdown" id="search-autocomplete-dropdown"></div>
         </div>
         <div id="filter-chips-container" style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;"></div>
         <table class="data-table">
-          <thead><tr><th>#</th><th id="th-search-obj">Objekt</th><th id="th-search-rel">Relevans</th><th id="th-search-props">Matchade egenskaper</th></tr></thead>
+          <thead><tr><th>#</th><th>Ört / Objekt</th><th>Relevans</th><th>Matchade egenskaper</th></tr></thead>
           <tbody id="search-table-body"></tbody>
         </table>
       </div>
 
     </div>
 
-    <!-- HÖGER: INSPECTOR -->
+    <!-- HÖGER: MULTI-INSPECTOR SIDOMENY (TAG / CATEGORY / FORMULA / OBJECT) -->
     <div class="inspector-sidebar" id="panel-inspector" style="display:none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:6px; margin-bottom:10px;">
-        <span style="font-weight:700; color:var(--accent-active); font-size:12px;">🏷 Tag Inspector</span>
+      <div class="inspector-header">
+        <span class="inspector-title" id="inspector-header-title">INSPECTOR</span>
         <span style="cursor:pointer; font-weight:bold; font-size:14px;" onclick="closeInspector()">✕</span>
       </div>
       <div id="inspector-content"></div>
@@ -800,19 +886,30 @@
     </div>
   </div>
 
-  <!-- MODAL: TILLDELA EGENSKAPER TILL KATEGORI -->
-  <div class="modal-overlay" id="modal-add-to-cat">
+  <!-- MODAL: LÄGG TILL KATEGORI DIREKT I OBJEKTPROFIL -->
+  <div class="modal-overlay" id="modal-add-category">
     <div class="modal-box">
       <div class="modal-header">
-        <span>Lägg till i: <b id="modal-cat-name-display" style="color:var(--accent-active);"></b></span>
-        <span style="cursor:pointer;" onclick="closeModal('modal-add-to-cat')">✕</span>
+        <span>Lägg till kategori i ört</span>
+        <span style="cursor:pointer;" onclick="closeModal('modal-add-category')">✕</span>
       </div>
       <div class="modal-body">
-        <label>Skriv en eller flera egenskaper (separera med kommatecken):</label>
-        <textarea id="modal-cat-tags-input" rows="3" placeholder="t.ex. Varm, Stark, Bitter Tonic..."></textarea>
+        <div class="form-group">
+          <label>Välj bland existerande kategorier i index:</label>
+          <div id="modal-existing-cats-list" style="max-height:140px; overflow-y:auto; border:1px solid var(--border); padding:6px; background:var(--bg-input);"></div>
+        </div>
+        <div style="text-align:center; font-size:10px; color:var(--text-muted);">— ELLER SKAPA NY KATEGORI UNDERST —</div>
+        <div class="form-group">
+          <label>Skapa ny kategori:</label>
+          <input type="text" id="modal-new-cat-name" placeholder="Kategorinamn...">
+        </div>
+        <div class="form-group">
+          <label>Tillhör system:</label>
+          <select id="modal-new-cat-sys"></select>
+        </div>
         <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
-          <button class="primary" onclick="confirmBatchCatAdd()">Spara & Tilldela</button>
-          <button onclick="closeModal('modal-add-to-cat')">Avbryt</button>
+          <button class="primary" onclick="confirmAddCategoryToProfile()">Lägg till i profil</button>
+          <button onclick="closeModal('modal-add-category')">Avbryt</button>
         </div>
       </div>
     </div>
@@ -840,23 +937,23 @@
   <div class="modal-overlay" id="modal-add-to-formula">
     <div class="modal-box">
       <div class="modal-header">
-        <span id="lbl-modal-add-form-title">Lägg till ört i formel</span>
+        <span>Lägg till ört i formel</span>
         <span style="cursor:pointer;" onclick="closeModal('modal-add-to-formula')">✕</span>
       </div>
       <div class="modal-body">
         <div style="font-weight:600;" id="modal-add-form-obj-display"></div>
         <div class="form-group" style="margin-top:4px;">
-          <label id="lbl-choose-existing-form">Välj existerande formel:</label>
+          <label>Välj existerande formel:</label>
           <select id="modal-sel-existing-formula"></select>
         </div>
         <div style="text-align:center; color:var(--text-muted); font-size:10px; margin:2px 0;">— ELLER —</div>
         <div class="form-group">
-          <label id="lbl-create-new-form-name">Skapa och lägg till i ny formel:</label>
+          <label>Skapa och lägg till i ny formel:</label>
           <input type="text" id="modal-input-new-formula" placeholder="T.ex. Förkylningsbrygd, Mag-te...">
         </div>
         <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
-          <button class="primary" onclick="confirmAddObjectToFormula()" id="btn-confirm-add-form">Lägg till & Öppna</button>
-          <button onclick="closeModal('modal-add-to-formula')" id="btn-cancel-add-form">Avbryt</button>
+          <button class="primary" onclick="confirmAddObjectToFormula()">Lägg till & Öppna</button>
+          <button onclick="closeModal('modal-add-to-formula')">Avbryt</button>
         </div>
       </div>
     </div>
@@ -865,7 +962,7 @@
   <input type="file" id="file-import" style="display:none;" accept=".json" onchange="importBackup(event)">
 
 <script>
-// ==================== SYSTEMFÄRGER (ACCENTER PER TEMA) ====================
+// ==================== SYSTEMFÄRGER ====================
 const systemThemeAccents = {
   ide: {
     "General Information": "#6366f1",
@@ -890,253 +987,12 @@ const systemThemeAccents = {
   }
 };
 
-// ==================== KRASCHSÄKRA HJÄLPFUNKTIONER ====================
-function setText(id, text) {
-  const el = document.getElementById(id);
-  if (el) el.innerText = text;
-}
-function setPlaceholder(id, text) {
-  const el = document.getElementById(id);
-  if (el) el.placeholder = text;
-}
+function setText(id, text) { const el = document.getElementById(id); if (el) el.innerText = text; }
 
-// ==================== SPRÅKMOTOR ====================
-const i18n = {
-  sv: {
-    topLib: "Bibliotek:",
-    btnTopNewLib: "+ Nytt",
-    btnModeSearch: "🔍 Sök",
-    btnTools: "⚙ Verktyg",
-    treeObjects: "📁 Örter & Objekt",
-    treeIndex: "📁 Taxonomi Index",
-    treeFormulas: "📁 Formler",
-    btnNewObjTree: "➕ Skapa nytt...",
-    btnObjCreateDirect: "+ Ny Ört",
-    btnAddToFormula: "⚗ Lägg till i formel",
-    lblHideUntagged: "Dölj otaggade",
-    lblSysColors: "Systemfärger",
-    lblShowComments: "Kommentarer",
-    btnBatchAdd: "+ Fler (komma)",
-    noPropsInCat: "[+ Klicka för att lägga till egenskaper]",
-    commentLabel: "💬 Kommentar",
-    lblPropName: "Egenskapsnamn",
-    lblPropCat: "Kategori & System",
-    lblPropDesc: "Beskrivning",
-    lblPropLinks: "Webblänkar",
-    lblPropSources: "Bokkällor & Referenser",
-    lblPropOpp: "Motsatspol (Opposite)",
-    noPolarity: "-- Ingen polaritet --",
-    btnSaveProp: "Spara Ändringar",
-    lblFeaturedObjs: "Förekommer i örter",
-    btnConnectObj: "+ Koppla ört",
-    noFeaturedObjs: "Inga örter bär denna egenskap ännu.",
-    disconnectBtn: "Koppla loss",
-    lblTrashTitle: "Papperskorg (Trash Bin)",
-    thTrashKeep: "Behåll",
-    thTrashName: "Element / Namn",
-    thTrashType: "Typ",
-    thTrashDate: "Borttagen",
-    thTrashOrig: "Ursprunglig Plats",
-    btnPurgeTrash: "Rensa obockade permanent",
-    btnReviveTrash: "Återställ bockade (Revive)",
-    lblFormulaTitle: "Formel:",
-    btnRenameForm: "Döp om",
-    btnDeleteForm: "Radera",
-    btnFormulaAdd: "+ Ny Komponent",
-    lblPinnedPanel: "📌 Pinnade Status- & Varningskategorier",
-    btnManagePins: "⚙ Hantera pinnar",
-    noPinnedHits: "Inga aktiva varningar.",
-    fromText: "från",
-    categoryText: "Kategori",
-    thFormComp: "Komponent",
-    thFormRole: "Roll",
-    thFormQty: "Mängd",
-    thFormShare: "Andel",
-    lblPolarity: "Polaritetsbalans (Motsatspar):",
-    lblCumulativeEff: "Synergivärde & Effekt:",
-    thFormProp: "Egenskap",
-    thFormSyn: "Synergi",
-    thFormEff: "Effekt",
-    lblSearchTitle: "Filtersök efter gemensamma egenskaper",
-    btnApplyFilter: "+ Applicera Filter",
-    thSearchObj: "Ört/Objekt",
-    thSearchRel: "Relevans",
-    thSearchProps: "Matchade egenskaper",
-    noSearchFilterPrompt: "Lägg till egenskaper ovan för att filtrera.",
-    promptNewObj: "Ange namn på den nya örten/objektet:",
-    promptNewSys: "Ange namn på det nya systemet:",
-    promptRenameSys: "Ange nytt namn på systemet '{0}':",
-    promptNewCat: "Ange namn på ny kategori under systemet '{0}':",
-    promptNewProp: "Ange namn på ny egenskap under '{0}':",
-    promptNewLibName: "Ange namn på det nya biblioteket:",
-    promptNewFormulaName: "Ange namn på den nya formeln:",
-    promptRenameFormula: "Ange nytt namn på formeln:",
-    confirmDeleteFormula: "Är du säker på att du vill radera formeln '{0}'?",
-    promptBatchAdd: "Skriv egenskaper separerade med komma:",
-    metaSavedAlert: "Metadata sparad!",
-    revivedAlert: "Markerade element har återställts!",
-    purgeConfirm: "Är du säker på att du vill radera {0} obockade element permanent?",
-    templateLoadedAlert: "Franks 4 Master Systems har lästs in!",
-    confirmLoadTemplate: "Läs in Franks 4 Master Systems (General, Western, Ayurveda, TCM)?"
-  },
-  en: {
-    topLib: "Library:",
-    btnTopNewLib: "+ New",
-    btnModeSearch: "🔍 Search",
-    btnTools: "⚙ Tools",
-    treeObjects: "📁 Herbs & Objects",
-    treeIndex: "📁 Taxonomy Index",
-    treeFormulas: "📁 Formulas",
-    btnNewObjTree: "➕ Create new...",
-    btnObjCreateDirect: "+ New Herb",
-    btnAddToFormula: "⚗ Add to Formula",
-    lblHideUntagged: "Hide untagged",
-    lblSysColors: "System Colors",
-    lblShowComments: "Comments",
-    btnBatchAdd: "+ More (comma)",
-    noPropsInCat: "[+ Click to add properties]",
-    commentLabel: "💬 Comment",
-    lblPropName: "Property Name",
-    lblPropCat: "Category & System",
-    lblPropDesc: "Description",
-    lblPropLinks: "Web links",
-    lblPropSources: "Book Sources & References",
-    lblPropOpp: "Opposite (Polarity)",
-    noPolarity: "-- No polarity --",
-    btnSaveProp: "Save Changes",
-    lblFeaturedObjs: "Featured in Herbs",
-    btnConnectObj: "+ Connect Herb",
-    noFeaturedObjs: "No herbs have this property yet.",
-    disconnectBtn: "Disconnect",
-    lblTrashTitle: "Trash Bin",
-    thTrashKeep: "Keep",
-    thTrashName: "Element / Name",
-    thTrashType: "Type",
-    thTrashDate: "Date Removed",
-    thTrashOrig: "Original Place",
-    btnPurgeTrash: "Remove Unkept Permanently",
-    btnReviveTrash: "Revive Kept Files",
-    lblFormulaTitle: "Formula:",
-    btnRenameForm: "Rename",
-    btnDeleteForm: "Delete",
-    btnFormulaAdd: "+ New Component",
-    lblPinnedPanel: "📌 Pinned Status & Warning Categories",
-    btnManagePins: "⚙ Manage Pins",
-    noPinnedHits: "No active warnings.",
-    fromText: "from",
-    categoryText: "Category",
-    thFormComp: "Component",
-    thFormRole: "Role",
-    thFormQty: "Qty",
-    thFormShare: "Share",
-    lblPolarity: "Polarity Balance (Opposites):",
-    lblCumulativeEff: "Synergy & Cumulative Effect:",
-    thFormProp: "Property",
-    thFormSyn: "Synergy",
-    thFormEff: "Effect",
-    lblSearchTitle: "Filter Search by Property Match",
-    btnApplyFilter: "+ Apply Filter",
-    thSearchObj: "Herb/Object",
-    thSearchRel: "Relevance",
-    thSearchProps: "Matched Properties",
-    noSearchFilterPrompt: "Add properties above to filter.",
-    promptNewObj: "Enter name of new herb/object:",
-    promptNewSys: "Enter name of new system:",
-    promptRenameSys: "Enter new name for system '{0}':",
-    promptNewCat: "Enter name of new category under system '{0}':",
-    promptNewProp: "Enter name of new property under '{0}':",
-    promptNewLibName: "Enter name of new library:",
-    promptNewFormulaName: "Enter name for new formula:",
-    promptRenameFormula: "Enter new name for formula:",
-    confirmDeleteFormula: "Are you sure you want to delete formula '{0}'?",
-    promptBatchAdd: "Enter properties separated by commas:",
-    metaSavedAlert: "Metadata saved!",
-    revivedAlert: "Selected items have been restored!",
-    purgeConfirm: "Are you sure you want to permanently purge {0} unkept items?",
-    templateLoadedAlert: "Frank's 4 Master Systems loaded!",
-    confirmLoadTemplate: "Load Frank's 4 Master Systems (General, Western, Ayurveda, TCM)?"
-  }
-};
-
+// ==================== SPRÅKLEXIKON ====================
 let currentLang = localStorage.getItem("ide_lang") || "sv";
-function t(key, ...args) {
-  let str = i18n[currentLang]?.[key] || i18n["sv"][key] || key;
-  args.forEach((val, idx) => { str = str.replace(`{${idx}}`, val); });
-  return str;
-}
 
-function changeLanguage(lang) {
-  currentLang = lang;
-  localStorage.setItem("ide_lang", lang);
-  updateUILanguage();
-  renderTree();
-  if (activeView === 'OBJECT') renderObjectView();
-  if (activeView === 'PROPERTY') renderPropertyView();
-  if (activeView === 'FORMULA') renderFormulaView();
-  if (activeView === 'TRASH') renderTrashView();
-  if (activeView === 'SEARCH') renderSearchView();
-}
-
-function updateUILanguage() {
-  document.documentElement.lang = currentLang;
-  const langSel = document.getElementById("sel-lang");
-  if (langSel) langSel.value = currentLang;
-
-  setText("lbl-top-lib", t("topLib"));
-  setText("btn-top-new-lib", t("btnTopNewLib"));
-  setText("btn-mode-search", t("btnModeSearch"));
-  setText("btn-tools", t("btnTools"));
-
-  setText("lbl-hide-untagged", t("lblHideUntagged"));
-  setText("lbl-sys-colors", t("lblSysColors"));
-  setText("lbl-show-comments", t("lblShowComments"));
-  setText("btn-obj-create-direct", t("btnObjCreateDirect"));
-  setText("btn-add-to-formula", t("btnAddToFormula"));
-  setText("btn-batch-add", t("btnBatchAdd"));
-
-  setText("lbl-prop-name", t("lblPropName"));
-  setText("lbl-prop-cat", t("lblPropCat"));
-  setText("lbl-prop-desc", t("lblPropDesc"));
-  setText("lbl-prop-links", t("lblPropLinks"));
-  setText("lbl-prop-sources", t("lblPropSources"));
-  setText("lbl-prop-opp", t("lblPropOpp"));
-  setText("btn-save-prop", t("btnSaveProp"));
-  setText("lbl-featured-objs", t("lblFeaturedObjs"));
-  setText("btn-connect-obj", t("btnConnectObj"));
-
-  setText("lbl-trash-title", t("lblTrashTitle"));
-  setText("th-trash-keep", t("thTrashKeep"));
-  setText("th-trash-name", t("thTrashName"));
-  setText("th-trash-type", t("thTrashType"));
-  setText("th-trash-date", t("thTrashDate"));
-  setText("th-trash-orig", t("thTrashOrig"));
-  setText("btn-purge-trash", t("btnPurgeTrash"));
-  setText("btn-revive-trash", t("btnReviveTrash"));
-
-  setText("lbl-formula-title", t("lblFormulaTitle"));
-  setText("btn-rename-form", t("btnRenameForm"));
-  setText("btn-delete-form", t("btnDeleteForm"));
-  setText("btn-formula-add", t("btnFormulaAdd"));
-  setText("lbl-pinned-panel", t("lblPinnedPanel"));
-  setText("btn-manage-pins", t("btnManagePins"));
-  setText("th-form-comp", t("thFormComp"));
-  setText("th-form-role", t("thFormRole"));
-  setText("th-form-qty", t("thFormQty"));
-  setText("th-form-share", t("thFormShare"));
-  setText("lbl-polarity", t("lblPolarity"));
-  setText("lbl-cumulative-eff", t("lblCumulativeEff"));
-  setText("th-form-prop", t("thFormProp"));
-  setText("th-form-syn", t("thFormSyn"));
-  setText("th-form-eff", t("thFormEff"));
-
-  setText("lbl-search-title", t("lblSearchTitle"));
-  setText("btn-apply-filter", t("btnApplyFilter"));
-  setText("th-search-obj", t("thSearchObj"));
-  setText("th-search-rel", t("thSearchRel"));
-  setText("th-search-props", t("thSearchProps"));
-}
-
-// ==================== DATABAS ====================
+// ==================== DATAMODELL (FRANKS 4 MASTER SYSTEMS) ====================
 const defaultAppData = {
   activeLibId: "herbal",
   theme: "ide",
@@ -1154,40 +1010,32 @@ const defaultAppData = {
         "Tastes (TCM)", "Entered Channels", "Indicated Constitutions", "Actions (TCM)"
       ],
       systems: {
-        "General Information": {
-          categories: ["English Name", "Botanical Name", "Family", "Precautions"]
-        },
-        "Western Herbalism": {
-          categories: ["Tastes (Western)", "Six Tissue States", "Planetary Ruler", "Elemental Ruler", "Humors", "Culpepper Uses", "Actions (Western)", "Affinities"]
-        },
-        "Ayurveda": {
-          categories: ["Tastes (Ayurveda)", "Gunas", "Doshas", "Dhatus"]
-        },
-        "Traditional Chinese Medicine": {
-          categories: ["Tastes (TCM)", "Entered Channels", "Indicated Constitutions", "Actions (TCM)"]
-        }
+        "General Information": { categories: ["English Name", "Botanical Name", "Family", "Precautions"] },
+        "Western Herbalism":   { categories: ["Tastes (Western)", "Six Tissue States", "Planetary Ruler", "Elemental Ruler", "Humors", "Culpepper Uses", "Actions (Western)", "Affinities"] },
+        "Ayurveda":            { categories: ["Tastes (Ayurveda)", "Gunas", "Doshas", "Dhatus"] },
+        "Traditional Chinese Medicine": { categories: ["Tastes (TCM)", "Entered Channels", "Indicated Constitutions", "Actions (TCM)"] }
       },
       categories: {
-        "English Name":          { system: "General Information" },
-        "Botanical Name":        { system: "General Information" },
-        "Family":                { system: "General Information" },
-        "Precautions":           { system: "General Information" },
-        "Tastes (Western)":      { system: "Western Herbalism" },
-        "Six Tissue States":     { system: "Western Herbalism" },
-        "Planetary Ruler":       { system: "Western Herbalism" },
-        "Elemental Ruler":       { system: "Western Herbalism" },
-        "Humors":                { system: "Western Herbalism" },
-        "Culpepper Uses":        { system: "Western Herbalism" },
-        "Actions (Western)":     { system: "Western Herbalism" },
-        "Affinities":            { system: "Western Herbalism" },
-        "Tastes (Ayurveda)":     { system: "Ayurveda" },
-        "Gunas":                 { system: "Ayurveda" },
-        "Doshas":                { system: "Ayurveda" },
-        "Dhatus":                { system: "Ayurveda" },
-        "Tastes (TCM)":          { system: "Traditional Chinese Medicine" },
-        "Entered Channels":      { system: "Traditional Chinese Medicine" },
+        "English Name":           { system: "General Information" },
+        "Botanical Name":         { system: "General Information" },
+        "Family":                 { system: "General Information" },
+        "Precautions":            { system: "General Information" },
+        "Tastes (Western)":       { system: "Western Herbalism" },
+        "Six Tissue States":      { system: "Western Herbalism" },
+        "Planetary Ruler":        { system: "Western Herbalism" },
+        "Elemental Ruler":        { system: "Western Herbalism" },
+        "Humors":                 { system: "Western Herbalism" },
+        "Culpepper Uses":         { system: "Western Herbalism" },
+        "Actions (Western)":      { system: "Western Herbalism" },
+        "Affinities":             { system: "Western Herbalism" },
+        "Tastes (Ayurveda)":      { system: "Ayurveda" },
+        "Gunas":                  { system: "Ayurveda" },
+        "Doshas":                 { system: "Ayurveda" },
+        "Dhatus":                 { system: "Ayurveda" },
+        "Tastes (TCM)":           { system: "Traditional Chinese Medicine" },
+        "Entered Channels":       { system: "Traditional Chinese Medicine" },
         "Indicated Constitutions":{ system: "Traditional Chinese Medicine" },
-        "Actions (TCM)":         { system: "Traditional Chinese Medicine" }
+        "Actions (TCM)":          { system: "Traditional Chinese Medicine" }
       },
       pinnedConfigs: { "Precautions": "⚠️" },
       properties: {
@@ -1199,7 +1047,7 @@ const defaultAppData = {
         "Carminative":{ category: "Actions (Western)", desc: "Väderdrivande, dämpar gaser och kramper" },
         "Ushna":      { category: "Gunas", desc: "Värmande metabol kvalitet", opposite: "Sheeta" },
         "Sheeta":     { category: "Gunas", desc: "Kylande metabol kvalitet", opposite: "Ushna" },
-        "Vata -":     { category: "Doshas", desc: "Reducerar Vata (lugnar nervsystem och vind)" },
+        "Vata -":     { category: "Doshas", desc: "Reducerar Vata (lugnar nervsystem)" },
         "Kapha -":    { category: "Doshas", desc: "Reducerar slem och kyla" },
         "Pitta +":    { category: "Doshas", desc: "Ökar inre hetta och eld" },
         "Spleen":     { category: "Entered Channels", desc: "Mjält-meridianen" },
@@ -1248,7 +1096,7 @@ const defaultAppData = {
 };
 
 let appData = defaultAppData;
-const stored = localStorage.getItem("taxonomy_ide_v18_2") || localStorage.getItem("taxonomy_ide_v18_1") || localStorage.getItem("taxonomy_ide_v18");
+const stored = localStorage.getItem("taxonomy_ide_v19") || localStorage.getItem("taxonomy_ide_v18_2");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -1261,10 +1109,7 @@ function currentLib() {
     appData.activeLibId = Object.keys(appData.libraries)[0] || "herbal";
   }
   let lib = appData.libraries[appData.activeLibId];
-  if (!lib) {
-    appData = defaultAppData;
-    lib = appData.libraries[appData.activeLibId];
-  }
+  if (!lib) { appData = defaultAppData; lib = appData.libraries[appData.activeLibId]; }
   if (!lib.trash) lib.trash = [];
   if (!lib.treeOpen) lib.treeOpen = { "objects": true, "taxonomies": true, "formulas": true };
   if (lib.useSystemColors === undefined) lib.useSystemColors = true;
@@ -1280,7 +1125,7 @@ function currentLib() {
 }
 
 function persist() {
-  localStorage.setItem("taxonomy_ide_v18_2", JSON.stringify(appData));
+  localStorage.setItem("taxonomy_ide_v19", JSON.stringify(appData));
 }
 
 function getDisplayObjName(obj) {
@@ -1296,15 +1141,14 @@ function getDisplayFormulaName(name) {
 }
 
 // ==================== TILLSTÅND ====================
-let activeView = "OBJECT";
+let activeView = "OBJECT"; // OBJECT, PROPERTY, FORMULA, TRASH, SEARCH
 let selectedObjId = "ginger";
 let selectedPropName = "Ushna";
-let activeSearchFilters = [];
-let navigatedFromObjectId = null;
-let activeCommentTag = null;
-let activeModalCat = null;
+let activeSearchFilters = []; // { name: string, isGhost: boolean }
+let activeInspectorType = null; // 'CATEGORY', 'TAG', 'FORMULA', 'OBJECT'
+let profileViewMode = "edit"; // 'edit' | 'read'
+let draggedCategoryIndex = null;
 
-// ==================== SIDEBAR TOGGLE (BÅDE DATOR & MOBIL) ====================
 function toggleSidebar(forceState) {
   const isMobile = window.innerWidth <= 820;
   const sb = document.getElementById("sidebar-panel");
@@ -1313,27 +1157,17 @@ function toggleSidebar(forceState) {
 
   if (isMobile) {
     const shouldOpen = forceState !== undefined ? forceState : !sb.classList.contains("open");
-    if (shouldOpen) {
-      sb.classList.add("open");
-      if (bd) bd.style.display = "block";
-    } else {
-      sb.classList.remove("open");
-      if (bd) bd.style.display = "none";
-    }
+    if (shouldOpen) { sb.classList.add("open"); if (bd) bd.style.display = "block"; }
+    else { sb.classList.remove("open"); if (bd) bd.style.display = "none"; }
   } else {
-    // Dator: Fäll ihop eller fäll ut grid-kolumnen
     const shouldCollapse = forceState !== undefined ? !forceState : !ws.classList.contains("sidebar-collapsed");
-    if (shouldCollapse) {
-      ws.classList.add("sidebar-collapsed");
-    } else {
-      ws.classList.remove("sidebar-collapsed");
-    }
+    if (shouldCollapse) ws.classList.add("sidebar-collapsed");
+    else ws.classList.remove("sidebar-collapsed");
   }
 }
 
-function openToolsModal() {
-  document.getElementById("modal-tools").style.display = "flex";
-}
+function openToolsModal() { document.getElementById("modal-tools").style.display = "flex"; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
 function switchTheme(theme) {
   appData.theme = theme;
@@ -1352,7 +1186,7 @@ function setWorkspaceView(viewType) {
   document.getElementById("view-trash").style.display = (viewType === 'TRASH') ? 'flex' : 'none';
   document.getElementById("view-search").style.display = (viewType === 'SEARCH') ? 'flex' : 'none';
 
-  if (viewType !== 'OBJECT') closeInspector();
+  closeInspector();
   if (viewType === 'OBJECT') renderObjectView();
   if (viewType === 'PROPERTY') renderPropertyView();
   if (viewType === 'FORMULA') renderFormulaView();
@@ -1361,373 +1195,294 @@ function setWorkspaceView(viewType) {
   renderTree();
 }
 
-// ==================== 1. FILMENY & QUICK SEARCH ====================
-function handleQuickSearch(query) {
-  const dd = document.getElementById("quick-search-dropdown");
-  dd.innerHTML = "";
-  const q = query.trim().toLowerCase();
-  if (q.length < 1) { dd.style.display = "none"; return; }
+// ==================== INSPECTORS (HÖGER SPALT) ====================
+function openInspector(type, data) {
+  if (profileViewMode === "read" && activeView === "OBJECT") return; // Endast i Edit mode
+  activeInspectorType = type;
+  const panel = document.getElementById("panel-inspector");
+  const cont = document.getElementById("inspector-content");
+  panel.style.display = "flex";
 
-  const lib = currentLib();
-  const hits = [];
+  if (type === "CATEGORY") {
+    // CATEGORY INSPECTOR ENLIGT FRANK
+    const catName = data;
+    const lib = currentLib();
+    const obj = lib.objects.find(o => o.id === selectedObjId);
+    setText("inspector-header-title", `Category: ${catName}`);
 
-  lib.objects.forEach(o => {
-    const dName = getDisplayObjName(o);
-    if (dName.toLowerCase().includes(q)) {
-      hits.push({ name: dName, type: "object", id: o.id, parent: t("treeObjects") });
+    const existingProps = Object.keys(lib.properties).filter(p => lib.properties[p].category === catName);
+
+    let html = `
+      <div style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">
+        Bocka i/av egenskaper för <b>${getDisplayObjName(obj)}</b>. Detta är det enda sättet att ändra taggar.
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px; max-height:260px; overflow-y:auto; padding:4px; border:1px solid var(--border); background:var(--bg-input); border-radius:var(--radius);">
+    `;
+
+    if (existingProps.length === 0) {
+      html += `<i style="color:var(--text-muted); padding:4px;">Inga egenskaper finns i index för denna kategori än.</i>`;
+    } else {
+      existingProps.forEach(pName => {
+        const isChecked = obj && obj.props && obj.props[pName] !== undefined;
+        html += `
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:11px; padding:2px 0;">
+            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="togglePropOnObj('${pName}', this.checked)">
+            <span>${pName}</span>
+          </label>
+        `;
+      });
     }
-  });
+    html += `</div>`;
 
-  Object.entries(lib.properties).forEach(([pName, pData]) => {
-    const synMatch = pData.synonyms && pData.synonyms.some(s => s.toLowerCase().includes(q));
-    if (pName.toLowerCase().includes(q) || synMatch) {
-      const cat = pData.category || "General";
-      const sys = lib.categories[cat]?.system || "System";
-      hits.push({ name: pName, type: "property", id: pName, parent: `${cat}; ${sys}` });
-    }
-  });
+    // LÄGG TILL NY EGENSKAP I INDEX HÄRIFRÅN
+    html += `
+      <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">
+        <label style="font-weight:700; font-size:10px; text-transform:uppercase; color:var(--text-muted);">Skapa & lägg till ny egenskap:</label>
+        <div style="display:flex; gap:4px; margin-top:4px;">
+          <input type="text" id="inspector-new-prop-input" placeholder="Namn på ny egenskap..." style="flex-grow:1;">
+          <button class="primary" onclick="addPropFromCategoryInspector('${catName}')">+</button>
+        </div>
+      </div>
+    `;
 
-  Object.keys(lib.formulas).forEach(fName => {
-    const dName = getDisplayFormulaName(fName);
-    if (dName.toLowerCase().includes(q)) {
-      hits.push({ name: dName, type: "formula", id: fName, parent: t("treeFormulas") });
-    }
-  });
+    cont.innerHTML = html;
+  }
+  else if (type === "TAG") {
+    // TAG INSPECTOR
+    const pName = data;
+    const lib = currentLib();
+    const meta = lib.properties[pName] || { category: "Oregistrerad", desc: "", links: "", sources: "", opposite: "" };
+    setText("inspector-header-title", `Tag: ${pName}`);
 
-  if (hits.length === 0) {
-    dd.innerHTML = `<div style="padding:6px 8px; color:var(--text-muted); font-style:italic;">Inga träffar.</div>`;
-  } else {
-    hits.slice(0, 10).forEach(h => {
-      const item = document.createElement("div");
-      item.className = "search-hit-item";
-      item.innerHTML = `
-        <span><b>${h.name}</b> <span class="search-hit-parent">(${h.parent})</span></span>
-        <span style="font-size:9px; text-transform:uppercase;">${h.type}</span>
+    cont.innerHTML = `
+      <div style="font-size:14px; font-weight:700; margin-bottom:4px;">${pName}</div>
+      <div style="font-size:10px; color:var(--text-muted); margin-bottom:12px;">Kategori: <b>${meta.category}</b></div>
+
+      <div class="form-group">
+        <label>Beskrivning</label>
+        <div style="background:var(--bg-card); padding:6px; border-radius:var(--radius); border:1px solid var(--border); font-size:11px;">
+          ${meta.desc || '<i style="color:var(--text-muted);">Ingen beskrivning.</i>'}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Polaritetsmotsats</label>
+        <div style="background:var(--bg-card); padding:6px; border-radius:var(--radius); border:1px solid var(--border); font-size:11px;">
+          ${meta.opposite ? `<b>[${meta.opposite}]</b>` : '<i style="color:var(--text-muted);">Ingen polaritet</i>'}
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <button class="primary" style="width:100%;" onclick="jumpToFullPropView('${pName}')">Öppna Tag Profile</button>
+      </div>
+    `;
+  }
+  else if (type === "FORMULA") {
+    // FORMULA INSPECTOR ENLIGT FRANK
+    const fName = data;
+    const lib = currentLib();
+    const rows = lib.formulas[fName] || [];
+    setText("inspector-header-title", `Formula Inspector: ${getDisplayFormulaName(fName)}`);
+
+    let html = `
+      <div style="font-size:10px; color:var(--text-muted); margin-bottom:8px;">Komponenter och mängder:</div>
+      <div style="display:flex; flex-direction:column; gap:4px; max-height:220px; overflow-y:auto; margin-bottom:12px;">
+    `;
+
+    rows.forEach((r, idx) => {
+      const o = lib.objects.find(obj => obj.id === r.objId);
+      html += `
+        <div style="background:var(--bg-card); padding:4px 6px; border-radius:var(--radius); border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <span><b>${o ? getDisplayObjName(o) : r.objId}</b> (${r.role})</span>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <button onclick="updateFormulaInspectorQty('${fName}', ${idx}, -1)">-</button>
+            <b>${r.qty}</b>
+            <button onclick="updateFormulaInspectorQty('${fName}', ${idx}, 1)">+</button>
+            <span style="color:var(--danger); cursor:pointer; margin-left:4px;" onclick="deleteFormulaInspectorRow('${fName}', ${idx})">✕</span>
+          </div>
+        </div>
       `;
-      item.onclick = () => {
-        dd.style.display = "none";
-        document.getElementById("quick-search-input").value = "";
-        toggleSidebar(false);
-        if (h.type === "object") {
-          selectedObjId = h.id;
-          lib.treeOpen["objects"] = true;
-          setWorkspaceView("OBJECT");
-        } else if (h.type === "property") {
-          selectedPropName = h.id;
-          lib.treeOpen["taxonomies"] = true;
-          setWorkspaceView("PROPERTY");
-        } else if (h.type === "formula") {
-          lib.activeFormulaName = h.id;
-          lib.treeOpen["formulas"] = true;
-          setWorkspaceView("FORMULA");
-        }
-      };
-      dd.appendChild(item);
     });
+    html += `</div>`;
+
+    html += `
+      <div style="border-top:1px solid var(--border); padding-top:8px;">
+        <button class="primary" style="width:100%;" onclick="jumpToFormulaProfile('${fName}')">Öppna Formula Profile</button>
+      </div>
+    `;
+    cont.innerHTML = html;
   }
-  dd.style.display = "block";
-}
+  else if (type === "OBJECT") {
+    // OBJECT INSPECTOR (FRÅN TAG PROFILE)
+    const pName = selectedPropName;
+    const lib = currentLib();
+    setText("inspector-header-title", `Object Inspector`);
 
-function toggleTreeNode(key) {
-  const lib = currentLib();
-  lib.treeOpen[key] = !lib.treeOpen[key];
-  persist();
-  renderTree();
-}
+    let html = `
+      <div style="font-size:10px; color:var(--text-muted); margin-bottom:8px;">
+        Bocka i örter som bär egenskapen <b>${pName}</b>:
+      </div>
+      <div style="max-height:200px; overflow-y:auto; border:1px solid var(--border); padding:6px; background:var(--bg-input); border-radius:var(--radius); display:flex; flex-direction:column; gap:3px;">
+    `;
 
-function createObjectPrompt(event) {
-  if (event) event.stopPropagation();
-  const name = prompt(t("promptNewObj"));
-  if (!name || name.trim() === "") return;
-  const lib = currentLib();
-  const newId = "obj_" + Date.now();
-  lib.objects.push({ id: newId, name: name.trim(), defaultRole: "Komponent", props: {} });
-  selectedObjId = newId;
-  persist();
-  toggleSidebar(false);
-  setWorkspaceView("OBJECT");
-  renderTree();
-}
+    lib.objects.forEach(o => {
+      const isChecked = o.props && o.props[pName] !== undefined;
+      html += `
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleTagOnObject('${o.id}', '${pName}', this.checked)">
+          <span>${getDisplayObjName(o)}</span>
+        </label>
+      `;
+    });
+    html += `</div>`;
 
-function createSystemPrompt(event) {
-  if (event) event.stopPropagation();
-  const name = prompt(t("promptNewSys"));
-  if (!name || name.trim() === "") return;
-  const lib = currentLib();
-  if (!lib.systems) lib.systems = {};
-  const cleanName = name.trim();
-  if (!lib.systems[cleanName]) {
-    lib.systems[cleanName] = { categories: [] };
-    persist();
-    renderTree();
-  }
-}
-
-function renameSystemPrompt(oldSysName, event) {
-  if (event) event.stopPropagation();
-  const lib = currentLib();
-  const newName = prompt(t("promptRenameSys", oldSysName), oldSysName);
-  if (!newName || newName.trim() === "" || newName.trim() === oldSysName) return;
-  const cleanNew = newName.trim();
-
-  if (lib.systems[cleanNew]) {
-    alert("Ett system med det namnet finns redan.");
-    return;
-  }
-
-  lib.systems[cleanNew] = lib.systems[oldSysName] || { categories: [] };
-  delete lib.systems[oldSysName];
-
-  Object.keys(lib.categories).forEach(cName => {
-    if (lib.categories[cName].system === oldSysName) {
-      lib.categories[cName].system = cleanNew;
-    }
-  });
-
-  if (lib.treeOpen["sys_" + oldSysName] !== undefined) {
-    lib.treeOpen["sys_" + cleanNew] = lib.treeOpen["sys_" + oldSysName];
-    delete lib.treeOpen["sys_" + oldSysName];
-  }
-
-  persist();
-  renderTree();
-  if (activeView === 'OBJECT') renderObjectView();
-}
-
-function createCategoryPrompt(sysNameVal, event) {
-  if (event) event.stopPropagation();
-  const name = prompt(t("promptNewCat", sysNameVal));
-  if (!name || name.trim() === "") return;
-  const lib = currentLib();
-  const catName = name.trim();
-  if (!lib.categories[catName]) {
-    lib.categories[catName] = { system: sysNameVal };
-    if (!lib.categoryOrder.includes(catName)) lib.categoryOrder.push(catName);
-    if (!lib.systems[sysNameVal]) lib.systems[sysNameVal] = { categories: [] };
-    if (!lib.systems[sysNameVal].categories.includes(catName)) lib.systems[sysNameVal].categories.push(catName);
-    persist();
-    renderTree();
-    if (activeView === 'OBJECT') renderObjectView();
+    // BATCH ADD NEW OBJECTS WITH STRICT COMMA
+    html += `
+      <div style="margin-top:12px; border-top:1px solid var(--border); padding-top:8px;">
+        <label style="font-weight:700; font-size:10px; text-transform:uppercase;">Skapa nya örter (kommaseparerat):</label>
+        <textarea id="obj-inspector-batch-input" rows="3" placeholder="Gran, Tall, Björk, Al, Bok" style="width:100%; margin-top:4px;"></textarea>
+        <button class="primary" style="width:100%; margin-top:6px;" onclick="confirmObjectInspectorBatchAdd('${pName}')">Skapa & Tilldela</button>
+      </div>
+    `;
+    cont.innerHTML = html;
   }
 }
 
-function createPropertyPrompt(catName, event) {
-  if (event) event.stopPropagation();
-  const name = prompt(t("promptNewProp", catName));
-  if (!name || name.trim() === "") return;
-  const lib = currentLib();
-  const propName = name.trim();
-  if (!lib.properties[propName]) {
-    lib.properties[propName] = {
-      category: catName,
-      synonyms: [],
-      desc: "",
-      links: "",
-      sources: "",
-      opposite: ""
-    };
-    selectedPropName = propName;
-    persist();
-    toggleSidebar(false);
-    setWorkspaceView("PROPERTY");
-    renderTree();
-  }
+function closeInspector() {
+  document.getElementById("panel-inspector").style.display = "none";
+  activeInspectorType = null;
 }
 
-function promptCreateFormula(event) {
-  if (event) event.stopPropagation();
-  const name = prompt(t("promptNewFormulaName"));
-  if (!name || name.trim() === "") return;
-  const lib = currentLib();
-  lib.formulas[name.trim()] = [];
-  lib.activeFormulaName = name.trim();
-  persist();
-  toggleSidebar(false);
+function jumpToFullPropView(pName) {
+  selectedPropName = pName;
+  closeInspector();
+  setWorkspaceView("PROPERTY");
+}
+
+function jumpToFormulaProfile(fName) {
+  currentLib().activeFormulaName = fName;
+  closeInspector();
   setWorkspaceView("FORMULA");
-  renderTree();
 }
 
-function renderTree() {
+// BOCKA I/UR EGENSKAP I KATEGORI-INSPECTOR
+function togglePropOnObj(pName, isChecked) {
   const lib = currentLib();
-  const root = document.getElementById("tree-root");
-  if (!root) return;
-  root.innerHTML = "";
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (!obj) return;
+  if (!obj.props) obj.props = {};
 
-  // 1. OBJECT INDEX
-  const isObjOpen = !!lib.treeOpen["objects"];
-  const objFolder = document.createElement("div");
-  objFolder.innerHTML = `
-    <div class="tree-node ${activeView === 'OBJECT' ? 'active' : ''}" onclick="toggleTreeNode('objects')">
-      <span class="tree-toggle">${isObjOpen ? '▼' : '▶'}</span>
-      <span>${t("treeObjects")}</span>
-      <span class="tree-badge">${lib.objects.length}</span>
-      <button class="tree-action-btn" onclick="createObjectPrompt(event)" title="Ny ört">+</button>
-    </div>
-  `;
-  root.appendChild(objFolder);
-
-  if (isObjOpen) {
-    const wrap = document.createElement("div");
-    wrap.className = "tree-children";
-
-    lib.objects.forEach(obj => {
-      const leaf = document.createElement("div");
-      leaf.className = `tree-node ${activeView === 'OBJECT' && selectedObjId === obj.id ? 'active' : ''}`;
-      leaf.innerHTML = `<span>📄</span> <span>${getDisplayObjName(obj)}</span>`;
-      leaf.onclick = (e) => {
-        e.stopPropagation();
-        selectedObjId = obj.id;
-        toggleSidebar(false);
-        setWorkspaceView("OBJECT");
-      };
-      wrap.appendChild(leaf);
-    });
-    root.appendChild(wrap);
+  if (isChecked) {
+    obj.props[pName] = { comment: "" };
+  } else {
+    delete obj.props[pName];
   }
+  persist();
+  renderObjectView();
+}
 
-  // 2. TAG INDEX
-  const isTaxOpen = !!lib.treeOpen["taxonomies"];
-  const taxFolder = document.createElement("div");
-  taxFolder.innerHTML = `
-    <div class="tree-node ${activeView === 'PROPERTY' ? 'active' : ''}" onclick="toggleTreeNode('taxonomies')">
-      <span class="tree-toggle">${isTaxOpen ? '▼' : '▶'}</span>
-      <span>${t("treeIndex")}</span>
-      <span class="tree-badge">${Object.keys(lib.properties).length}</span>
-      <button class="tree-action-btn" onclick="createSystemPrompt(event)" title="Nytt system">+</button>
-    </div>
-  `;
-  root.appendChild(taxFolder);
+function addPropFromCategoryInspector(catName) {
+  const inp = document.getElementById("inspector-new-prop-input");
+  const val = inp ? inp.value.trim() : "";
+  if (!val) return;
+  const lib = currentLib();
+  if (!lib.properties[val]) {
+    lib.properties[val] = { category: catName, synonyms: [], desc: "", links: "", sources: "", opposite: "" };
+  }
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (obj) {
+    if (!obj.props) obj.props = {};
+    obj.props[val] = { comment: "" };
+  }
+  persist();
+  renderObjectView();
+  renderTree();
+  openInspector("CATEGORY", catName);
+}
 
-  if (isTaxOpen) {
-    const taxWrap = document.createElement("div");
-    taxWrap.className = "tree-children";
+// ==================== 2. OBJEKTPROFIL: READ MODE VS EDIT MODE ====================
+function toggleProfileViewMode() {
+  profileViewMode = (profileViewMode === "edit") ? "read" : "edit";
+  const btn = document.getElementById("btn-toggle-view-mode");
+  const editCont = document.getElementById("obj-categories-container");
+  const docCont = document.getElementById("obj-document-container");
+  const editControls = document.getElementById("obj-edit-controls");
 
-    Object.entries(lib.systems).forEach(([sysNameVal, sysData]) => {
-      const sysKey = "sys_" + sysNameVal;
-      const isSysOpen = !!lib.treeOpen[sysKey];
-      const sysDiv = document.createElement("div");
-      sysDiv.className = "tree-node";
-      sysDiv.innerHTML = `
-        <span class="tree-toggle">${isSysOpen ? '▼' : '▶'}</span>
-        <span>🗂</span> <b>${sysNameVal}</b>
-        <span style="margin-left:auto; display:flex; gap:2px;">
-          <button class="tree-action-btn" onclick="createCategoryPrompt('${sysNameVal}', event)" title="Ny kategori">+</button>
-          <button class="tree-action-btn" onclick="renameSystemPrompt('${sysNameVal}', event)" title="Döp om system">✏</button>
-        </span>
+  if (profileViewMode === "read") {
+    btn.innerText = "✏ Redigeringsläge";
+    editCont.style.display = "none";
+    editControls.style.display = "none";
+    docCont.style.display = "block";
+    closeInspector();
+    renderDocumentReadView();
+  } else {
+    btn.innerText = "📄 Dokumentläge";
+    editCont.style.display = "flex";
+    editControls.style.display = "flex";
+    docCont.style.display = "none";
+    renderObjectView();
+  }
+}
+
+function renderDocumentReadView() {
+  const lib = currentLib();
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (!obj) return;
+
+  const docCont = document.getElementById("obj-document-container");
+  let html = `<h1>${getDisplayObjName(obj)}</h1>`;
+
+  const cats = lib.categoryOrder || Object.keys(lib.categories || {});
+  cats.forEach(cat => {
+    let assigned = [];
+    if (obj.props) {
+      Object.keys(obj.props).forEach(pName => {
+        if (lib.properties[pName]?.category === cat) {
+          const c = obj.props[pName]?.comment;
+          assigned.push(c ? `${pName} (${c})` : pName);
+        }
+      });
+    }
+
+    if (assigned.length > 0) {
+      html += `
+        <div class="document-read-section">
+          <strong>${cat}:</strong> ${assigned.join(", ")}.
+        </div>
       `;
-      sysDiv.onclick = () => toggleTreeNode(sysKey);
-      taxWrap.appendChild(sysDiv);
+    }
+  });
 
-      if (isSysOpen) {
-        const sysChildren = document.createElement("div");
-        sysChildren.className = "tree-children";
-
-        (sysData.categories || []).forEach(cName => {
-          const catKey = "cat_" + cName;
-          const isCatOpen = !!lib.treeOpen[catKey];
-          const catDiv = document.createElement("div");
-          catDiv.className = "tree-node";
-          catDiv.innerHTML = `
-            <span class="tree-toggle">${isCatOpen ? '▼' : '▶'}</span>
-            <span>📂</span> <span>${cName}</span>
-            <span style="margin-left:auto; display:flex; gap:2px;">
-              <button class="tree-action-btn" onclick="createPropertyPrompt('${cName}', event)" title="Ny egenskap">+</button>
-            </span>
-          `;
-          catDiv.onclick = (e) => { e.stopPropagation(); toggleTreeNode(catKey); };
-          sysChildren.appendChild(catDiv);
-
-          if (isCatOpen) {
-            const propWrap = document.createElement("div");
-            propWrap.className = "tree-children";
-
-            Object.entries(lib.properties)
-              .filter(([_, p]) => p.category === cName)
-              .forEach(([pName]) => {
-                const pLeaf = document.createElement("div");
-                pLeaf.className = `tree-node ${activeView === 'PROPERTY' && selectedPropName === pName ? 'active' : ''}`;
-                pLeaf.innerHTML = `<span>🏷</span> <span>${pName}</span>`;
-                pLeaf.onclick = (e) => {
-                  e.stopPropagation();
-                  selectedPropName = pName;
-                  toggleSidebar(false);
-                  setWorkspaceView("PROPERTY");
-                };
-                propWrap.appendChild(pLeaf);
-              });
-
-            sysChildren.appendChild(propWrap);
-          }
-        });
-        taxWrap.appendChild(sysChildren);
-      }
-    });
-    root.appendChild(taxWrap);
-  }
-
-  // 3. FORMLER
-  const isFormOpen = !!lib.treeOpen["formulas"];
-  const formFolder = document.createElement("div");
-  formFolder.innerHTML = `
-    <div class="tree-node ${activeView === 'FORMULA' ? 'active' : ''}" onclick="toggleTreeNode('formulas')">
-      <span class="tree-toggle">${isFormOpen ? '▼' : '▶'}</span>
-      <span>${t("treeFormulas")}</span>
-      <span class="tree-badge">${Object.keys(lib.formulas).length}</span>
-      <button class="tree-action-btn" onclick="promptCreateFormula(event)" title="Ny formel">+</button>
-    </div>
-  `;
-  root.appendChild(formFolder);
-
-  if (isFormOpen) {
-    const fWrap = document.createElement("div");
-    fWrap.className = "tree-children";
-
-    Object.keys(lib.formulas).forEach(fName => {
-      const fLeaf = document.createElement("div");
-      fLeaf.className = `tree-node ${activeView === 'FORMULA' && lib.activeFormulaName === fName ? 'active' : ''}`;
-      fLeaf.innerHTML = `<span>📜</span> <span>${getDisplayFormulaName(fName)}</span>`;
-      fLeaf.onclick = (e) => {
-        e.stopPropagation();
-        lib.activeFormulaName = fName;
-        toggleSidebar(false);
-        setWorkspaceView("FORMULA");
-      };
-      fWrap.appendChild(fLeaf);
-    });
-    root.appendChild(fWrap);
-  }
-
-  // 4. TRASH BIN
-  const trashCount = lib.trash.length;
-  const trashNode = document.createElement("div");
-  trashNode.innerHTML = `
-    <div class="tree-node ${activeView === 'TRASH' ? 'active' : ''}" style="margin-top:8px; color:${trashCount > 0 ? 'var(--danger)' : 'inherit'};" onclick="setWorkspaceView('TRASH'); toggleSidebar(false);">
-      <span>🗑</span> <b>${t("lblTrashTitle")}</b>
-      <span class="tree-badge">${trashCount}</span>
-    </div>
-  `;
-  root.appendChild(trashNode);
+  docCont.innerHTML = html;
 }
 
-// ==================== 2. OBJEKTPROFIL ====================
-function toggleHideUntagged(isChecked) {
-  currentLib().hideUntagged = isChecked;
-  persist();
-  renderObjectView();
+// TABLE OF CONTENTS (HOPPA TILL KATEGORI)
+function updateTableOfContents() {
+  const lib = currentLib();
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  const sel = document.getElementById("sel-toc");
+  if (!sel) return;
+  sel.innerHTML = `<option value="">📑 Hoppa till kategori...</option>`;
+
+  const cats = lib.categoryOrder || Object.keys(lib.categories || {});
+  cats.forEach(cat => {
+    let count = 0;
+    if (obj && obj.props) {
+      Object.keys(obj.props).forEach(p => {
+        if (lib.properties[p]?.category === cat) count++;
+      });
+    }
+    sel.innerHTML += `<option value="cat-row-${cat}">${cat} (${count})</option>`;
+  });
 }
 
-function toggleSystemColors(isChecked) {
-  currentLib().useSystemColors = isChecked;
-  persist();
-  renderObjectView();
+function jumpToCategory(elementId) {
+  if (!elementId) return;
+  const el = document.getElementById(elementId);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-function toggleShowComments(isChecked) {
-  currentLib().showComments = isChecked;
-  persist();
-  renderObjectView();
-}
-
+// RENDERA OBJEKTPROFIL I EDIT MODE
 function renderObjectView() {
   const lib = currentLib();
   const obj = lib.objects.find(o => o.id === selectedObjId) || lib.objects[0];
@@ -1735,23 +1490,33 @@ function renderObjectView() {
   selectedObjId = obj.id;
 
   setText("obj-title-name", getDisplayObjName(obj));
-  
-  const chkHide = document.getElementById("chk-hide-untagged");
-  if (chkHide) chkHide.checked = !!lib.hideUntagged;
-  const chkSys = document.getElementById("chk-system-colors");
-  if (chkSys) chkSys.checked = !!lib.useSystemColors;
-  const chkComm = document.getElementById("chk-show-comments");
-  if (chkComm) chkComm.checked = !!lib.showComments;
+  updateTableOfContents();
 
+  // 1. Rendera formelchips överst
+  const formCont = document.getElementById("obj-formula-membership-container");
+  const memberFormulas = Object.keys(lib.formulas).filter(fName => 
+    lib.formulas[fName].some(row => row.objId === obj.id)
+  );
+
+  if (memberFormulas.length === 0) {
+    formCont.innerHTML = `<span style="color:var(--text-muted); font-size:10px; font-style:italic;">Ingår inte i några formler än.</span>`;
+  } else {
+    formCont.innerHTML = `<span style="font-weight:700; font-size:10px; color:var(--text-muted); text-transform:uppercase;">Ingår i formler:</span>` +
+      memberFormulas.map(f => `
+        <span class="formula-chip-link" onclick="openInspector('FORMULA', '${f}')">⚗ ${getDisplayFormulaName(f)}</span>
+      `).join("");
+  }
+
+  // 2. Rendera kategorirader
   const cont = document.getElementById("obj-categories-container");
   if (!cont) return;
   cont.innerHTML = "";
 
   const currentTheme = appData.theme || "ide";
   const accents = systemThemeAccents[currentTheme] || systemThemeAccents.ide;
-
   const cats = lib.categoryOrder || Object.keys(lib.categories || {});
-  cats.forEach(cat => {
+
+  cats.forEach((cat, idx) => {
     let assigned = [];
     if (obj.props) {
       Object.keys(obj.props).forEach(pName => {
@@ -1761,159 +1526,118 @@ function renderObjectView() {
       });
     }
 
-    if (lib.hideUntagged && assigned.length === 0) {
-      return;
-    }
+    if (lib.hideUntagged && assigned.length === 0) return;
 
     const sysNameVal = lib.categories[cat]?.system || "Generellt";
-    const row = document.createElement("div");
-    row.className = "inline-category-row";
+    const box = document.createElement("div");
+    box.className = "cat-row-box";
+    box.id = `cat-row-${cat}`;
+    box.draggable = true;
 
     if (lib.useSystemColors) {
       const accent = accents[sysNameVal] || accents["Generellt"];
-      row.style.borderLeftColor = accent;
+      box.style.borderLeftColor = accent;
     }
+
+    // Drag-and-drop events
+    box.ondragstart = (e) => { draggedCategoryIndex = idx; box.classList.add("dragging"); };
+    box.ondragend = (e) => { box.classList.remove("dragging"); };
+    box.ondragover = (e) => { e.preventDefault(); };
+    box.ondrop = (e) => {
+      e.preventDefault();
+      if (draggedCategoryIndex !== null && draggedCategoryIndex !== idx) {
+        const item = lib.categoryOrder.splice(draggedCategoryIndex, 1)[0];
+        lib.categoryOrder.splice(idx, 0, item);
+        persist();
+        renderObjectView();
+      }
+    };
 
     let tagsHtml = "";
     if (assigned.length === 0) {
-      tagsHtml = `<span class="empty-row-placeholder" onclick="openCatAddModal('${cat}')">${t("noPropsInCat")}</span>`;
+      tagsHtml = `<span style="color:var(--text-muted); font-style:italic; cursor:pointer;" onclick="openInspector('CATEGORY', '${cat}')">[+ Inga egenskaper tilldelade. Klicka för att bocka i]</span>`;
     } else {
       tagsHtml = assigned.map(item => {
         const commentDisplay = (lib.showComments && item.comment) ? `<span class="tag-comment-text">(${item.comment})</span>` : '';
         return `
-          <span class="tag-badge" onclick="inspectTagInRightPanel('${item.name}')">
+          <span class="tag-badge" onclick="openInspector('TAG', '${item.name}')">
             <span>${item.name}</span>${commentDisplay}
             <span style="color:var(--accent-active); font-size:9px; margin-left:3px;" onclick="openCommentModal('${item.name}', event)" title="Redigera kommentar">💬</span>
-            <span style="color:var(--danger); font-size:9px; margin-left:2px;" onclick="trashPropFromObj('${item.name}', event)" title="Ta bort">✕</span>
           </span>
         `;
       }).join("");
     }
 
-    row.innerHTML = `
-      <div class="inline-cat-label">
-        <span>${cat}</span>
-        <span class="inline-cat-system">${sysNameVal}</span>
+    // 2-raders struktur: Rad 1 = Kategori & System | Rad 2 = Taggar
+    box.innerHTML = `
+      <div class="cat-row-line-1">
+        <span class="cat-row-title" onclick="openInspector('CATEGORY', '${cat}')" title="Klicka för Category Inspector">
+          <span class="drag-handle" title="Håll och dra för att flytta ordning">⠿</span>
+          ${cat}
+        </span>
+        <span class="cat-row-system">${sysNameVal}</span>
       </div>
-      <div class="inline-tag-list">
+      <div class="cat-row-line-2">
         ${tagsHtml}
-        <button class="btn-row-add" onclick="openCatAddModal('${cat}')" title="Lägg till flera egenskaper">[+]</button>
       </div>
     `;
-    cont.appendChild(row);
+    cont.appendChild(box);
   });
 }
 
-function openCatAddModal(catName) {
-  activeModalCat = catName;
-  setText("modal-cat-name-display", catName);
-  const inp = document.getElementById("modal-cat-tags-input");
-  if (inp) { inp.value = ""; }
-  document.getElementById("modal-add-to-cat").style.display = "flex";
-  if (inp) inp.focus();
-}
+function toggleHideUntagged(chk) { currentLib().hideUntagged = chk; persist(); renderObjectView(); }
+function toggleSystemColors(chk) { currentLib().useSystemColors = chk; persist(); renderObjectView(); }
+function toggleShowComments(chk) { currentLib().showComments = chk; persist(); renderObjectView(); }
 
-function confirmBatchCatAdd() {
+// ==================== 3. LÄGG TILL KATEGORI DIREKT ====================
+function openAddCategoryModal() {
   const lib = currentLib();
-  const obj = lib.objects.find(o => o.id === selectedObjId);
-  if (!obj || !activeModalCat) return;
+  const list = document.getElementById("modal-existing-cats-list");
+  list.innerHTML = "";
+  const profileCats = lib.categoryOrder || [];
 
-  const raw = document.getElementById("modal-cat-tags-input").value.trim();
-  if (raw) {
-    const terms = raw.split(",").map(s => s.trim()).filter(Boolean);
-    terms.forEach(term => {
-      let resolved = term;
-      if (!lib.properties[resolved]) {
-        for (const [p, m] of Object.entries(lib.properties)) {
-          if (m.synonyms && m.synonyms.some(s => s.toLowerCase() === term.toLowerCase())) {
-            resolved = p;
-            break;
-          }
-        }
-      }
-      if (!lib.properties[resolved]) {
-        lib.properties[resolved] = {
-          category: activeModalCat,
-          synonyms: [],
-          desc: "",
-          links: "",
-          sources: "",
-          opposite: ""
-        };
-      }
-      if (!obj.props) obj.props = {};
-      obj.props[resolved] = { comment: "" };
+  const unadded = Object.keys(lib.categories).filter(c => !profileCats.includes(c));
+  if (unadded.length === 0) {
+    list.innerHTML = `<i style="color:var(--text-muted);">Alla kategorier från index finns redan i profilen.</i>`;
+  } else {
+    unadded.forEach(c => {
+      list.innerHTML += `
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="checkbox" value="${c}" class="chk-add-cat-exist">
+          <span>${c} (${lib.categories[c].system})</span>
+        </label>
+      `;
     });
-    persist();
   }
 
-  closeModal('modal-add-to-cat');
+  const sysSel = document.getElementById("modal-new-cat-sys");
+  sysSel.innerHTML = Object.keys(lib.systems).map(s => `<option value="${s}">${s}</option>`).join("");
+  document.getElementById("modal-new-cat-name").value = "";
+  document.getElementById("modal-add-category").style.display = "flex";
+}
+
+function confirmAddCategoryToProfile() {
+  const lib = currentLib();
+  const checked = Array.from(document.querySelectorAll('.chk-add-cat-exist:checked')).map(cb => cb.value);
+  checked.forEach(c => { if (!lib.categoryOrder.includes(c)) lib.categoryOrder.push(c); });
+
+  const newName = document.getElementById("modal-new-cat-name").value.trim();
+  const newSys = document.getElementById("modal-new-cat-sys").value;
+  if (newName !== "") {
+    if (!lib.categories[newName]) {
+      lib.categories[newName] = { system: newSys };
+      if (!lib.systems[newSys].categories.includes(newName)) lib.systems[newSys].categories.push(newName);
+    }
+    if (!lib.categoryOrder.includes(newName)) lib.categoryOrder.push(newName); // Läggs underst
+  }
+
+  persist();
+  closeModal('modal-add-category');
   renderObjectView();
   renderTree();
 }
 
-// ==================== 3. HÖGER INSPECTOR ====================
-function inspectTagInRightPanel(pName) {
-  const lib = currentLib();
-  const meta = lib.properties[pName];
-  if (!meta) return;
-
-  const panel = document.getElementById("panel-inspector");
-  const cont = document.getElementById("inspector-content");
-  panel.style.display = "flex";
-
-  const cat = meta.category || "Generellt";
-  const sys = lib.categories[cat]?.system || "Generellt";
-
-  cont.innerHTML = `
-    <div style="font-size:14px; font-weight:700; margin-bottom:4px;">${pName}</div>
-    <div style="font-size:10px; color:var(--text-muted); margin-bottom:12px;">${t("categoryText")}: <b>${cat}</b> • System: <b>${sys}</b></div>
-    
-    <div class="form-group">
-      <label>${t("lblPropDesc")}</label>
-      <div style="background:var(--bg-card); padding:6px; border-radius:var(--radius); border:1px solid var(--border); font-size:11px;">
-        ${meta.desc || '<i style="color:var(--text-muted);">Ingen beskrivning.</i>'}
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>${t("lblPropLinks")}</label>
-      <div style="background:var(--bg-card); padding:6px; border-radius:var(--radius); border:1px solid var(--border); font-size:11px;">
-        ${meta.links ? `<a href="${meta.links}" target="_blank" style="color:var(--accent);">${meta.links}</a>` : '<i style="color:var(--text-muted);">Inga länkar.</i>'}
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>${t("lblPropSources")}</label>
-      <div style="background:var(--bg-card); padding:6px; border-radius:var(--radius); border:1px solid var(--border); font-size:11px;">
-        ${meta.sources || '<i style="color:var(--text-muted);">Inga källor.</i>'}
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>${t("lblPropOpp")}</label>
-      <div style="background:var(--bg-card); padding:6px; border-radius:var(--radius); border:1px solid var(--border); font-size:11px;">
-        ${meta.opposite ? `<b>[${meta.opposite}]</b>` : `<i style="color:var(--text-muted);">${t("noPolarity")}</i>`}
-      </div>
-    </div>
-
-    <div style="margin-top:16px;">
-      <button class="primary" style="width:100%;" onclick="jumpToFullPropView('${pName}')">${t("btnSaveProp")}</button>
-    </div>
-  `;
-}
-
-function closeInspector() {
-  document.getElementById("panel-inspector").style.display = "none";
-}
-
-function jumpToFullPropView(pName) {
-  selectedPropName = pName;
-  closeInspector();
-  setWorkspaceView("PROPERTY");
-}
-
-// ==================== 4. EGENSKAPSVY (FULLVY) ====================
+// ==================== 4. TAG PROFILE & OBJECT INSPECTOR ====================
 function renderPropertyView() {
   const lib = currentLib();
   const meta = lib.properties[selectedPropName];
@@ -1922,6 +1646,7 @@ function renderPropertyView() {
   setText("prop-title-name", selectedPropName);
   document.getElementById("prop-edit-name").value = selectedPropName;
   document.getElementById("prop-edit-desc").value = meta.desc || "";
+  document.getElementById("prop-edit-synonyms").value = (meta.synonyms || []).join(", ");
   document.getElementById("prop-edit-links").value = meta.links || "";
   document.getElementById("prop-edit-sources").value = meta.sources || "";
 
@@ -1931,42 +1656,73 @@ function renderPropertyView() {
   ).join("");
 
   const oppSel = document.getElementById("prop-edit-opposite");
-  oppSel.innerHTML = `<option value="">${t("noPolarity")}</option>` + 
+  oppSel.innerHTML = `<option value="">-- Ingen polaritet --</option>` + 
     Object.keys(lib.properties).filter(p => p !== selectedPropName).map(p => 
       `<option value="${p}" ${p === meta.opposite ? 'selected' : ''}>${p}</option>`
     ).join("");
 
-  const featCont = document.getElementById("prop-featured-objs-list");
+  // Förekommer i örter som chips längst ner i bokstavsordning
+  const featCont = document.getElementById("prop-featured-objs-chips");
   featCont.innerHTML = "";
-  const matchingObjs = lib.objects.filter(o => o.props && o.props[selectedPropName] !== undefined);
+  const matchingObjs = lib.objects
+    .filter(o => o.props && o.props[selectedPropName] !== undefined)
+    .sort((a, b) => getDisplayObjName(a).localeCompare(getDisplayObjName(b)));
 
   if (matchingObjs.length === 0) {
-    featCont.innerHTML = `<div style="color:var(--text-muted); font-style:italic; padding:6px;">${t("noFeaturedObjs")}</div>`;
+    featCont.innerHTML = `<i style="color:var(--text-muted); font-size:11px;">Inga örter bär denna egenskap ännu.</i>`;
   } else {
     matchingObjs.forEach(o => {
-      const row = document.createElement("div");
-      row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:4px 6px; border-bottom:1px solid var(--border);";
-      row.innerHTML = `
-        <span style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="jumpToObj('${o.id}')">${getDisplayObjName(o)}</span>
-        <button style="font-size:9px;" onclick="disconnectPropFromSpecificObj('${o.id}')">${t("disconnectBtn")}</button>
+      featCont.innerHTML += `
+        <span class="tag-badge" onclick="jumpToObj('${o.id}')">
+          <span>🌿 ${getDisplayObjName(o)}</span>
+        </span>
       `;
-      featCont.appendChild(row);
     });
   }
 }
 
-function jumpToObj(objId) {
-  selectedObjId = objId;
-  setWorkspaceView("OBJECT");
+function openObjectInspector() {
+  openInspector("OBJECT", selectedPropName);
 }
 
-function disconnectPropFromSpecificObj(objId) {
+function toggleTagOnObject(objId, propName, isChecked) {
   const lib = currentLib();
   const obj = lib.objects.find(o => o.id === objId);
-  if (!obj || !obj.props) return;
-  delete obj.props[selectedPropName];
+  if (!obj) return;
+  if (!obj.props) obj.props = {};
+  if (isChecked) obj.props[propName] = { comment: "" };
+  else delete obj.props[propName];
   persist();
   renderPropertyView();
+}
+
+function confirmObjectInspectorBatchAdd(propName) {
+  const raw = document.getElementById("obj-inspector-batch-input").value.trim();
+  if (!raw) return;
+  // Strikt format: endast bokstäver, siffror och kommatecken
+  const parts = raw.split(",").map(s => s.trim().replace(/[^a-zA-Z0-9åäöÅÄÖéÉüÜ -]/g, "")).filter(Boolean);
+  const lib = currentLib();
+
+  parts.forEach(name => {
+    let existing = lib.objects.find(o => o.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      if (!existing.props) existing.props = {};
+      existing.props[propName] = { comment: "" };
+    } else {
+      const newId = "obj_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
+      lib.objects.push({
+        id: newId,
+        name: name,
+        defaultRole: "Komponent",
+        props: { [propName]: { comment: "" } }
+      });
+    }
+  });
+
+  persist();
+  renderPropertyView();
+  renderTree();
+  openInspector("OBJECT", propName);
 }
 
 function saveActiveProperty() {
@@ -1974,6 +1730,7 @@ function saveActiveProperty() {
   const newName = document.getElementById("prop-edit-name").value.trim();
   const cat = document.getElementById("prop-edit-cat").value;
   const desc = document.getElementById("prop-edit-desc").value;
+  const rawSyn = document.getElementById("prop-edit-synonyms").value.trim();
   const links = document.getElementById("prop-edit-links").value;
   const sources = document.getElementById("prop-edit-sources").value;
   const opp = document.getElementById("prop-edit-opposite").value;
@@ -1982,6 +1739,7 @@ function saveActiveProperty() {
   const data = lib.properties[old];
   data.category = cat;
   data.desc = desc;
+  data.synonyms = rawSyn ? rawSyn.split(",").map(s => s.trim()).filter(Boolean) : [];
   data.links = links;
   data.sources = sources;
   data.opposite = opp;
@@ -1998,49 +1756,14 @@ function saveActiveProperty() {
   persist();
   renderPropertyView();
   renderTree();
-  alert(t("metaSavedAlert"));
+  alert("Metadata och synonymer sparade!");
 }
 
-// ==================== 5. FORMELMOTOR ====================
-function promptRenameFormula() {
-  const lib = currentLib();
-  const oldName = lib.activeFormulaName;
-  const newName = prompt(t("promptRenameFormula"), oldName);
-  if (!newName || newName.trim() === "" || newName === oldName) return;
-  lib.formulas[newName.trim()] = lib.formulas[oldName];
-  delete lib.formulas[oldName];
-  lib.activeFormulaName = newName.trim();
-  persist();
-  renderFormulaView();
-  renderTree();
-}
-
-function promptDeleteFormula() {
-  const lib = currentLib();
-  const fNames = Object.keys(lib.formulas);
-  if (fNames.length <= 1) return;
-  if (confirm(t("confirmDeleteFormula", lib.activeFormulaName))) {
-    delete lib.formulas[lib.activeFormulaName];
-    lib.activeFormulaName = Object.keys(lib.formulas)[0];
-    persist();
-    renderFormulaView();
-    renderTree();
-  }
-}
-
+// ==================== 5. FORMELMODUL & GHOST KOMPONENTER ====================
 function renderFormulaView() {
   const lib = currentLib();
   const fName = lib.activeFormulaName || Object.keys(lib.formulas)[0];
   setText("formula-header-name", getDisplayFormulaName(fName));
-
-  const backBtn = document.getElementById("btn-formula-back");
-  if (navigatedFromObjectId) {
-    const originObj = lib.objects.find(o => o.id === navigatedFromObjectId);
-    backBtn.innerText = `⬅ ${t("btnBackPrefix")}${originObj ? getDisplayObjName(originObj) : 'ört'}`;
-    backBtn.style.display = "inline-flex";
-  } else {
-    backBtn.style.display = "none";
-  }
 
   const rows = lib.formulas[fName] || [];
   const tbody = document.getElementById("formula-table-body");
@@ -2050,16 +1773,26 @@ function renderFormulaView() {
   rows.forEach((row, i) => {
     const tr = document.createElement("tr");
     const share = total > 0 ? Math.round((row.qty / total) * 100) : 0;
-    const opts = lib.objects.map(o => `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${getDisplayObjName(o)}</option>`).join("");
+    const isGhost = !lib.objects.some(o => o.id === row.objId);
+
+    let compCell = "";
+    if (isGhost) {
+      compCell = `<b style="color:var(--accent-active); cursor:pointer;" onclick="openGhostComponentInspector('${row.objId}')">⚠️ ${row.objId} (Spöke - klicka här)</b>`;
+    } else {
+      const opts = lib.objects.map(o => `<option value="${o.id}" ${o.id === row.objId ? 'selected' : ''}>${getDisplayObjName(o)}</option>`).join("");
+      compCell = `<select onchange="updateFormulaRow(${i}, 'objId', this.value)">${opts}</select>`;
+    }
 
     tr.innerHTML = `
       <td>${i+1}</td>
-      <td><select onchange="updateFormulaRow(${i}, 'objId', this.value)">${opts}</select></td>
+      <td>${compCell}</td>
       <td><input type="text" value="${row.role}" onchange="updateFormulaRow(${i}, 'role', this.value)"></td>
       <td>
-        <button onclick="updateQty(${i}, -1)">-</button>
-        <b>${row.qty}</b>
-        <button onclick="updateQty(${i}, 1)">+</button>
+        ${isGhost ? `<span style="color:var(--text-muted); font-size:10px;">Låst</span>` : `
+          <button onclick="updateQty(${i}, -1)">-</button>
+          <b>${row.qty}</b>
+          <button onclick="updateQty(${i}, 1)">+</button>
+        `}
       </td>
       <td style="font-family:monospace;">${share}%</td>
       <td style="color:var(--danger); cursor:pointer;" onclick="deleteFormulaRow(${i})">✕</td>
@@ -2070,42 +1803,59 @@ function renderFormulaView() {
   calculateEffects(total, rows);
 }
 
-function updateFormulaRow(i, f, v) { currentLib().formulas[currentLib().activeFormulaName][i][f] = v; persist(); renderFormulaView(); }
-function updateQty(i, d) { 
-  const r = currentLib().formulas[currentLib().activeFormulaName][i];
-  r.qty = Math.max(0, r.qty + d);
-  persist();
-  renderFormulaView(); 
+function openGhostComponentInspector(ghostName) {
+  const lib = currentLib();
+  if (confirm(`'${ghostName}' är en spökkomponent. Vill du registrera den som ett nytt index-objekt?`)) {
+    const newId = "obj_" + Date.now();
+    lib.objects.push({
+      id: newId,
+      name: ghostName,
+      defaultRole: "Komponent",
+      props: {}
+    });
+    // Ersätt i formeln
+    const rows = lib.formulas[lib.activeFormulaName];
+    rows.forEach(r => { if (r.objId === ghostName) r.objId = newId; });
+    persist();
+    renderFormulaView();
+    renderTree();
+    // Öppna direkt i objektprofil för att ge minst en egenskap
+    selectedObjId = newId;
+    setWorkspaceView("OBJECT");
+  }
 }
+
+function promptBatchAddFormulaComponents() {
+  const raw = prompt("Skriv in komponenter separerade med komma (t.ex. Ingefära, Kamomill, Ny Spökört):");
+  if (!raw) return;
+  const names = raw.split(",").map(s => s.trim()).filter(Boolean);
+  const lib = currentLib();
+  const rows = lib.formulas[lib.activeFormulaName];
+
+  names.forEach(name => {
+    let match = lib.objects.find(o => o.name.toLowerCase() === name.toLowerCase());
+    if (match) {
+      rows.push({ objId: match.id, role: match.defaultRole || "Komponent", qty: 1 });
+    } else {
+      // Skapas som spökkomponent
+      rows.push({ objId: name, role: "Spökkomponent", qty: 1 });
+    }
+  });
+
+  persist();
+  renderFormulaView();
+}
+
+function updateFormulaRow(i, f, v) { currentLib().formulas[currentLib().activeFormulaName][i][f] = v; persist(); renderFormulaView(); }
+function updateQty(i, d) { const r = currentLib().formulas[currentLib().activeFormulaName][i]; r.qty = Math.max(0, r.qty + d); persist(); renderFormulaView(); }
 function deleteFormulaRow(i) { currentLib().formulas[currentLib().activeFormulaName].splice(i, 1); persist(); renderFormulaView(); }
 function addFormulaRow() { 
   const lib = currentLib();
   if (lib.objects.length > 0) {
-    if (!lib.formulas[lib.activeFormulaName]) lib.formulas[lib.activeFormulaName] = [];
-    lib.formulas[lib.activeFormulaName].push({ objId: lib.objects[0].id, role: "Komponent", qty: 1 });
+    currentLib().formulas[lib.activeFormulaName].push({ objId: lib.objects[0].id, role: "Komponent", qty: 1 });
     persist();
     renderFormulaView();
   }
-}
-
-function promptManagePins() {
-  const lib = currentLib();
-  if (!lib.pinnedConfigs) lib.pinnedConfigs = {};
-  const catNames = Object.keys(lib.categories);
-  const choice = prompt("Välj kategori att pinna eller av-pinna:\n" + catNames.map((c, i) => `${i+1}. ${c} ${lib.pinnedConfigs[c] ? '[' + lib.pinnedConfigs[c] + ']' : ''}`).join("\n"));
-  if (!choice) return;
-  const idx = parseInt(choice) - 1;
-  const selectedCat = catNames[idx];
-  if (!selectedCat) return;
-
-  if (lib.pinnedConfigs[selectedCat]) {
-    delete lib.pinnedConfigs[selectedCat];
-  } else {
-    const symbol = prompt(`Ange symbol/emoji för [${selectedCat}]:`, "⚠️") || "⚠️";
-    lib.pinnedConfigs[selectedCat] = symbol;
-  }
-  persist();
-  renderFormulaView();
 }
 
 function calculateEffects(total, rows) {
@@ -2140,7 +1890,7 @@ function calculateEffects(total, rows) {
       </div>
     `).join("");
   } else {
-    pinCont.innerHTML = `<span style="color:var(--text-muted); font-style:italic;">${t("noPinnedHits")}</span>`;
+    pinCont.innerHTML = `<span style="color:var(--text-muted); font-style:italic;">Inga aktiva varningar.</span>`;
   }
 
   const tbody = document.getElementById("formula-props-body");
@@ -2165,15 +1915,535 @@ function calculateEffects(total, rows) {
   });
 }
 
-function navigateBackToObject() {
-  if (navigatedFromObjectId) {
-    selectedObjId = navigatedFromObjectId;
-    navigatedFromObjectId = null;
-    setWorkspaceView("OBJECT");
+function updateFormulaInspectorQty(fName, idx, delta) {
+  const lib = currentLib();
+  const r = lib.formulas[fName][idx];
+  r.qty = Math.max(0, r.qty + delta);
+  persist();
+  openInspector("FORMULA", fName);
+}
+function deleteFormulaInspectorRow(fName, idx) {
+  currentLib().formulas[fName].splice(idx, 1);
+  persist();
+  openInspector("FORMULA", fName);
+}
+
+// ==================== 6. FILTERSÖK (AUTOCOMPLETE, CASE & GHOST TAGS) ====================
+function handleSearchAutocomplete(val) {
+  const dd = document.getElementById("search-autocomplete-dropdown");
+  dd.innerHTML = "";
+  const q = val.trim();
+  if (q.length < 1) { dd.style.display = "none"; return; }
+
+  const matchCase = document.getElementById("chk-search-case").checked;
+  const lib = currentLib();
+  const hits = [];
+
+  Object.keys(lib.properties).forEach(pName => {
+    const target = matchCase ? pName : pName.toLowerCase();
+    const query = matchCase ? q : q.toLowerCase();
+    if (target.includes(query)) {
+      hits.push(pName);
+    }
+  });
+
+  if (hits.length === 0) {
+    dd.style.display = "none";
+  } else {
+    hits.slice(0, 8).forEach(h => {
+      const item = document.createElement("div");
+      item.className = "search-hit-item";
+      item.innerHTML = `<span><b>${h}</b> <span class="search-hit-parent">(${lib.properties[h].category})</span></span>`;
+      item.onclick = () => {
+        addFilterTag(h);
+        document.getElementById("filter-search-input").value = "";
+        dd.style.display = "none";
+      };
+      dd.appendChild(item);
+    });
+    dd.style.display = "block";
   }
 }
 
-// ==================== 6. MODALER & SKAPANDE ====================
+function handleSearchInputKey(e) {
+  if (e.key === 'Enter') {
+    const raw = e.target.value.trim();
+    if (!raw) return;
+    // Stöd för både komma och + som separator (röd+gul+blå)
+    const tokens = raw.split(/[,+]/).map(s => s.trim()).filter(Boolean);
+    tokens.forEach(tok => addFilterTag(tok));
+    e.target.value = "";
+    document.getElementById("search-autocomplete-dropdown").style.display = "none";
+  }
+}
+
+function addFilterTag(rawName) {
+  const lib = currentLib();
+  const matchCase = document.getElementById("chk-search-case").checked;
+
+  let resolved = rawName;
+  let isGhost = true;
+
+  // Sök existerande eller synonymer
+  for (const [pName, pData] of Object.entries(lib.properties)) {
+    const pComp = matchCase ? pName : pName.toLowerCase();
+    const rComp = matchCase ? rawName : rawName.toLowerCase();
+    if (pComp === rComp) {
+      resolved = pName;
+      isGhost = false;
+      break;
+    }
+    if (pData.synonyms) {
+      for (const syn of pData.synonyms) {
+        const sComp = matchCase ? syn : syn.toLowerCase();
+        if (sComp === rComp) {
+          resolved = pName;
+          isGhost = false;
+          break;
+        }
+      }
+    }
+    if (!isGhost) break;
+  }
+
+  if (!activeSearchFilters.some(f => f.name === resolved)) {
+    activeSearchFilters.push({ name: resolved, isGhost });
+    renderSearchView();
+  }
+}
+
+function removeSearchFilter(name) {
+  activeSearchFilters = activeSearchFilters.filter(f => f.name !== name);
+  renderSearchView();
+}
+
+function renderSearchView() {
+  const lib = currentLib();
+  const chipCont = document.getElementById("filter-chips-container");
+  chipCont.innerHTML = activeSearchFilters.map(f => `
+    <span class="tag-badge ${f.isGhost ? 'ghost-tag' : ''}" onclick="inspectSearchTag('${f.name}', ${f.isGhost})">
+      <span>${f.isGhost ? '⚠️ ' : ''}${f.name}</span>
+      <span style="color:var(--danger); cursor:pointer;" onclick="removeSearchFilter('${f.name}'); event.stopPropagation();">✕</span>
+    </span>
+  `).join("");
+
+  const tbody = document.getElementById("search-table-body");
+  tbody.innerHTML = "";
+
+  const activeValidTags = activeSearchFilters.filter(f => !f.isGhost).map(f => f.name);
+  if (activeValidTags.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:15px;">Lägg till egenskaper ovan för att filtrera.</td></tr>`;
+    return;
+  }
+
+  let res = [];
+  lib.objects.forEach(obj => {
+    let match = activeValidTags.filter(t => obj.props && obj.props[t] !== undefined);
+    if (match.length > 0) {
+      res.push({ id: obj.id, name: getDisplayObjName(obj), pct: Math.round((match.length / activeValidTags.length) * 100), match });
+    }
+  });
+  res.sort((a, b) => b.pct - a.pct);
+
+  res.forEach((r, i) => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td><b style="color:var(--accent); cursor:pointer;" onclick="jumpToObj('${r.id}')">${r.name}</b></td>
+        <td style="font-family:monospace;">${r.pct}%</td>
+        <td>${r.match.join(", ")}</td>
+      </tr>
+    `;
+  });
+}
+
+function inspectSearchTag(tagName, isGhost) {
+  if (isGhost) {
+    const lib = currentLib();
+    if (confirm(`'${tagName}' finns inte i index och påverkar inte sökningen. Vill du tilldela den en kategori och registrera den nu?`)) {
+      const cat = prompt("Ange kategori för denna egenskap:", lib.categoryOrder[0] || "General Information");
+      if (cat) {
+        if (!lib.categories[cat]) {
+          lib.categories[cat] = { system: "General Information" };
+          lib.categoryOrder.push(cat);
+        }
+        lib.properties[tagName] = { category: cat, synonyms: [], desc: "", links: "", sources: "", opposite: "" };
+        persist();
+        // Uppdatera taggens status från ghost till full
+        const f = activeSearchFilters.find(x => x.name === tagName);
+        if (f) f.isGhost = false;
+        renderSearchView();
+        renderTree();
+        openInspector("TAG", tagName);
+      }
+    }
+  } else {
+    openInspector("TAG", tagName);
+  }
+}
+
+// ==================== 7. AUTOKOMPLETTERING I FILMENY SÖK ====================
+function handleQuickSearch(val) {
+  const dd = document.getElementById("quick-search-dropdown");
+  dd.innerHTML = "";
+  const q = val.trim().toLowerCase();
+  if (q.length < 1) { dd.style.display = "none"; return; }
+
+  const lib = currentLib();
+  const hits = [];
+
+  lib.objects.forEach(o => {
+    const dName = getDisplayObjName(o);
+    if (dName.toLowerCase().includes(q)) hits.push({ name: dName, type: "object", id: o.id, parent: "Örter" });
+  });
+
+  Object.entries(lib.properties).forEach(([pName, pData]) => {
+    if (pName.toLowerCase().includes(q)) hits.push({ name: pName, type: "property", id: pName, parent: pData.category });
+  });
+
+  if (hits.length === 0) { dd.style.display = "none"; }
+  else {
+    hits.slice(0, 10).forEach(h => {
+      const item = document.createElement("div");
+      item.className = "search-hit-item";
+      item.innerHTML = `<span><b>${h.name}</b> <span class="search-hit-parent">(${h.parent})</span></span><span style="font-size:9px; text-transform:uppercase;">${h.type}</span>`;
+      item.onclick = () => {
+        dd.style.display = "none";
+        document.getElementById("quick-search-input").value = "";
+        toggleSidebar(false);
+        if (h.type === "object") { selectedObjId = h.id; setWorkspaceView("OBJECT"); }
+        else { selectedPropName = h.id; setWorkspaceView("PROPERTY"); }
+      };
+      dd.appendChild(item);
+    });
+    dd.style.display = "block";
+  }
+}
+
+// ==================== 8. PAPPERSKORG & BACKUP ====================
+function renderTrashView() {
+  const lib = currentLib();
+  const tbody = document.getElementById("trash-table-body");
+  tbody.innerHTML = "";
+  if (lib.trash.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:20px;">Papperskorgen är tom.</td></tr>`;
+    return;
+  }
+  lib.trash.forEach((item, idx) => {
+    tbody.innerHTML += `
+      <tr>
+        <td style="text-align:center;"><input type="checkbox" ${item.keep ? 'checked' : ''} onchange="toggleTrashKeep(${idx}, this.checked)"></td>
+        <td style="font-weight:600;">${item.name}</td>
+        <td style="color:var(--text-muted);">${item.type}</td>
+        <td>${item.deletedAt}</td>
+        <td style="color:var(--accent);">${item.originalPlace}</td>
+      </tr>
+    `;
+  });
+}
+
+function toggleTrashKeep(idx, chk) { currentLib().trash[idx].keep = chk; persist(); }
+function reviveKeptTrash() {
+  const lib = currentLib();
+  const kept = lib.trash.filter(i => i.keep);
+  if (kept.length === 0) return;
+  kept.forEach(item => {
+    if (item.restoreData.targetType === "object_prop") {
+      const o = lib.objects.find(obj => obj.id === item.restoreData.objId);
+      if (o) { if (!o.props) o.props = {}; o.props[item.restoreData.propName] = { comment: "" }; }
+    }
+  });
+  lib.trash = lib.trash.filter(i => !i.keep);
+  persist();
+  renderTrashView();
+  renderTree();
+  alert("Markerade element återställda!");
+}
+
+function purgeUnkeptTrash() {
+  const lib = currentLib();
+  const unkept = lib.trash.filter(i => !i.keep);
+  if (unkept.length === 0) return;
+  if (confirm(`Radera permanent ${unkept.length} element?`)) {
+    lib.trash = lib.trash.filter(i => i.keep);
+    persist();
+    renderTrashView();
+    renderTree();
+  }
+}
+
+function exportBackup() {
+  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "taxonomy_backup_" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+}
+
+function importBackup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = (ev) => {
+    try {
+      appData = JSON.parse(ev.target.result);
+      persist();
+      location.reload();
+    } catch(err) { alert("Ogiltig JSON-fil."); }
+  };
+  r.readAsText(file);
+}
+
+function loadMasterTemplate() {
+  if (!confirm("Läs in Franks 4 Master Systems (General, Western, Ayurveda, TCM)?")) return;
+  const lib = currentLib();
+  lib.systems = JSON.parse(JSON.stringify(defaultAppData.libraries.herbal.systems));
+  lib.categories = JSON.parse(JSON.stringify(defaultAppData.libraries.herbal.categories));
+  lib.categoryOrder = JSON.parse(JSON.stringify(defaultAppData.libraries.herbal.categoryOrder));
+  Object.assign(lib.properties, defaultAppData.libraries.herbal.properties);
+  persist();
+  renderTree();
+  renderObjectView();
+  alert("Franks 4 Master Systems inlästa!");
+}
+
+// ==================== TRÄD- OCH INITIALISERINGSKOD ====================
+function renderTree() {
+  const lib = currentLib();
+  const root = document.getElementById("tree-root");
+  if (!root) return;
+  root.innerHTML = "";
+
+  // 1. OBJECTS
+  const isObjOpen = !!lib.treeOpen["objects"];
+  const objFolder = document.createElement("div");
+  objFolder.innerHTML = `
+    <div class="tree-node ${activeView === 'OBJECT' ? 'active' : ''}" onclick="toggleTreeNode('objects')">
+      <span class="tree-toggle">${isObjOpen ? '▼' : '▶'}</span>
+      <span>📁 Örter & Objekt</span>
+      <span class="tree-badge">${lib.objects.length}</span>
+      <button class="tree-action-btn" onclick="createObjectPrompt(event)" title="Ny ört">+</button>
+    </div>
+  `;
+  root.appendChild(objFolder);
+
+  if (isObjOpen) {
+    const wrap = document.createElement("div");
+    wrap.className = "tree-children";
+    lib.objects.forEach(obj => {
+      const leaf = document.createElement("div");
+      leaf.className = `tree-node ${activeView === 'OBJECT' && selectedObjId === obj.id ? 'active' : ''}`;
+      leaf.innerHTML = `<span>📄</span> <span>${getDisplayObjName(obj)}</span>`;
+      leaf.onclick = (e) => {
+        e.stopPropagation();
+        selectedObjId = obj.id;
+        toggleSidebar(false);
+        setWorkspaceView("OBJECT");
+      };
+      wrap.appendChild(leaf);
+    });
+    root.appendChild(wrap);
+  }
+
+  // 2. TAG INDEX
+  const isTaxOpen = !!lib.treeOpen["taxonomies"];
+  const taxFolder = document.createElement("div");
+  taxFolder.innerHTML = `
+    <div class="tree-node ${activeView === 'PROPERTY' ? 'active' : ''}" onclick="toggleTreeNode('taxonomies')">
+      <span class="tree-toggle">${isTaxOpen ? '▼' : '▶'}</span>
+      <span>📁 Taxonomi Index</span>
+      <span class="tree-badge">${Object.keys(lib.properties).length}</span>
+      <button class="tree-action-btn" onclick="createSystemPrompt(event)" title="Nytt system">+</button>
+    </div>
+  `;
+  root.appendChild(taxFolder);
+
+  if (isTaxOpen) {
+    const taxWrap = document.createElement("div");
+    taxWrap.className = "tree-children";
+
+    Object.entries(lib.systems).forEach(([sysNameVal, sysData]) => {
+      const sysKey = "sys_" + sysNameVal;
+      const isSysOpen = !!lib.treeOpen[sysKey];
+      const sysDiv = document.createElement("div");
+      sysDiv.className = "tree-node";
+      sysDiv.innerHTML = `
+        <span class="tree-toggle">${isSysOpen ? '▼' : '▶'}</span>
+        <span>🗂</span> <b>${sysNameVal}</b>
+      `;
+      sysDiv.onclick = () => toggleTreeNode(sysKey);
+      taxWrap.appendChild(sysDiv);
+
+      if (isSysOpen) {
+        const sysChildren = document.createElement("div");
+        sysChildren.className = "tree-children";
+
+        (sysData.categories || []).forEach(cName => {
+          const catKey = "cat_" + cName;
+          const isCatOpen = !!lib.treeOpen[catKey];
+          const catDiv = document.createElement("div");
+          catDiv.className = "tree-node";
+          catDiv.innerHTML = `
+            <span class="tree-toggle">${isCatOpen ? '▼' : '▶'}</span>
+            <span>📂</span> <span>${cName}</span>
+          `;
+          catDiv.onclick = (e) => { e.stopPropagation(); toggleTreeNode(catKey); };
+          sysChildren.appendChild(catDiv);
+
+          if (isCatOpen) {
+            const propWrap = document.createElement("div");
+            propWrap.className = "tree-children";
+            Object.entries(lib.properties)
+              .filter(([_, p]) => p.category === cName)
+              .forEach(([pName]) => {
+                const pLeaf = document.createElement("div");
+                pLeaf.className = `tree-node ${activeView === 'PROPERTY' && selectedPropName === pName ? 'active' : ''}`;
+                pLeaf.innerHTML = `<span>🏷</span> <span>${pName}</span>`;
+                pLeaf.onclick = (e) => {
+                  e.stopPropagation();
+                  selectedPropName = pName;
+                  toggleSidebar(false);
+                  setWorkspaceView("PROPERTY");
+                };
+                propWrap.appendChild(pLeaf);
+              });
+            sysChildren.appendChild(propWrap);
+          }
+        });
+        taxWrap.appendChild(sysChildren);
+      }
+    });
+    root.appendChild(taxWrap);
+  }
+
+  // 3. FORMULAS
+  const isFormOpen = !!lib.treeOpen["formulas"];
+  const formFolder = document.createElement("div");
+  formFolder.innerHTML = `
+    <div class="tree-node ${activeView === 'FORMULA' ? 'active' : ''}" onclick="toggleTreeNode('formulas')">
+      <span class="tree-toggle">${isFormOpen ? '▼' : '▶'}</span>
+      <span>📁 Formler</span>
+      <span class="tree-badge">${Object.keys(lib.formulas).length}</span>
+    </div>
+  `;
+  root.appendChild(formFolder);
+
+  if (isFormOpen) {
+    const fWrap = document.createElement("div");
+    fWrap.className = "tree-children";
+    Object.keys(lib.formulas).forEach(fName => {
+      const fLeaf = document.createElement("div");
+      fLeaf.className = `tree-node ${activeView === 'FORMULA' && lib.activeFormulaName === fName ? 'active' : ''}`;
+      fLeaf.innerHTML = `<span>📜</span> <span>${getDisplayFormulaName(fName)}</span>`;
+      fLeaf.onclick = (e) => {
+        e.stopPropagation();
+        lib.activeFormulaName = fName;
+        toggleSidebar(false);
+        setWorkspaceView("FORMULA");
+      };
+      fWrap.appendChild(fLeaf);
+    });
+    root.appendChild(fWrap);
+  }
+
+  // 4. TRASH
+  const trashCount = lib.trash.length;
+  const trashNode = document.createElement("div");
+  trashNode.innerHTML = `
+    <div class="tree-node ${activeView === 'TRASH' ? 'active' : ''}" style="margin-top:8px;" onclick="setWorkspaceView('TRASH'); toggleSidebar(false);">
+      <span>🗑</span> <b>Papperskorg</b>
+      <span class="tree-badge">${trashCount}</span>
+    </div>
+  `;
+  root.appendChild(trashNode);
+}
+
+function updateLibrarySelect() {
+  const sel = document.getElementById("sel-library");
+  if (!sel) return;
+  sel.innerHTML = Object.entries(appData.libraries).map(([id, lib]) => 
+    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${lib.name || id}</option>`
+  ).join("");
+}
+
+function switchLibrary(libId) {
+  appData.activeLibId = libId;
+  persist();
+  const lib = currentLib();
+  selectedObjId = lib.objects[0]?.id || "";
+  selectedPropName = Object.keys(lib.properties)[0] || "";
+  renderTree();
+  setWorkspaceView("OBJECT");
+}
+
+function createNewLibraryPrompt() {
+  const name = prompt("Ange namn på det nya biblioteket:");
+  if (!name) return;
+  const id = "lib_" + Date.now();
+  appData.libraries[id] = JSON.parse(JSON.stringify(defaultAppData.libraries.herbal));
+  appData.libraries[id].name = name;
+  switchLibrary(id);
+  updateLibrarySelect();
+}
+
+function jumpToObj(objId) {
+  selectedObjId = objId;
+  setWorkspaceView("OBJECT");
+}
+
+function createObjectPrompt(e) {
+  if (e) e.stopPropagation();
+  const name = prompt("Ange namn på den nya örten:");
+  if (!name) return;
+  const lib = currentLib();
+  const newId = "obj_" + Date.now();
+  lib.objects.push({ id: newId, name: name.trim(), defaultRole: "Komponent", props: {} });
+  selectedObjId = newId;
+  persist();
+  setWorkspaceView("OBJECT");
+  renderTree();
+}
+
+function createSystemPrompt(e) {
+  if (e) e.stopPropagation();
+  const name = prompt("Ange namn på nytt system:");
+  if (!name) return;
+  const lib = currentLib();
+  if (!lib.systems[name.trim()]) {
+    lib.systems[name.trim()] = { categories: [] };
+    persist();
+    renderTree();
+  }
+}
+
+function openAddToFormulaModal() {
+  const lib = currentLib();
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (!obj) return;
+  setText("modal-add-form-obj-display", `Lägg till '${getDisplayObjName(obj)}' i formel:`);
+  const sel = document.getElementById("modal-sel-existing-formula");
+  sel.innerHTML = Object.keys(lib.formulas).map(f => `<option value="${f}">${getDisplayFormulaName(f)}</option>`).join("");
+  document.getElementById("modal-input-new-formula").value = "";
+  document.getElementById("modal-add-to-formula").style.display = "flex";
+}
+
+function confirmAddObjectToFormula() {
+  const lib = currentLib();
+  const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (!obj) return;
+  const newFormName = document.getElementById("modal-input-new-formula").value.trim();
+  let target = document.getElementById("modal-sel-existing-formula").value;
+  if (newFormName !== "") {
+    if (!lib.formulas[newFormName]) lib.formulas[newFormName] = [];
+    target = newFormName;
+  }
+  lib.activeFormulaName = target;
+  lib.formulas[target].push({ objId: obj.id, role: obj.defaultRole || "Komponent", qty: 1 });
+  persist();
+  closeModal('modal-add-to-formula');
+  setWorkspaceView("FORMULA");
+}
+
 function openCommentModal(pName, event) {
   if (event) event.stopPropagation();
   activeCommentTag = pName;
@@ -2197,324 +2467,14 @@ function saveTagComment() {
   renderObjectView();
 }
 
-function trashPropFromObj(pName, event) {
-  if (event) event.stopPropagation();
-  const lib = currentLib();
-  const obj = lib.objects.find(o => o.id === selectedObjId);
-  if (!obj || !obj.props) return;
-
-  lib.trash.push({
-    id: "del_" + Date.now(),
-    name: pName,
-    type: "Objektkoppling",
-    originalPlace: `${getDisplayObjName(obj)} (${lib.properties[pName]?.category || 'General'})`,
-    deletedAt: new Date().toLocaleString(),
-    restoreData: { targetType: "object_prop", objId: obj.id, propName: pName },
-    keep: false
-  });
-
-  delete obj.props[pName];
-  persist();
-  renderObjectView();
-  renderTree();
-}
-
-function openAddToFormulaModal() {
-  const lib = currentLib();
-  const obj = lib.objects.find(o => o.id === selectedObjId);
-  if (!obj) return;
-  setText("modal-add-form-obj-display", `${t("btnAddToFormula")}: '${getDisplayObjName(obj)}'`);
-  const sel = document.getElementById("modal-sel-existing-formula");
-  sel.innerHTML = Object.keys(lib.formulas).map(f => `<option value="${f}">${getDisplayFormulaName(f)}</option>`).join("");
-  document.getElementById("modal-input-new-formula").value = "";
-  document.getElementById("modal-add-to-formula").style.display = "flex";
-}
-
-function confirmAddObjectToFormula() {
-  const lib = currentLib();
-  const obj = lib.objects.find(o => o.id === selectedObjId);
-  if (!obj) return;
-
-  const newFormName = document.getElementById("modal-input-new-formula").value.trim();
-  let target = document.getElementById("modal-sel-existing-formula").value;
-  if (newFormName !== "") {
-    if (!lib.formulas[newFormName]) lib.formulas[newFormName] = [];
-    target = newFormName;
-  }
-
-  lib.activeFormulaName = target;
-  lib.formulas[target].push({ objId: obj.id, role: obj.defaultRole || "Komponent", qty: 1 });
-  navigatedFromObjectId = obj.id;
-  persist();
-  closeModal('modal-add-to-formula');
-  setWorkspaceView("FORMULA");
-}
-
-function openBatchAddPrompt() {
-  const input = prompt(t("promptBatchAdd"));
-  if (!input) return;
-  const terms = input.split(",").map(s => s.trim()).filter(Boolean);
-  const lib = currentLib();
-  const obj = lib.objects.find(o => o.id === selectedObjId);
-  if (!obj) return;
-
-  terms.forEach(term => {
-    let resolved = term;
-    if (!lib.properties[resolved]) {
-      for (const [p, m] of Object.entries(lib.properties)) {
-        if (m.synonyms && m.synonyms.some(s => s.toLowerCase() === term.toLowerCase())) {
-          resolved = p;
-          break;
-        }
-      }
-    }
-    if (!obj.props) obj.props = {};
-    if (lib.properties[resolved]) {
-      obj.props[resolved] = { comment: "" };
-    } else {
-      const cat = prompt(`'${term}' finns inte. Kategori:`, lib.categoryOrder[0]) || "General Information";
-      if (!lib.categories[cat]) {
-        lib.categories[cat] = { system: "General Information" };
-        lib.categoryOrder.push(cat);
-      }
-      lib.properties[term] = { category: cat, synonyms: [], desc: "", links: "", sources: "", opposite: "" };
-      obj.props[term] = { comment: "" };
-    }
-  });
-
-  persist();
-  renderObjectView();
-  renderTree();
-}
-
-function closeModal(id) { document.getElementById(id).style.display = "none"; }
-
-// ==================== 7. PAPPERSKORG ====================
-function renderTrashView() {
-  const lib = currentLib();
-  const tbody = document.getElementById("trash-table-body");
-  tbody.innerHTML = "";
-
-  if (lib.trash.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:20px;">Papperskorgen är tom.</td></tr>`;
-    return;
-  }
-
-  lib.trash.forEach((item, idx) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="text-align:center;">
-        <input type="checkbox" ${item.keep ? 'checked' : ''} onchange="toggleTrashKeep(${idx}, this.checked)">
-      </td>
-      <td style="font-weight:600;">${item.name}</td>
-      <td style="color:var(--text-muted);">${item.type}</td>
-      <td>${item.deletedAt}</td>
-      <td style="color:var(--accent);">${item.originalPlace}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function toggleTrashKeep(idx, isChecked) {
-  currentLib().trash[idx].keep = isChecked;
-  persist();
-}
-
-function reviveKeptTrash() {
-  const lib = currentLib();
-  const kept = lib.trash.filter(item => item.keep);
-  if (kept.length === 0) return;
-
-  kept.forEach(item => {
-    if (item.restoreData.targetType === "object_prop") {
-      const obj = lib.objects.find(o => o.id === item.restoreData.objId);
-      if (obj) {
-        if (!obj.props) obj.props = {};
-        obj.props[item.restoreData.propName] = { comment: "" };
-      }
-    }
-  });
-
-  lib.trash = lib.trash.filter(item => !item.keep);
-  persist();
-  renderTrashView();
-  renderTree();
-  alert(t("revivedAlert"));
-}
-
-function purgeUnkeptTrash() {
-  const lib = currentLib();
-  const unkeptCount = lib.trash.filter(item => !item.keep).length;
-  if (unkeptCount === 0) return;
-
-  if (confirm(t("purgeConfirm", unkeptCount))) {
-    lib.trash = lib.trash.filter(item => item.keep);
-    persist();
-    renderTrashView();
-    renderTree();
-  }
-}
-
-// ==================== 8. FILTERSÖK ====================
-function applySearchFilter() {
-  const raw = document.getElementById("filter-search-input").value.trim();
-  if (!raw) return;
-  const terms = raw.split(",").map(s => s.trim()).filter(Boolean);
-  const lib = currentLib();
-
-  terms.forEach(t => {
-    let resolved = t;
-    if (!lib.properties[resolved]) {
-      for (const [p, m] of Object.entries(lib.properties)) {
-        if (m.synonyms && m.synonyms.some(s => s.toLowerCase() === t.toLowerCase())) {
-          resolved = p;
-          break;
-        }
-      }
-    }
-    if (!activeSearchFilters.includes(resolved)) activeSearchFilters.push(resolved);
-  });
-
-  document.getElementById("filter-search-input").value = "";
-  renderSearchView();
-}
-
-function removeSearchFilter(f) {
-  activeSearchFilters = activeSearchFilters.filter(x => x !== f);
-  renderSearchView();
-}
-
-function renderSearchView() {
-  const lib = currentLib();
-  const chipCont = document.getElementById("filter-chips-container");
-  chipCont.innerHTML = activeSearchFilters.map(f => `
-    <span class="tag-badge">
-      <span>${f}</span>
-      <span style="color:var(--danger); cursor:pointer;" onclick="removeSearchFilter('${f}')">✕</span>
-    </span>
-  `).join("");
-
-  const tbody = document.getElementById("search-table-body");
-  tbody.innerHTML = "";
-
-  if (activeSearchFilters.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:15px;">${t("noSearchFilterPrompt")}</td></tr>`;
-    return;
-  }
-
-  let res = [];
-  lib.objects.forEach(obj => {
-    let match = activeSearchFilters.filter(f => obj.props && obj.props[f] !== undefined);
-    if (match.length > 0) {
-      res.push({ id: obj.id, name: getDisplayObjName(obj), pct: Math.round((match.length / activeSearchFilters.length) * 100), match });
-    }
-  });
-  res.sort((a, b) => b.pct - a.pct);
-
-  res.forEach((r, i) => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${i+1}</td>
-        <td><b style="color:var(--accent); cursor:pointer;" onclick="jumpToObj('${r.id}')">${r.name}</b></td>
-        <td style="font-family:monospace;">${r.pct}%</td>
-        <td>${r.match.join(", ")}</td>
-      </tr>
-    `;
-  });
-}
-
-// ==================== 9. BIBLIOTEK OCH BACKUP ====================
-function updateLibrarySelect() {
-  const sel = document.getElementById("sel-library");
-  if (!sel) return;
-  sel.innerHTML = Object.entries(appData.libraries).map(([id, lib]) => 
-    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${lib.name || id}</option>`
-  ).join("");
-}
-
-function switchLibrary(libId) {
-  appData.activeLibId = libId;
-  persist();
-  const lib = currentLib();
-  selectedObjId = lib.objects[0]?.id || "";
-  selectedPropName = Object.keys(lib.properties)[0] || "";
-  renderTree();
-  setWorkspaceView("OBJECT");
-}
-
-function createNewLibraryPrompt() {
-  const name = prompt(t("promptNewLibName"));
-  if (!name) return;
-  const id = "lib_" + Date.now();
-  appData.libraries[id] = {
-    name: name,
-    treeOpen: { "objects": true, "taxonomies": true, "formulas": true },
-    categoryOrder: ["English Name", "Botanical Name", "Family", "Precautions"],
-    useSystemColors: true,
-    showComments: true,
-    hideUntagged: false,
-    systems: { "General Information": { categories: ["English Name", "Botanical Name", "Family", "Precautions"] } },
-    categories: {
-      "English Name": { system: "General Information" },
-      "Botanical Name": { system: "General Information" },
-      "Family": { system: "General Information" },
-      "Precautions": { system: "General Information" }
-    },
-    properties: {},
-    objects: [],
-    formulas: { "Standardrecept": [] },
-    activeFormulaName: "Standardrecept",
-    trash: [],
-    pinnedConfigs: {}
-  };
-  switchLibrary(id);
-  updateLibrarySelect();
-}
-
-function exportBackup() {
-  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "taxonomy_backup_" + new Date().toISOString().slice(0,10) + ".json";
-  a.click();
-}
-
-function importBackup(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const r = new FileReader();
-  r.onload = (ev) => {
-    try {
-      appData = JSON.parse(ev.target.result);
-      persist();
-      location.reload();
-    } catch(err) { alert("Ogiltig fil."); }
-  };
-  r.readAsText(file);
-}
-
-function loadMasterTemplate() {
-  if (!confirm(t("confirmLoadTemplate"))) return;
-  const lib = currentLib();
-  lib.systems = JSON.parse(JSON.stringify(defaultAppData.libraries.herbal.systems));
-  lib.categories = JSON.parse(JSON.stringify(defaultAppData.libraries.herbal.categories));
-  lib.categoryOrder = JSON.parse(JSON.stringify(defaultAppData.libraries.herbal.categoryOrder));
-  Object.assign(lib.properties, defaultAppData.libraries.herbal.properties);
-  persist();
-  renderTree();
-  renderObjectView();
-  alert(t("templateLoadedAlert"));
-}
-
-// ==================== INITIALISERING ====================
+// STARTA MOTORN
 try {
   switchTheme(appData.theme || "ide");
-  updateUILanguage();
   updateLibrarySelect();
   renderTree();
   setWorkspaceView("OBJECT");
 } catch(err) {
-  console.error("Uppstartsfel:", err);
+  console.error("Startfel:", err);
 }
 </script>
 
