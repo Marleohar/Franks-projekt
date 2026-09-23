@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Universal Taxonomy IDE v0.18 [Clean Inline Rows & 4 Master Systems]</title>
+  <title>Universal Taxonomy IDE v0.18.1 [Mobile Top-Bar & Universal Scroll Fix]</title>
   <style>
     /* ==================== TEMA 1: IDE / DARK ==================== */
     [data-theme="ide"] {
@@ -93,7 +93,7 @@
       user-select: none;
     }
 
-    /* TOPPVERKTYGSFÄLT: STÄDAT UTAN KNAPP-VÄGG */
+    /* TOPPVERKTYGSFÄLT: DESKTOP */
     .top-bar {
       background: var(--bg-panel);
       border-bottom: 1px solid var(--border);
@@ -105,11 +105,12 @@
       gap: 8px;
       z-index: 100;
     }
-    .top-left, .top-right {
+    .top-row-main, .top-row-sub {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
+
     .app-title {
       font-weight: 700;
       color: var(--accent-active);
@@ -153,7 +154,7 @@
     button.primary:hover { background: var(--accent-hover); }
     button.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
-    /* WORKSPACE GRID */
+    /* WORKSPACE */
     .workspace-container {
       display: grid;
       grid-template-columns: 280px 1fr auto;
@@ -270,26 +271,28 @@
       color: var(--accent-active);
     }
 
-    /* MITTEN: ARBETSYTA */
+    /* MITTEN: ARBETSYTA (UNIVERSAL SCROLL CONTAINER) */
     .main-content {
       background: var(--bg-main);
       display: flex;
       flex-direction: column;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       padding: 14px;
+      height: 100%;
     }
     .content-panel {
       background: var(--bg-panel);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 14px;
-      flex-grow: 1;
       display: flex;
       flex-direction: column;
       gap: 12px;
+      min-height: min-content;
     }
 
-    /* OBJEKTRUBRIK (EGEN REN LINJE ENLIGT FRANK) */
+    /* OBJEKTRUBRIK */
     .profile-hero {
       display: flex;
       justify-content: space-between;
@@ -311,7 +314,15 @@
       color: var(--text);
     }
 
-    /* KOMPAKT INLINE-LAYOUT FÖR KATEGORIER (FRANKS SKISS) */
+    /* KATEGORILISTA (UTAN INRE SCROLL-LÅS) */
+    #obj-categories-container {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 100%;
+    }
+
+    /* KOMPAKT INLINE-LAYOUT FÖR KATEGORIER */
     .inline-category-row {
       display: flex;
       align-items: flex-start;
@@ -320,7 +331,7 @@
       border-radius: var(--radius);
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-left: 3px solid transparent;
+      border-left: 4px solid transparent;
       transition: background 0.15s, border-color 0.15s;
     }
     .inline-category-row:hover {
@@ -502,9 +513,35 @@
       z-index: 2500;
     }
 
+    /* ==================== MOBILANPASSNING (2-RADERS TOP-BAR & SCROLL) ==================== */
     @media (max-width: 820px) {
       .btn-menu-toggle { display: inline-flex; }
-      .workspace-container { grid-template-columns: 1fr; }
+      
+      /* TOP-BAR BLIR 2 TYDLIGA RADER PÅ MOBIL */
+      .top-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        padding: 6px 10px;
+      }
+      .top-row-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+      }
+      .top-row-sub {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        width: 100%;
+      }
+
+      .workspace-container {
+        grid-template-columns: 1fr;
+        height: calc(100vh - 72px); /* Anpassat efter 2-radig mobil-topbar */
+      }
       .sidebar {
         position: fixed;
         top: 0; left: 0; bottom: 0;
@@ -539,22 +576,27 @@
 
   <div class="mobile-backdrop" id="mobile-backdrop" onclick="closeMobileSidebar()"></div>
 
-  <!-- TOPP-VERKTYGSFÄLT: HELT STÄDAT -->
+  <!-- TOPP-VERKTYGSFÄLT: MOBIL-OPTIMERING I 2 RADER -->
   <div class="top-bar">
-    <div class="top-left">
-      <button class="btn-menu-toggle" onclick="toggleMobileSidebar()" id="btn-toggle-menu">☰ Meny</button>
-      <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.18</span></span>
-      <div style="display:flex; align-items:center; gap:4px; margin-left:4px;">
-        <span style="color:var(--text-muted);" id="lbl-top-lib">Bibliotek:</span>
-        <select id="sel-library" onchange="switchLibrary(this.value)" title="Välj bibliotek"></select>
-        <button onclick="createNewLibraryPrompt()" id="btn-top-new-lib">+ Nytt</button>
+    <!-- RAD 1: MENY, TITEL, SÖK & VERKTYG -->
+    <div class="top-row-main">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <button class="btn-menu-toggle" onclick="toggleMobileSidebar()" id="btn-toggle-menu">☰ Meny</button>
+        <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.18.1</span></span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search">🔍 Sök</button>
+        <button onclick="openToolsModal()" id="btn-tools" style="font-weight:700; background:var(--accent); color:#fff; border-color:var(--accent);">⚙ Verktyg</button>
       </div>
     </div>
 
-    <!-- HÖGER: BARA FILTER OCH VERKTYG-MENY -->
-    <div class="top-right">
-      <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search">🔍 Filtersök</button>
-      <button onclick="openToolsModal()" id="btn-tools" style="font-weight:600;">⚙ Verktyg</button>
+    <!-- RAD 2: BIBLIOTEKSVÄXLARE -->
+    <div class="top-row-sub">
+      <div style="display:flex; align-items:center; gap:4px; width:100%;">
+        <span style="color:var(--text-muted); font-size:10px;" id="lbl-top-lib">Bibliotek:</span>
+        <select id="sel-library" onchange="switchLibrary(this.value)" style="flex-grow:1;" title="Välj bibliotek"></select>
+        <button onclick="createNewLibraryPrompt()" id="btn-top-new-lib">+ Nytt</button>
+      </div>
     </div>
   </div>
 
@@ -573,12 +615,17 @@
         <div class="quick-search-dropdown" id="quick-search-dropdown"></div>
       </div>
       <div class="tree-view" id="tree-root"></div>
+
+      <!-- MOBIL-GENVÄG TILL VERKTYG LÄNGST NER I MENYN -->
+      <div style="padding:8px; border-top:1px solid var(--border); background:rgba(0,0,0,0.1);">
+        <button onclick="openToolsModal(); closeMobileSidebar();" style="width:100%; justify-content:center; font-weight:bold;">⚙ Inställningar & Verktyg</button>
+      </div>
     </div>
 
-    <!-- MITTEN: HUVUDYTA -->
-    <div class="main-content">
+    <!-- MITTEN: HUVUDYTA (UNIVERSAL SMOOTH SCROLL) -->
+    <div class="main-content" id="main-scroll-container">
       
-      <!-- VY 1: OBJEKTPROFIL (KOMPAKT & UTAN "OBJEKTPROFIL:") -->
+      <!-- VY 1: OBJEKTPROFIL -->
       <div class="content-panel" id="view-object" style="display:none;">
         <div class="profile-hero">
           <div class="hero-title">
@@ -602,7 +649,7 @@
         </div>
 
         <!-- LISTA ÖVER INLINE-KATEGORIER -->
-        <div id="obj-categories-container" style="overflow-y:auto; flex-grow:1; display:flex; flex-direction:column; gap:4px;"></div>
+        <div id="obj-categories-container"></div>
       </div>
 
       <!-- VY 2: EGENSKAPSDETALJER I FULLVY -->
@@ -625,8 +672,8 @@
           </div>
           <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:10px; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <span style="font-weight:700; color:var(--text-muted); text-transform:uppercase;" id="lbl-featured-objs">Förekommer i örter/objekt</span>
-              <button onclick="openConnectObjectsModal()" id="btn-connect-obj">+ Koppla objekt</button>
+              <span style="font-weight:700; color:var(--text-muted); text-transform:uppercase;" id="lbl-featured-objs">Förekommer i örter</span>
+              <button onclick="openConnectObjectsModal()" id="btn-connect-obj">+ Koppla ört</button>
             </div>
             <div id="prop-featured-objs-list" style="flex-grow:1; overflow-y:auto; border:1px solid var(--border); background:var(--bg-input); border-radius:var(--radius); padding:4px;"></div>
           </div>
@@ -726,7 +773,7 @@
 
   </div>
 
-  <!-- MODAL: VERKTYG & INSTÄLLNINGAR (STÄDAR BORT KNAPP-VÄGGEN FRÅN TOPPBAREN) -->
+  <!-- MODAL: VERKTYG & INSTÄLLNINGAR -->
   <div class="modal-overlay" id="modal-tools">
     <div class="modal-box">
       <div class="modal-header">
@@ -771,7 +818,7 @@
       </div>
       <div class="modal-body">
         <label>Skriv en eller flera egenskaper (separera med kommatecken):</label>
-        <textarea id="modal-cat-tags-input" rows="3" placeholder="t.ex. Varm, Torr, Bitter Tonic..."></textarea>
+        <textarea id="modal-cat-tags-input" rows="3" placeholder="t.ex. Varm, Stark, Bitter Tonic..."></textarea>
         <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
           <button class="primary" onclick="confirmBatchCatAdd()">Spara & Tilldela</button>
           <button onclick="closeModal('modal-add-to-cat')">Avbryt</button>
@@ -857,7 +904,7 @@ const i18n = {
   sv: {
     topLib: "Bibliotek:",
     btnTopNewLib: "+ Nytt",
-    btnModeSearch: "🔍 Filtersök",
+    btnModeSearch: "🔍 Sök",
     btnTools: "⚙ Verktyg",
     treeObjects: "📁 Örter & Objekt",
     treeIndex: "📁 Taxonomi Index",
@@ -934,7 +981,7 @@ const i18n = {
   en: {
     topLib: "Library:",
     btnTopNewLib: "+ New",
-    btnModeSearch: "🔍 Filter Search",
+    btnModeSearch: "🔍 Search",
     btnTools: "⚙ Tools",
     treeObjects: "📁 Herbs & Objects",
     treeIndex: "📁 Taxonomy Index",
@@ -1198,7 +1245,7 @@ const defaultAppData = {
 };
 
 let appData = defaultAppData;
-const stored = localStorage.getItem("taxonomy_ide_v18") || localStorage.getItem("taxonomy_ide_v17_5");
+const stored = localStorage.getItem("taxonomy_ide_v18_1") || localStorage.getItem("taxonomy_ide_v18");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -1226,7 +1273,7 @@ function currentLib() {
 }
 
 function persist() {
-  localStorage.setItem("taxonomy_ide_v18", JSON.stringify(appData));
+  localStorage.setItem("taxonomy_ide_v18_1", JSON.stringify(appData));
 }
 
 function getDisplayObjName(obj) {
@@ -1643,7 +1690,7 @@ function renderTree() {
   root.appendChild(trashNode);
 }
 
-// ==================== 2. OBJEKTPROFIL: FRANKS NYA INLINE-LAYOUT ====================
+// ==================== 2. OBJEKTPROFIL: INLINE-LAYOUT ====================
 function toggleHideUntagged(isChecked) {
   currentLib().hideUntagged = isChecked;
   persist();
@@ -1667,7 +1714,6 @@ function renderObjectView() {
   const obj = lib.objects.find(o => o.id === selectedObjId);
   if (!obj) return;
 
-  // Ingen "Objektprofil:" – bara namnet på egen rad
   document.getElementById("obj-title-name").innerText = getDisplayObjName(obj);
   document.getElementById("chk-hide-untagged").checked = !!lib.hideUntagged;
   document.getElementById("chk-system-colors").checked = !!lib.useSystemColors;
@@ -1688,7 +1734,6 @@ function renderObjectView() {
       }
     });
 
-    // Franks önskemål: Dölj otaggade rader
     if (lib.hideUntagged && assigned.length === 0) {
       return;
     }
@@ -1732,7 +1777,6 @@ function renderObjectView() {
   });
 }
 
-// ÖPPNA MODAL FÖR ATT LÄGGA TILL I EN SPECIFIK KATEGORI
 function openCatAddModal(catName) {
   activeModalCat = catName;
   document.getElementById("modal-cat-name-display").innerText = catName;
@@ -2347,7 +2391,7 @@ function renderSearchView() {
 function updateLibrarySelect() {
   const sel = document.getElementById("sel-library");
   sel.innerHTML = Object.entries(appData.libraries).map(([id, lib]) => 
-    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${lib.name}</option>`
+    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${getDisplayLibName(lib)}</option>`
   ).join("");
 }
 
