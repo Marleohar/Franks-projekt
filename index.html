@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Universal Taxonomy IDE v0.18.1 [Mobile Top-Bar & Universal Scroll Fix]</title>
+  <title>Universal Taxonomy IDE v0.18.2 [Bugfix Engine]</title>
   <style>
     /* ==================== TEMA 1: IDE / DARK ==================== */
     [data-theme="ide"] {
@@ -93,7 +93,7 @@
       user-select: none;
     }
 
-    /* TOPPVERKTYGSFÄLT: DESKTOP */
+    /* TOPPVERKTYGSFÄLT */
     .top-bar {
       background: var(--bg-panel);
       border-bottom: 1px solid var(--border);
@@ -120,17 +120,6 @@
       gap: 6px;
     }
 
-    .btn-menu-toggle {
-      display: none;
-      background: var(--accent);
-      color: #fff;
-      font-weight: bold;
-      border: 1px solid var(--accent);
-      padding: 4px 8px;
-      border-radius: var(--radius);
-      cursor: pointer;
-    }
-
     button, select, input, textarea {
       font-family: inherit;
       font-size: 11px;
@@ -154,7 +143,7 @@
     button.primary:hover { background: var(--accent-hover); }
     button.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
-    /* WORKSPACE */
+    /* WORKSPACE GRID */
     .workspace-container {
       display: grid;
       grid-template-columns: 280px 1fr auto;
@@ -162,6 +151,15 @@
       height: calc(100vh - 42px);
       overflow: hidden;
       position: relative;
+      transition: grid-template-columns 0.2s ease;
+    }
+
+    /* NÄR SIDOMENYN FÄLLS IHOP PÅ DATORN */
+    .workspace-container.sidebar-collapsed {
+      grid-template-columns: 0px 1fr auto;
+    }
+    .workspace-container.sidebar-collapsed .sidebar {
+      display: none;
     }
 
     /* VÄNSTER: FILMENY */
@@ -172,6 +170,7 @@
       flex-direction: column;
       height: 100%;
       position: relative;
+      overflow: hidden;
     }
     .quick-search-box {
       padding: 8px;
@@ -271,7 +270,7 @@
       color: var(--accent-active);
     }
 
-    /* MITTEN: ARBETSYTA (UNIVERSAL SCROLL CONTAINER) */
+    /* MITTEN: ARBETSYTA */
     .main-content {
       background: var(--bg-main);
       display: flex;
@@ -314,7 +313,6 @@
       color: var(--text);
     }
 
-    /* KATEGORILISTA (UTAN INRE SCROLL-LÅS) */
     #obj-categories-container {
       display: flex;
       flex-direction: column;
@@ -322,7 +320,7 @@
       width: 100%;
     }
 
-    /* KOMPAKT INLINE-LAYOUT FÖR KATEGORIER */
+    /* INLINE KATEGORIRAD */
     .inline-category-row {
       display: flex;
       align-items: flex-start;
@@ -338,7 +336,7 @@
       background: var(--bg-card-hover);
     }
     .inline-cat-label {
-      width: 160px;
+      width: 170px;
       flex-shrink: 0;
       font-weight: 700;
       font-size: 11px;
@@ -513,11 +511,8 @@
       z-index: 2500;
     }
 
-    /* ==================== MOBILANPASSNING (2-RADERS TOP-BAR & SCROLL) ==================== */
+    /* MOBILANPASSNING */
     @media (max-width: 820px) {
-      .btn-menu-toggle { display: inline-flex; }
-      
-      /* TOP-BAR BLIR 2 TYDLIGA RADER PÅ MOBIL */
       .top-bar {
         flex-direction: column;
         align-items: stretch;
@@ -540,7 +535,7 @@
 
       .workspace-container {
         grid-template-columns: 1fr;
-        height: calc(100vh - 72px); /* Anpassat efter 2-radig mobil-topbar */
+        height: calc(100vh - 74px);
       }
       .sidebar {
         position: fixed;
@@ -574,15 +569,14 @@
 </head>
 <body>
 
-  <div class="mobile-backdrop" id="mobile-backdrop" onclick="closeMobileSidebar()"></div>
+  <div class="mobile-backdrop" id="mobile-backdrop" onclick="toggleSidebar(false)"></div>
 
-  <!-- TOPP-VERKTYGSFÄLT: MOBIL-OPTIMERING I 2 RADER -->
+  <!-- TOPP-VERKTYGSFÄLT -->
   <div class="top-bar">
-    <!-- RAD 1: MENY, TITEL, SÖK & VERKTYG -->
     <div class="top-row-main">
       <div style="display:flex; align-items:center; gap:6px;">
-        <button class="btn-menu-toggle" onclick="toggleMobileSidebar()" id="btn-toggle-menu">☰ Meny</button>
-        <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.18.1</span></span>
+        <button onclick="toggleSidebar()" id="btn-toggle-menu" style="font-weight:bold;">☰ Meny</button>
+        <span class="app-title">⚡ TAXONOMY IDE <span style="font-size:10px; color:#666;">v0.18.2</span></span>
       </div>
       <div style="display:flex; align-items:center; gap:6px;">
         <button onclick="setWorkspaceView('SEARCH')" id="btn-mode-search">🔍 Sök</button>
@@ -590,7 +584,6 @@
       </div>
     </div>
 
-    <!-- RAD 2: BIBLIOTEKSVÄXLARE -->
     <div class="top-row-sub">
       <div style="display:flex; align-items:center; gap:4px; width:100%;">
         <span style="color:var(--text-muted); font-size:10px;" id="lbl-top-lib">Bibliotek:</span>
@@ -600,14 +593,14 @@
     </div>
   </div>
 
-  <!-- 3-KOLUMNS CONTAINER -->
-  <div class="workspace-container">
+  <!-- WORKSPACE -->
+  <div class="workspace-container" id="main-workspace-container">
     
     <!-- VÄNSTER: FILMENY -->
     <div class="sidebar" id="sidebar-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid var(--border);">
         <b style="color:var(--accent-active);">EXPLORER</b>
-        <button onclick="closeMobileSidebar()" style="font-size:11px; padding:2px 6px;">✕ Stäng</button>
+        <button onclick="toggleSidebar(false)" style="font-size:11px; padding:2px 6px;">✕ Stäng</button>
       </div>
       <div class="quick-search-box">
         <input type="text" id="quick-search-input" placeholder="Quick Search..." 
@@ -616,13 +609,12 @@
       </div>
       <div class="tree-view" id="tree-root"></div>
 
-      <!-- MOBIL-GENVÄG TILL VERKTYG LÄNGST NER I MENYN -->
       <div style="padding:8px; border-top:1px solid var(--border); background:rgba(0,0,0,0.1);">
-        <button onclick="openToolsModal(); closeMobileSidebar();" style="width:100%; justify-content:center; font-weight:bold;">⚙ Inställningar & Verktyg</button>
+        <button onclick="openToolsModal(); toggleSidebar(false);" style="width:100%; justify-content:center; font-weight:bold;">⚙ Inställningar & Verktyg</button>
       </div>
     </div>
 
-    <!-- MITTEN: HUVUDYTA (UNIVERSAL SMOOTH SCROLL) -->
+    <!-- MITTEN: HUVUDYTA -->
     <div class="main-content" id="main-scroll-container">
       
       <!-- VY 1: OBJEKTPROFIL -->
@@ -648,7 +640,6 @@
           </div>
         </div>
 
-        <!-- LISTA ÖVER INLINE-KATEGORIER -->
         <div id="obj-categories-container"></div>
       </div>
 
@@ -665,9 +656,9 @@
           <div>
             <div class="form-group"><label id="lbl-prop-name">Egenskapsnamn</label><input type="text" id="prop-edit-name"></div>
             <div class="form-group"><label id="lbl-prop-cat">Kategori & System</label><select id="prop-edit-cat"></select></div>
-            <div class="form-group"><label id="lbl-prop-desc">Beskrivning [Type here]</label><textarea id="prop-edit-desc" rows="3"></textarea></div>
-            <div class="form-group"><label id="lbl-prop-links">Webblänkar (External Links)</label><textarea id="prop-edit-links" rows="2"></textarea></div>
-            <div class="form-group"><label id="lbl-prop-sources">Bokkällor & Referenser (Books & Sources)</label><textarea id="prop-edit-sources" rows="2"></textarea></div>
+            <div class="form-group"><label id="lbl-prop-desc">Beskrivning</label><textarea id="prop-edit-desc" rows="3"></textarea></div>
+            <div class="form-group"><label id="lbl-prop-links">Webblänkar</label><textarea id="prop-edit-links" rows="2"></textarea></div>
+            <div class="form-group"><label id="lbl-prop-sources">Bokkällor & Referenser</label><textarea id="prop-edit-sources" rows="2"></textarea></div>
             <div class="form-group"><label id="lbl-prop-opp">Motsatspol (Opposite)</label><select id="prop-edit-opposite"></select></div>
           </div>
           <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:10px; display:flex; flex-direction:column;">
@@ -782,7 +773,7 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label id="lbl-modal-theme">🎨 Gränssnittstema:</label>
+          <label>🎨 Gränssnittstema:</label>
           <select id="sel-theme" onchange="switchTheme(this.value)">
             <option value="ide">IDE / Dark (Hög informationsdensitet)</option>
             <option value="modern">Modern / Clean (Mobil & Dashboard)</option>
@@ -809,7 +800,7 @@
     </div>
   </div>
 
-  <!-- MODAL: TILLDELA EGENSKAPER (KOMMA-SEPARERAT TILL EN KATEGORI) -->
+  <!-- MODAL: TILLDELA EGENSKAPER TILL KATEGORI -->
   <div class="modal-overlay" id="modal-add-to-cat">
     <div class="modal-box">
       <div class="modal-header">
@@ -899,6 +890,16 @@ const systemThemeAccents = {
   }
 };
 
+// ==================== KRASCHSÄKRA HJÄLPFUNKTIONER ====================
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.innerText = text;
+}
+function setPlaceholder(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.placeholder = text;
+}
+
 // ==================== SPRÅKMOTOR ====================
 const i18n = {
   sv: {
@@ -920,9 +921,9 @@ const i18n = {
     commentLabel: "💬 Kommentar",
     lblPropName: "Egenskapsnamn",
     lblPropCat: "Kategori & System",
-    lblPropDesc: "Beskrivning [Type here]",
-    lblPropLinks: "Webblänkar (External Links)",
-    lblPropSources: "Bokkällor & Referenser (Books & Sources)",
+    lblPropDesc: "Beskrivning",
+    lblPropLinks: "Webblänkar",
+    lblPropSources: "Bokkällor & Referenser",
     lblPropOpp: "Motsatspol (Opposite)",
     noPolarity: "-- Ingen polaritet --",
     btnSaveProp: "Spara Ändringar",
@@ -971,7 +972,7 @@ const i18n = {
     promptNewFormulaName: "Ange namn på den nya formeln:",
     promptRenameFormula: "Ange nytt namn på formeln:",
     confirmDeleteFormula: "Är du säker på att du vill radera formeln '{0}'?",
-    promptBatchAdd: "Skriv egenskaper separerade med komma (placeras i passande kategorier):",
+    promptBatchAdd: "Skriv egenskaper separerade med komma:",
     metaSavedAlert: "Metadata sparad!",
     revivedAlert: "Markerade element har återställts!",
     purgeConfirm: "Är du säker på att du vill radera {0} obockade element permanent?",
@@ -997,8 +998,8 @@ const i18n = {
     commentLabel: "💬 Comment",
     lblPropName: "Property Name",
     lblPropCat: "Category & System",
-    lblPropDesc: "Description [Type here]",
-    lblPropLinks: "Web links (External Links)",
+    lblPropDesc: "Description",
+    lblPropLinks: "Web links",
     lblPropSources: "Book Sources & References",
     lblPropOpp: "Opposite (Polarity)",
     noPolarity: "-- No polarity --",
@@ -1059,7 +1060,7 @@ const i18n = {
 
 let currentLang = localStorage.getItem("ide_lang") || "sv";
 function t(key, ...args) {
-  let str = i18n[currentLang][key] || key;
+  let str = i18n[currentLang]?.[key] || i18n["sv"][key] || key;
   args.forEach((val, idx) => { str = str.replace(`{${idx}}`, val); });
   return str;
 }
@@ -1078,62 +1079,64 @@ function changeLanguage(lang) {
 
 function updateUILanguage() {
   document.documentElement.lang = currentLang;
-  document.getElementById("sel-lang").value = currentLang;
-  document.getElementById("lbl-top-lib").innerText = t("topLib");
-  document.getElementById("btn-top-new-lib").innerText = t("btnTopNewLib");
-  document.getElementById("btn-mode-search").innerText = t("btnModeSearch");
-  document.getElementById("btn-tools").innerText = t("btnTools");
+  const langSel = document.getElementById("sel-lang");
+  if (langSel) langSel.value = currentLang;
 
-  document.getElementById("lbl-hide-untagged").innerText = t("lblHideUntagged");
-  document.getElementById("lbl-sys-colors").innerText = t("lblSysColors");
-  document.getElementById("lbl-show-comments").innerText = t("lblShowComments");
-  document.getElementById("btn-obj-create-direct").innerText = t("btnObjCreateDirect");
-  document.getElementById("btn-add-to-formula").innerText = t("btnAddToFormula");
-  document.getElementById("btn-batch-add").innerText = t("btnBatchAdd");
+  setText("lbl-top-lib", t("topLib"));
+  setText("btn-top-new-lib", t("btnTopNewLib"));
+  setText("btn-mode-search", t("btnModeSearch"));
+  setText("btn-tools", t("btnTools"));
 
-  document.getElementById("lbl-prop-name").innerText = t("lblPropName");
-  document.getElementById("lbl-prop-cat").innerText = t("lblPropCat");
-  document.getElementById("lbl-prop-desc").innerText = t("lblPropDesc");
-  document.getElementById("lbl-prop-links").innerText = t("lblPropLinks");
-  document.getElementById("lbl-prop-sources").innerText = t("lblPropSources");
-  document.getElementById("lbl-prop-opp").innerText = t("lblPropOpp");
-  document.getElementById("btn-save-prop").innerText = t("btnSaveProp");
-  document.getElementById("lbl-featured-objs").innerText = t("lblFeaturedObjs");
-  document.getElementById("btn-connect-obj").innerText = t("btnConnectObj");
+  setText("lbl-hide-untagged", t("lblHideUntagged"));
+  setText("lbl-sys-colors", t("lblSysColors"));
+  setText("lbl-show-comments", t("lblShowComments"));
+  setText("btn-obj-create-direct", t("btnObjCreateDirect"));
+  setText("btn-add-to-formula", t("btnAddToFormula"));
+  setText("btn-batch-add", t("btnBatchAdd"));
 
-  document.getElementById("lbl-trash-title").innerText = t("lblTrashTitle");
-  document.getElementById("th-trash-keep").innerText = t("thTrashKeep");
-  document.getElementById("th-trash-name").innerText = t("thTrashName");
-  document.getElementById("th-trash-type").innerText = t("thTrashType");
-  document.getElementById("th-trash-date").innerText = t("thTrashDate");
-  document.getElementById("th-trash-orig").innerText = t("thTrashOrig");
-  document.getElementById("btn-purge-trash").innerText = t("btnPurgeTrash");
-  document.getElementById("btn-revive-trash").innerText = t("btnReviveTrash");
+  setText("lbl-prop-name", t("lblPropName"));
+  setText("lbl-prop-cat", t("lblPropCat"));
+  setText("lbl-prop-desc", t("lblPropDesc"));
+  setText("lbl-prop-links", t("lblPropLinks"));
+  setText("lbl-prop-sources", t("lblPropSources"));
+  setText("lbl-prop-opp", t("lblPropOpp"));
+  setText("btn-save-prop", t("btnSaveProp"));
+  setText("lbl-featured-objs", t("lblFeaturedObjs"));
+  setText("btn-connect-obj", t("btnConnectObj"));
 
-  document.getElementById("lbl-formula-title").innerText = t("lblFormulaTitle");
-  document.getElementById("btn-rename-form").innerText = t("btnRenameForm");
-  document.getElementById("btn-delete-form").innerText = t("btnDeleteForm");
-  document.getElementById("btn-formula-add").innerText = t("btnFormulaAdd");
-  document.getElementById("lbl-pinned-panel").innerText = t("lblPinnedPanel");
-  document.getElementById("btn-manage-pins").innerText = t("btnManagePins");
-  document.getElementById("th-form-comp").innerText = t("thFormComp");
-  document.getElementById("th-form-role").innerText = t("thFormRole");
-  document.getElementById("th-form-qty").innerText = t("thFormQty");
-  document.getElementById("th-form-share").innerText = t("thFormShare");
-  document.getElementById("lbl-polarity").innerText = t("lblPolarity");
-  document.getElementById("lbl-cumulative-eff").innerText = t("lblCumulativeEff");
-  document.getElementById("th-form-prop").innerText = t("thFormProp");
-  document.getElementById("th-form-syn").innerText = t("thFormSyn");
-  document.getElementById("th-form-eff").innerText = t("thFormEff");
+  setText("lbl-trash-title", t("lblTrashTitle"));
+  setText("th-trash-keep", t("thTrashKeep"));
+  setText("th-trash-name", t("thTrashName"));
+  setText("th-trash-type", t("thTrashType"));
+  setText("th-trash-date", t("thTrashDate"));
+  setText("th-trash-orig", t("thTrashOrig"));
+  setText("btn-purge-trash", t("btnPurgeTrash"));
+  setText("btn-revive-trash", t("btnReviveTrash"));
 
-  document.getElementById("lbl-search-title").innerText = t("lblSearchTitle");
-  document.getElementById("btn-apply-filter").innerText = t("btnApplyFilter");
-  document.getElementById("th-search-obj").innerText = t("thSearchObj");
-  document.getElementById("th-search-rel").innerText = t("thSearchRel");
-  document.getElementById("th-search-props").innerText = t("thSearchProps");
+  setText("lbl-formula-title", t("lblFormulaTitle"));
+  setText("btn-rename-form", t("btnRenameForm"));
+  setText("btn-delete-form", t("btnDeleteForm"));
+  setText("btn-formula-add", t("btnFormulaAdd"));
+  setText("lbl-pinned-panel", t("lblPinnedPanel"));
+  setText("btn-manage-pins", t("btnManagePins"));
+  setText("th-form-comp", t("thFormComp"));
+  setText("th-form-role", t("thFormRole"));
+  setText("th-form-qty", t("thFormQty"));
+  setText("th-form-share", t("thFormShare"));
+  setText("lbl-polarity", t("lblPolarity"));
+  setText("lbl-cumulative-eff", t("lblCumulativeEff"));
+  setText("th-form-prop", t("thFormProp"));
+  setText("th-form-syn", t("thFormSyn"));
+  setText("th-form-eff", t("thFormEff"));
+
+  setText("lbl-search-title", t("lblSearchTitle"));
+  setText("btn-apply-filter", t("btnApplyFilter"));
+  setText("th-search-obj", t("thSearchObj"));
+  setText("th-search-rel", t("thSearchRel"));
+  setText("th-search-props", t("thSearchProps"));
 }
 
-// ==================== DATABAS: FRANKS 4 MASTER SYSTEMS ====================
+// ==================== DATABAS ====================
 const defaultAppData = {
   activeLibId: "herbal",
   theme: "ide",
@@ -1245,25 +1248,29 @@ const defaultAppData = {
 };
 
 let appData = defaultAppData;
-const stored = localStorage.getItem("taxonomy_ide_v18_1") || localStorage.getItem("taxonomy_ide_v18");
+const stored = localStorage.getItem("taxonomy_ide_v18_2") || localStorage.getItem("taxonomy_ide_v18_1") || localStorage.getItem("taxonomy_ide_v18");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
-    if (parsed.libraries) appData = parsed;
+    if (parsed.libraries && Object.keys(parsed.libraries).length > 0) appData = parsed;
   } catch(e) { appData = defaultAppData; }
 }
 
 function currentLib() {
   if (!appData.libraries[appData.activeLibId]) {
-    appData.activeLibId = Object.keys(appData.libraries)[0];
+    appData.activeLibId = Object.keys(appData.libraries)[0] || "herbal";
   }
-  const lib = appData.libraries[appData.activeLibId];
+  let lib = appData.libraries[appData.activeLibId];
+  if (!lib) {
+    appData = defaultAppData;
+    lib = appData.libraries[appData.activeLibId];
+  }
   if (!lib.trash) lib.trash = [];
   if (!lib.treeOpen) lib.treeOpen = { "objects": true, "taxonomies": true, "formulas": true };
   if (lib.useSystemColors === undefined) lib.useSystemColors = true;
   if (lib.showComments === undefined) lib.showComments = true;
   if (lib.hideUntagged === undefined) lib.hideUntagged = false;
-  if (!lib.categoryOrder) lib.categoryOrder = Object.keys(lib.categories);
+  if (!lib.categoryOrder) lib.categoryOrder = Object.keys(lib.categories || {});
   if (!lib.systems) lib.systems = {};
   if (!lib.formulas) lib.formulas = { "Standardrecept": [] };
   if (!lib.activeFormulaName || !lib.formulas[lib.activeFormulaName]) {
@@ -1273,13 +1280,14 @@ function currentLib() {
 }
 
 function persist() {
-  localStorage.setItem("taxonomy_ide_v18_1", JSON.stringify(appData));
+  localStorage.setItem("taxonomy_ide_v18_2", JSON.stringify(appData));
 }
 
 function getDisplayObjName(obj) {
+  if (!obj) return "";
   if (obj.id === "ginger") return currentLang === "en" ? "Ginger (Zingiber officinale)" : "Ingefära (Zingiber officinale)";
   if (obj.id === "peppermint") return currentLang === "en" ? "Peppermint (Mentha piperita)" : "Pepparmynta (Mentha piperita)";
-  return obj.name;
+  return obj.name || "";
 }
 
 function getDisplayFormulaName(name) {
@@ -1296,22 +1304,31 @@ let navigatedFromObjectId = null;
 let activeCommentTag = null;
 let activeModalCat = null;
 
-function toggleMobileSidebar() {
+// ==================== SIDEBAR TOGGLE (BÅDE DATOR & MOBIL) ====================
+function toggleSidebar(forceState) {
+  const isMobile = window.innerWidth <= 820;
   const sb = document.getElementById("sidebar-panel");
   const bd = document.getElementById("mobile-backdrop");
-  if (sb.classList.contains("open")) {
-    closeMobileSidebar();
-  } else {
-    sb.classList.add("open");
-    bd.style.display = "block";
-  }
-}
+  const ws = document.getElementById("main-workspace-container");
 
-function closeMobileSidebar() {
-  const sb = document.getElementById("sidebar-panel");
-  const bd = document.getElementById("mobile-backdrop");
-  if (sb) sb.classList.remove("open");
-  if (bd) bd.style.display = "none";
+  if (isMobile) {
+    const shouldOpen = forceState !== undefined ? forceState : !sb.classList.contains("open");
+    if (shouldOpen) {
+      sb.classList.add("open");
+      if (bd) bd.style.display = "block";
+    } else {
+      sb.classList.remove("open");
+      if (bd) bd.style.display = "none";
+    }
+  } else {
+    // Dator: Fäll ihop eller fäll ut grid-kolumnen
+    const shouldCollapse = forceState !== undefined ? !forceState : !ws.classList.contains("sidebar-collapsed");
+    if (shouldCollapse) {
+      ws.classList.add("sidebar-collapsed");
+    } else {
+      ws.classList.remove("sidebar-collapsed");
+    }
+  }
 }
 
 function openToolsModal() {
@@ -1321,7 +1338,8 @@ function openToolsModal() {
 function switchTheme(theme) {
   appData.theme = theme;
   document.documentElement.setAttribute("data-theme", theme);
-  document.getElementById("sel-theme").value = theme;
+  const themeSel = document.getElementById("sel-theme");
+  if (themeSel) themeSel.value = theme;
   persist();
   if (activeView === 'OBJECT') renderObjectView();
 }
@@ -1389,7 +1407,7 @@ function handleQuickSearch(query) {
       item.onclick = () => {
         dd.style.display = "none";
         document.getElementById("quick-search-input").value = "";
-        closeMobileSidebar();
+        toggleSidebar(false);
         if (h.type === "object") {
           selectedObjId = h.id;
           lib.treeOpen["objects"] = true;
@@ -1426,7 +1444,7 @@ function createObjectPrompt(event) {
   lib.objects.push({ id: newId, name: name.trim(), defaultRole: "Komponent", props: {} });
   selectedObjId = newId;
   persist();
-  closeMobileSidebar();
+  toggleSidebar(false);
   setWorkspaceView("OBJECT");
   renderTree();
 }
@@ -1510,7 +1528,7 @@ function createPropertyPrompt(catName, event) {
     };
     selectedPropName = propName;
     persist();
-    closeMobileSidebar();
+    toggleSidebar(false);
     setWorkspaceView("PROPERTY");
     renderTree();
   }
@@ -1524,7 +1542,7 @@ function promptCreateFormula(event) {
   lib.formulas[name.trim()] = [];
   lib.activeFormulaName = name.trim();
   persist();
-  closeMobileSidebar();
+  toggleSidebar(false);
   setWorkspaceView("FORMULA");
   renderTree();
 }
@@ -1532,6 +1550,7 @@ function promptCreateFormula(event) {
 function renderTree() {
   const lib = currentLib();
   const root = document.getElementById("tree-root");
+  if (!root) return;
   root.innerHTML = "";
 
   // 1. OBJECT INDEX
@@ -1558,7 +1577,7 @@ function renderTree() {
       leaf.onclick = (e) => {
         e.stopPropagation();
         selectedObjId = obj.id;
-        closeMobileSidebar();
+        toggleSidebar(false);
         setWorkspaceView("OBJECT");
       };
       wrap.appendChild(leaf);
@@ -1566,7 +1585,7 @@ function renderTree() {
     root.appendChild(wrap);
   }
 
-  // 2. TAG INDEX (SYSTEM -> KATEGORIER -> EGENSKAPER)
+  // 2. TAG INDEX
   const isTaxOpen = !!lib.treeOpen["taxonomies"];
   const taxFolder = document.createElement("div");
   taxFolder.innerHTML = `
@@ -1631,7 +1650,7 @@ function renderTree() {
                 pLeaf.onclick = (e) => {
                   e.stopPropagation();
                   selectedPropName = pName;
-                  closeMobileSidebar();
+                  toggleSidebar(false);
                   setWorkspaceView("PROPERTY");
                 };
                 propWrap.appendChild(pLeaf);
@@ -1670,7 +1689,7 @@ function renderTree() {
       fLeaf.onclick = (e) => {
         e.stopPropagation();
         lib.activeFormulaName = fName;
-        closeMobileSidebar();
+        toggleSidebar(false);
         setWorkspaceView("FORMULA");
       };
       fWrap.appendChild(fLeaf);
@@ -1682,7 +1701,7 @@ function renderTree() {
   const trashCount = lib.trash.length;
   const trashNode = document.createElement("div");
   trashNode.innerHTML = `
-    <div class="tree-node ${activeView === 'TRASH' ? 'active' : ''}" style="margin-top:8px; color:${trashCount > 0 ? 'var(--danger)' : 'inherit'};" onclick="setWorkspaceView('TRASH'); closeMobileSidebar();">
+    <div class="tree-node ${activeView === 'TRASH' ? 'active' : ''}" style="margin-top:8px; color:${trashCount > 0 ? 'var(--danger)' : 'inherit'};" onclick="setWorkspaceView('TRASH'); toggleSidebar(false);">
       <span>🗑</span> <b>${t("lblTrashTitle")}</b>
       <span class="tree-badge">${trashCount}</span>
     </div>
@@ -1690,7 +1709,7 @@ function renderTree() {
   root.appendChild(trashNode);
 }
 
-// ==================== 2. OBJEKTPROFIL: INLINE-LAYOUT ====================
+// ==================== 2. OBJEKTPROFIL ====================
 function toggleHideUntagged(isChecked) {
   currentLib().hideUntagged = isChecked;
   persist();
@@ -1711,28 +1730,36 @@ function toggleShowComments(isChecked) {
 
 function renderObjectView() {
   const lib = currentLib();
-  const obj = lib.objects.find(o => o.id === selectedObjId);
+  const obj = lib.objects.find(o => o.id === selectedObjId) || lib.objects[0];
   if (!obj) return;
+  selectedObjId = obj.id;
 
-  document.getElementById("obj-title-name").innerText = getDisplayObjName(obj);
-  document.getElementById("chk-hide-untagged").checked = !!lib.hideUntagged;
-  document.getElementById("chk-system-colors").checked = !!lib.useSystemColors;
-  document.getElementById("chk-show-comments").checked = !!lib.showComments;
+  setText("obj-title-name", getDisplayObjName(obj));
+  
+  const chkHide = document.getElementById("chk-hide-untagged");
+  if (chkHide) chkHide.checked = !!lib.hideUntagged;
+  const chkSys = document.getElementById("chk-system-colors");
+  if (chkSys) chkSys.checked = !!lib.useSystemColors;
+  const chkComm = document.getElementById("chk-show-comments");
+  if (chkComm) chkComm.checked = !!lib.showComments;
 
   const cont = document.getElementById("obj-categories-container");
+  if (!cont) return;
   cont.innerHTML = "";
 
   const currentTheme = appData.theme || "ide";
   const accents = systemThemeAccents[currentTheme] || systemThemeAccents.ide;
 
-  const cats = lib.categoryOrder || Object.keys(lib.categories);
+  const cats = lib.categoryOrder || Object.keys(lib.categories || {});
   cats.forEach(cat => {
     let assigned = [];
-    Object.keys(obj.props).forEach(pName => {
-      if (lib.properties[pName]?.category === cat) {
-        assigned.push({ name: pName, comment: obj.props[pName]?.comment || "" });
-      }
-    });
+    if (obj.props) {
+      Object.keys(obj.props).forEach(pName => {
+        if (lib.properties[pName]?.category === cat) {
+          assigned.push({ name: pName, comment: obj.props[pName]?.comment || "" });
+        }
+      });
+    }
 
     if (lib.hideUntagged && assigned.length === 0) {
       return;
@@ -1779,10 +1806,11 @@ function renderObjectView() {
 
 function openCatAddModal(catName) {
   activeModalCat = catName;
-  document.getElementById("modal-cat-name-display").innerText = catName;
-  document.getElementById("modal-cat-tags-input").value = "";
+  setText("modal-cat-name-display", catName);
+  const inp = document.getElementById("modal-cat-tags-input");
+  if (inp) { inp.value = ""; }
   document.getElementById("modal-add-to-cat").style.display = "flex";
-  document.getElementById("modal-cat-tags-input").focus();
+  if (inp) inp.focus();
 }
 
 function confirmBatchCatAdd() {
@@ -1813,6 +1841,7 @@ function confirmBatchCatAdd() {
           opposite: ""
         };
       }
+      if (!obj.props) obj.props = {};
       obj.props[resolved] = { comment: "" };
     });
     persist();
@@ -1890,7 +1919,7 @@ function renderPropertyView() {
   const meta = lib.properties[selectedPropName];
   if (!meta) return;
 
-  document.getElementById("prop-title-name").innerText = `${selectedPropName}`;
+  setText("prop-title-name", selectedPropName);
   document.getElementById("prop-edit-name").value = selectedPropName;
   document.getElementById("prop-edit-desc").value = meta.desc || "";
   document.getElementById("prop-edit-links").value = meta.links || "";
@@ -1909,7 +1938,7 @@ function renderPropertyView() {
 
   const featCont = document.getElementById("prop-featured-objs-list");
   featCont.innerHTML = "";
-  const matchingObjs = lib.objects.filter(o => o.props[selectedPropName] !== undefined);
+  const matchingObjs = lib.objects.filter(o => o.props && o.props[selectedPropName] !== undefined);
 
   if (matchingObjs.length === 0) {
     featCont.innerHTML = `<div style="color:var(--text-muted); font-style:italic; padding:6px;">${t("noFeaturedObjs")}</div>`;
@@ -1934,7 +1963,7 @@ function jumpToObj(objId) {
 function disconnectPropFromSpecificObj(objId) {
   const lib = currentLib();
   const obj = lib.objects.find(o => o.id === objId);
-  if (!obj) return;
+  if (!obj || !obj.props) return;
   delete obj.props[selectedPropName];
   persist();
   renderPropertyView();
@@ -1961,7 +1990,7 @@ function saveActiveProperty() {
     lib.properties[newName] = data;
     delete lib.properties[old];
     lib.objects.forEach(o => {
-      if (o.props[old]) { o.props[newName] = o.props[old]; delete o.props[old]; }
+      if (o.props && o.props[old]) { o.props[newName] = o.props[old]; delete o.props[old]; }
     });
     selectedPropName = newName;
   }
@@ -2002,7 +2031,7 @@ function promptDeleteFormula() {
 function renderFormulaView() {
   const lib = currentLib();
   const fName = lib.activeFormulaName || Object.keys(lib.formulas)[0];
-  document.getElementById("formula-header-name").innerText = getDisplayFormulaName(fName);
+  setText("formula-header-name", getDisplayFormulaName(fName));
 
   const backBtn = document.getElementById("btn-formula-back");
   if (navigatedFromObjectId) {
@@ -2089,7 +2118,7 @@ function calculateEffects(total, rows) {
     rows.forEach(r => {
       if (r.qty <= 0) return;
       const obj = lib.objects.find(o => o.id === r.objId);
-      if (!obj) return;
+      if (!obj || !obj.props) return;
 
       Object.keys(obj.props).forEach(p => {
         const cat = lib.properties[p]?.category;
@@ -2149,16 +2178,18 @@ function openCommentModal(pName, event) {
   if (event) event.stopPropagation();
   activeCommentTag = pName;
   const obj = currentLib().objects.find(o => o.id === selectedObjId);
-  document.getElementById("modal-comment-tag-title").innerText = pName;
-  document.getElementById("modal-comment-input").value = obj.props[pName]?.comment || "";
+  setText("modal-comment-tag-title", pName);
+  const inp = document.getElementById("modal-comment-input");
+  if (inp) inp.value = obj?.props?.[pName]?.comment || "";
   document.getElementById("modal-tag-comment").style.display = "flex";
-  document.getElementById("modal-comment-input").focus();
+  if (inp) inp.focus();
 }
 
 function saveTagComment() {
   const obj = currentLib().objects.find(o => o.id === selectedObjId);
   if (!obj || !activeCommentTag) return;
   const comment = document.getElementById("modal-comment-input").value.trim();
+  if (!obj.props) obj.props = {};
   if (!obj.props[activeCommentTag]) obj.props[activeCommentTag] = {};
   obj.props[activeCommentTag].comment = comment;
   persist();
@@ -2170,7 +2201,7 @@ function trashPropFromObj(pName, event) {
   if (event) event.stopPropagation();
   const lib = currentLib();
   const obj = lib.objects.find(o => o.id === selectedObjId);
-  if (!obj) return;
+  if (!obj || !obj.props) return;
 
   lib.trash.push({
     id: "del_" + Date.now(),
@@ -2192,7 +2223,7 @@ function openAddToFormulaModal() {
   const lib = currentLib();
   const obj = lib.objects.find(o => o.id === selectedObjId);
   if (!obj) return;
-  document.getElementById("modal-add-form-obj-display").innerText = `${t("btnAddToFormula")}: '${getDisplayObjName(obj)}'`;
+  setText("modal-add-form-obj-display", `${t("btnAddToFormula")}: '${getDisplayObjName(obj)}'`);
   const sel = document.getElementById("modal-sel-existing-formula");
   sel.innerHTML = Object.keys(lib.formulas).map(f => `<option value="${f}">${getDisplayFormulaName(f)}</option>`).join("");
   document.getElementById("modal-input-new-formula").value = "";
@@ -2225,6 +2256,7 @@ function openBatchAddPrompt() {
   const terms = input.split(",").map(s => s.trim()).filter(Boolean);
   const lib = currentLib();
   const obj = lib.objects.find(o => o.id === selectedObjId);
+  if (!obj) return;
 
   terms.forEach(term => {
     let resolved = term;
@@ -2236,6 +2268,7 @@ function openBatchAddPrompt() {
         }
       }
     }
+    if (!obj.props) obj.props = {};
     if (lib.properties[resolved]) {
       obj.props[resolved] = { comment: "" };
     } else {
@@ -2295,7 +2328,10 @@ function reviveKeptTrash() {
   kept.forEach(item => {
     if (item.restoreData.targetType === "object_prop") {
       const obj = lib.objects.find(o => o.id === item.restoreData.objId);
-      if (obj) obj.props[item.restoreData.propName] = { comment: "" };
+      if (obj) {
+        if (!obj.props) obj.props = {};
+        obj.props[item.restoreData.propName] = { comment: "" };
+      }
     }
   });
 
@@ -2368,7 +2404,7 @@ function renderSearchView() {
 
   let res = [];
   lib.objects.forEach(obj => {
-    let match = activeSearchFilters.filter(f => obj.props[f] !== undefined);
+    let match = activeSearchFilters.filter(f => obj.props && obj.props[f] !== undefined);
     if (match.length > 0) {
       res.push({ id: obj.id, name: getDisplayObjName(obj), pct: Math.round((match.length / activeSearchFilters.length) * 100), match });
     }
@@ -2390,8 +2426,9 @@ function renderSearchView() {
 // ==================== 9. BIBLIOTEK OCH BACKUP ====================
 function updateLibrarySelect() {
   const sel = document.getElementById("sel-library");
+  if (!sel) return;
   sel.innerHTML = Object.entries(appData.libraries).map(([id, lib]) => 
-    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${getDisplayLibName(lib)}</option>`
+    `<option value="${id}" ${id === appData.activeLibId ? 'selected' : ''}>${lib.name || id}</option>`
   ).join("");
 }
 
@@ -2469,12 +2506,16 @@ function loadMasterTemplate() {
   alert(t("templateLoadedAlert"));
 }
 
-// ==================== UPPSTART ====================
-switchTheme(appData.theme || "ide");
-updateUILanguage();
-updateLibrarySelect();
-renderTree();
-setWorkspaceView("OBJECT");
+// ==================== INITIALISERING ====================
+try {
+  switchTheme(appData.theme || "ide");
+  updateUILanguage();
+  updateLibrarySelect();
+  renderTree();
+  setWorkspaceView("OBJECT");
+} catch(err) {
+  console.error("Uppstartsfel:", err);
+}
 </script>
 
 </body>
