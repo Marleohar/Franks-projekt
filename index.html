@@ -3,42 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ört-Wiki (Herbal Taxonomy)</title>
+  <title>Ört-Wiki (Wikipedia Style)</title>
   <style>
     :root {
-      --bg: #14161d;
-      --card-bg: #1d212c;
-      --card-hover: #262b3a;
-      --border: #31384a;
-      --text: #f0f3f8;
-      --text-muted: #9ba3b8;
-      --accent: #5e8bff;
-      --accent-hover: #4575f6;
-      --accent-gold: #f59e0b;
-      --danger: #ef476f;
-      --tag-bg: #28334d;
-      --tag-border: #3f517a;
-      --tag-text: #b8d2ff;
-      --radius: 6px;
+      --bg: #ffffff;
+      --text: #202122;
+      --text-muted: #54595d;
+      --link: #0645ad;
+      --link-hover: #0b0080;
+      --link-new: #a55858;
+      --border-wiki: #a2a9b1;
+      --border-subtle: #eaecf0;
+      --accent-gold: #c27803;
+      --danger: #d33;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Liberation Sans", Arial, sans-serif;
       font-size: 16px;
-      line-height: 1.5;
+      line-height: 1.6;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    /* TOPPVERKTYG / WIKI-NAVIGERING */
+    /* TOPPVERKTYG / WIKIPEDIA-STYLE HEADER */
     header.wiki-header {
-      background: var(--card-bg);
-      border-bottom: 1px solid var(--border);
-      padding: 10px 16px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-wiki);
+      padding: 10px 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -47,9 +43,10 @@
       z-index: 100;
     }
     .header-logo {
+      font-size: 20px;
       font-weight: 700;
-      font-size: 18px;
-      color: var(--accent-gold);
+      font-family: "Linux Libertine", Georgia, Times, serif;
+      color: var(--text);
       text-decoration: none;
       display: flex;
       align-items: center;
@@ -58,200 +55,157 @@
     .header-nav {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
     .nav-link {
-      color: var(--text);
+      color: var(--link);
       text-decoration: none;
       font-size: 15px;
       font-weight: 600;
-      padding: 6px 10px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.03);
+      padding: 4px 6px;
     }
-    .nav-link:hover, .nav-link.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
+    .nav-link:hover {
+      text-decoration: underline;
+      color: var(--link-hover);
+    }
+    .nav-link.active {
+      color: var(--text);
+      font-weight: 800;
+      border-bottom: 2px solid var(--text);
     }
 
-    /* HUVUDCONTAINER (ENKEL VERTIKAL SIDA) */
+    /* WIKI ARTIKEL-CONTAINER (HELT RAMLÖS) */
     main.wiki-container {
-      max-width: 760px;
+      max-width: 820px;
       width: 100%;
       margin: 0 auto;
-      padding: 20px 16px 80px 16px;
+      padding: 24px 18px 80px 18px;
       flex-grow: 1;
     }
 
-    /* TYPOGRAFI & TITLAR */
-    h1.page-title {
-      font-size: 26px;
-      font-weight: 800;
-      margin-bottom: 10px;
+    /* WIKIPEDIA RUBRIKER */
+    h1.wiki-title {
+      font-family: "Linux Libertine", Georgia, Times, serif;
+      font-size: 29px;
+      font-weight: 400;
+      border-bottom: 1px solid var(--border-wiki);
+      padding-bottom: 6px;
+      margin-bottom: 16px;
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: space-between;
-      gap: 10px;
     }
-    .description-block {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      font-size: 16px;
-      margin-bottom: 24px;
-      position: relative;
-    }
-    .desc-header {
+    h2.wiki-section {
+      font-family: "Linux Libertine", Georgia, Times, serif;
+      font-size: 21px;
+      font-weight: 400;
+      border-bottom: 1px solid var(--border-wiki);
+      padding-bottom: 4px;
+      margin: 32px 0 12px 0;
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: space-between;
-      font-size: 13px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-weight: 700;
-      margin-bottom: 6px;
     }
-    .desc-text {
-      color: var(--text);
+
+    .wiki-action-link {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--link);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .wiki-action-link:hover { text-decoration: underline; }
+
+    /* PARAGRAFER & BESKRIVNING */
+    .wiki-paragraph {
+      margin-bottom: 16px;
+      color: #000000;
       white-space: pre-wrap;
     }
+    .wiki-paragraph i {
+      color: var(--text-muted);
+    }
 
-    /* KATEGORI- & EGENSKAPSRADER (INLINE) */
-    .row-list {
+    /* RAMLÖSA KATEGORIRADER */
+    .wiki-data-table {
+      width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-bottom: 24px;
+      gap: 6px;
+      margin: 16px 0 24px 0;
     }
-    .inline-row {
+    .wiki-data-row {
       display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: var(--radius);
-      background: var(--card-bg);
-      border: 1px solid var(--border);
+      align-items: baseline;
+      gap: 10px;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border-subtle);
     }
-    .row-label {
-      width: 160px;
+    .wiki-row-label {
+      width: 190px;
       flex-shrink: 0;
       font-weight: 700;
-      font-size: 15px;
-      color: var(--accent);
+      color: var(--link);
       text-decoration: none;
-      padding-top: 2px;
     }
-    .row-label:hover { text-decoration: underline; }
-    .row-items {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 6px;
+    .wiki-row-label:hover { text-decoration: underline; }
+    .wiki-row-content {
       flex-grow: 1;
+      display: inline;
     }
 
-    /* TAGG-LÄNKAR */
-    .tag-link {
-      background: var(--tag-bg);
-      border: 1px solid var(--tag-border);
-      color: var(--tag-text);
-      border-radius: var(--radius);
-      padding: 3px 8px;
-      font-size: 14px;
-      font-weight: 500;
+    /* LÄNKAR A LA WIKIPEDIA */
+    a.wiki-link {
+      color: var(--link);
       text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
     }
-    .tag-link:hover {
-      border-color: var(--accent);
-      background: var(--card-hover);
+    a.wiki-link:hover {
+      text-decoration: underline;
+      color: var(--link-hover);
     }
 
-    .btn-add-tag {
-      background: transparent;
-      border: 1px dashed var(--border);
-      color: var(--accent);
-      padding: 2px 8px;
-      border-radius: var(--radius);
-      font-weight: 700;
+    .btn-wiki-add {
+      color: var(--link);
+      text-decoration: none;
+      font-size: 13px;
       cursor: pointer;
-      font-size: 14px;
+      margin-left: 6px;
+      padding: 0 4px;
     }
-    .btn-add-tag:hover {
-      background: var(--accent);
-      color: #fff;
+    .btn-wiki-add:hover { text-decoration: underline; }
+
+    /* WIKI LISTOR */
+    ul.wiki-list {
+      margin: 8px 0 16px 20px;
+      padding: 0;
+    }
+    ul.wiki-list li {
+      margin-bottom: 6px;
     }
 
-    /* SEKTIONER (RELEVANS, FORMLER M.M.) */
-    .section-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin: 28px 0 12px 0;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 6px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .item-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 12px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      text-decoration: none;
-      color: var(--text);
-    }
-    .item-row:hover {
-      background: var(--card-hover);
-      border-color: var(--accent);
-    }
-
-    /* ALFABETISK HOPPLISTA (SIDA D) */
-    .alpha-bar {
+    /* A–Ö BOKSTAVSRAD */
+    .wiki-alpha-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
-      padding: 8px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      gap: 6px;
+      padding: 8px 0;
       margin-bottom: 16px;
-      position: sticky;
-      top: 58px;
-      z-index: 90;
+      border-bottom: 1px solid var(--border-wiki);
+      font-size: 15px;
     }
-    .alpha-btn {
-      padding: 4px 8px;
-      color: var(--text-muted);
+    .wiki-alpha-bar a {
+      color: var(--link);
       text-decoration: none;
-      font-weight: 700;
-      font-size: 14px;
-      border-radius: var(--radius);
+      padding: 2px 4px;
     }
-    .alpha-btn:hover {
-      background: var(--accent);
-      color: #fff;
-    }
+    .wiki-alpha-bar a:hover { text-decoration: underline; }
 
-    /* FORMULÄR, POPUPS & CHECKLISTOR */
+    /* POPUP / MODAL (STILREN WIKIPEDIA-RUTA) */
     .popup-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.4);
       display: none;
       justify-content: center;
       align-items: center;
@@ -259,23 +213,24 @@
       padding: 16px;
     }
     .popup-box {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      background: #ffffff;
+      border: 1px solid var(--border-wiki);
+      border-radius: 2px;
       max-width: 440px;
       width: 100%;
       max-height: 85vh;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     }
     .popup-header {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: 700;
+      font-size: 15px;
     }
     .popup-body {
       padding: 14px;
@@ -287,55 +242,70 @@
     .checklist-container {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      max-height: 260px;
+      gap: 4px;
+      max-height: 240px;
       overflow-y: auto;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-subtle);
       padding: 6px;
-      border-radius: var(--radius);
-      background: var(--bg);
+      background: #f8f9fa;
     }
     .check-label {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 6px;
+      padding: 4px;
       cursor: pointer;
-      border-radius: var(--radius);
+      font-size: 15px;
     }
-    .check-label:hover { background: var(--card-hover); }
+    .check-label:hover { background: #eaecf0; }
 
     input[type="text"], textarea {
       width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 8px 10px;
-      color: var(--text);
+      background: #ffffff;
+      border: 1px solid var(--border-wiki);
+      border-radius: 2px;
+      padding: 6px 8px;
+      color: #000;
       font-size: 15px;
       font-family: inherit;
     }
     input[type="text"]:focus, textarea:focus {
-      border-color: var(--accent);
+      border-color: var(--link);
       outline: none;
     }
-    button.btn {
-      background: var(--card-bg);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 8px 12px;
+
+    button.wiki-btn {
+      background: #f8f9fa;
+      color: #202122;
+      border: 1px solid var(--border-wiki);
+      border-radius: 2px;
+      padding: 5px 12px;
       font-size: 14px;
-      font-weight: 600;
       cursor: pointer;
     }
-    button.btn:hover { background: var(--card-hover); }
-    button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.wiki-btn:hover {
+      background: #ffffff;
+      border-color: #72777d;
+    }
+    button.wiki-btn.primary {
+      background: #36c;
+      border-color: #36c;
+      color: #fff;
+      font-weight: 700;
+    }
+    button.wiki-btn.primary:hover {
+      background: #447ff5;
+      border-color: #447ff5;
+    }
+    button.wiki-btn.danger {
+      color: var(--danger);
+      border-color: #faa;
+    }
   </style>
 </head>
 <body>
 
-  <!-- FAST TOPP-NAVIGERING -->
+  <!-- TOPP-NAVIGERING -->
   <header class="wiki-header">
     <a href="#index" class="header-logo">
       <span>🌿</span> <span>Ört-Wiki</span>
@@ -347,39 +317,39 @@
     </nav>
   </header>
 
-  <!-- HUVUDYTA: EN SIDA I TAGET -->
+  <!-- HUVUDDOKUMENT (EN SIDVY I TAGET) -->
   <main class="wiki-container" id="wiki-app"></main>
 
-  <!-- CHECKLIST-POPUP: BOCKA I/AV DIREKT ELLER SKAPA NYTT VID ENTER -->
+  <!-- POPUP: CHECKLISTA FÖR ATT BOCKA I/AV ELLER SKAPA VID ENTER -->
   <div class="popup-overlay" id="popup-checklist">
     <div class="popup-box">
       <div class="popup-header">
         <span id="popup-check-title">Hantera koppling</span>
-        <button class="btn" style="padding:2px 8px;" onclick="closePopup()">✕</button>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
-        <input type="text" id="popup-filter-input" placeholder="🔍 Filtrera eller skriv ny..." oninput="renderPopupList()">
+        <input type="text" id="popup-filter-input" placeholder="🔍 Skriv för att filtrera eller skapa..." oninput="renderPopupList()">
         <div class="checklist-container" id="popup-checklist-items"></div>
-        <div style="font-size:12px; color:var(--text-muted);">
-          * Bocka i/av för att spara direkt.<br>
-          * Skriv i sökrutan och tryck <b>Enter</b> för att skapa en helt ny post.
+        <div style="font-size:12px; color:var(--text-muted); line-height: 1.4;">
+          • Bocka i/ur för att spara direkt.<br>
+          • Skriv i sökrutan och tryck <b>Enter</b> för att skapa en helt ny post.
         </div>
       </div>
     </div>
   </div>
 
-  <!-- POPUP: REDIGERA BESKRIVNING -->
+  <!-- POPUP: REDIGERA TEXTBESKRIVNING -->
   <div class="popup-overlay" id="popup-editor">
     <div class="popup-box">
       <div class="popup-header">
-        <span id="popup-editor-title">Redigera beskrivning</span>
-        <button class="btn" style="padding:2px 8px;" onclick="closePopup()">✕</button>
+        <span id="popup-editor-title">Redigera artikeltext</span>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
-        <textarea id="popup-editor-input" rows="6"></textarea>
+        <textarea id="popup-editor-input" rows="8"></textarea>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button class="btn primary" onclick="saveDescription()">Spara</button>
-          <button class="btn" onclick="closePopup()">Avbryt</button>
+          <button class="wiki-btn primary" onclick="saveDescription()">Spara ändringar</button>
+          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
         </div>
       </div>
     </div>
@@ -388,18 +358,19 @@
 <script>
 // ==================== DATABAS & MASTER LAGRING ====================
 const MASTER_STORAGE_KEY = "taxonomy_ide_master_db";
+
 const defaultData = {
   objects: [
     {
       id: "ginger",
       name: "Ingefära (Zingiber officinale)",
-      desc: "Kraftigt värmande rot med bred användning vid kyla, illamående och matsmältningssvaghet.",
+      desc: "Ingefära är en flerårig ört med kraftig, förgrenad rotstock. Inom såväl västerländsk som ayurvedisk och kinesisk medicin används den främst som värmande katalysator, mot illamående och för att stimulera matsmältningselden.",
       props: { "Pungent": {}, "Mars": {}, "Fire": {}, "Carminative": {}, "Ushna": {}, "Vata -": {}, "Kapha -": {}, "Pitta +": {}, "Spleen": {}, "Stomach": {}, "Release Exterior": {} }
     },
     {
       id: "peppermint",
       name: "Pepparmynta (Mentha piperita)",
-      desc: "Kylande och aromatisk ört utmärkt för att skingra hetta, dämpa kramper och lugna sinnet.",
+      desc: "Pepparmynta är en aromatisk ört ur familjen kransblommiga växter. Den har en utpräglat svalkande kvalitet och används traditionellt för att dämpa hetta, lindra gallkramper och lugna spänningshuvudvärk.",
       props: { "Sheeta": {}, "Carminative": {}, "Pitta -": {}, "Stomach": {} }
     }
   ],
@@ -426,50 +397,39 @@ const defaultData = {
     "Actions (TCM)":         { system: "Traditional Chinese Medicine", desc: "" }
   },
   properties: {
-    "Pungent":    { category: "Tastes (Western)", desc: "Värmande och cirkulationsökande smak." },
+    "Pungent":    { category: "Tastes (Western)", desc: "Värmande och cirkulationsökande smak som skingrar stagnation." },
     "Excitation": { category: "Six Tissue States", desc: "Överhettat och irriterat vävnadstillstånd." },
-    "Depression": { category: "Six Tissue States", desc: "Kallt och underaktivt vävnadstillstånd." },
-    "Mars":       { category: "Planetary Ruler", desc: "Styr över skarp värme och drivkraft." },
-    "Fire":       { category: "Elemental Ruler", desc: "Eldelementet som transformerar och hettar upp." },
-    "Carminative":{ category: "Actions (Western)", desc: "Dämpar kramper och väderdelar i tarmen." },
-    "Ushna":      { category: "Gunas", desc: "Värmande metabol kvalitet." },
-    "Sheeta":     { category: "Gunas", desc: "Kylande metabol kvalitet." },
-    "Vata -":     { category: "Doshas", desc: "Lugnar och balanserar Vata-doshan." },
-    "Kapha -":    { category: "Doshas", desc: "Reducerar slem, tyngd och kyla." },
-    "Pitta +":    { category: "Doshas", desc: "Ökar hetta och matsmältningseld." },
-    "Pitta -":    { category: "Doshas", desc: "Kyler och lugnar Pitta-doshan." },
-    "Spleen":     { category: "Entered Channels", desc: "Påverkar Mjältens meridian och funktion." },
-    "Stomach":    { category: "Entered Channels", desc: "Påverkar Magsäckens meridian och nedåtgående energi." },
-    "Release Exterior": { category: "Actions (TCM)", desc: "Driver ut patogen kyla via svettning." }
+    "Depression": { category: "Six Tissue States", desc: "Kallt och underaktivt vävnadstillstånd med nedsatt funktion." },
+    "Mars":       { category: "Planetary Ruler", desc: "Kopplad till hetta, drivkraft och blodcirkulation." },
+    "Fire":       { category: "Elemental Ruler", desc: "Eldelementet som transformerar och tillför metabol värme." },
+    "Carminative":{ category: "Actions (Western)", desc: "Väderdelande och kramplindrande effekt på mag- och tarmkanalen." },
+    "Ushna":      { category: "Gunas", desc: "Värmande metabol kvalitet som stimulerar Agni." },
+    "Sheeta":     { category: "Gunas", desc: "Kylande metabol kvalitet som dämpar inflammation." },
+    "Vata -":     { category: "Doshas", desc: "Lugnar och balanserar Vata-doshan vid kyla och torka." },
+    "Kapha -":    { category: "Doshas", desc: "Reducerar överskott av slem, tyngd och vätskeansamling." },
+    "Pitta +":    { category: "Doshas", desc: "Ökar Pitta och bör användas varsamt vid akut hetta." },
+    "Pitta -":    { category: "Doshas", desc: "Kyler och balanserar en överhettad Pitta." },
+    "Spleen":     { category: "Entered Channels", desc: "Kanaliserar energi in i Mjältens meridian och matsmältningsfunktion." },
+    "Stomach":    { category: "Entered Channels", desc: "Riktar verkan mot Magsäckens nedåtgående energi." },
+    "Release Exterior": { category: "Actions (TCM)", desc: "Öppnar porerna och driver ut patogen vind-kyla via transpiration." }
   },
   formulas: {
     "Magbalans & Skärpa": {
-      desc: "Klassisk balanserande brygd mellan skarp värme och svalkande ro.",
+      desc: "Balanserande matsmältningsrecept som förenar ingefärans skarpa hetta med pepparmyntans svalkande kramplösning.",
       components: [
-        { objId: "ginger", role: "Drivande rot", qty: 2 },
-        { objId: "peppermint", role: "Kylande balans", qty: 3 }
+        { objId: "ginger", role: "Värmande rot", qty: 2 },
+        { objId: "peppermint", role: "Svalkande balans", qty: 3 }
       ]
     }
   }
 };
 
 let db = defaultData;
-const stored = localStorage.getItem(MASTER_STORAGE_KEY) || localStorage.getItem("taxonomy_ide_v18_2");
+const stored = localStorage.getItem(MASTER_STORAGE_KEY) || localStorage.getItem("taxonomy_ide_v18_3");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
-    if (parsed.libraries && parsed.libraries.herbal) {
-      const h = parsed.libraries.herbal;
-      db.objects = h.objects || db.objects;
-      db.categories = h.categories || db.categories;
-      db.properties = h.properties || db.properties;
-      if (h.formulas) {
-        db.formulas = {};
-        Object.entries(h.formulas).forEach(([fName, fArr]) => {
-          db.formulas[fName] = { desc: "", components: fArr };
-        });
-      }
-    } else if (parsed.objects) {
+    if (parsed.objects && parsed.categories) {
       db = parsed;
     }
   } catch(e) { db = defaultData; }
@@ -479,7 +439,7 @@ function persist() {
   localStorage.setItem(MASTER_STORAGE_KEY, JSON.stringify(db));
 }
 
-// ==================== WIKI ROUTING (URL HASH) ====================
+// ==================== WIKI NAVIGATION (URL HASH) ====================
 window.addEventListener("hashchange", handleRouting);
 window.addEventListener("DOMContentLoaded", () => {
   if (!window.location.hash) window.location.hash = "#index";
@@ -492,9 +452,9 @@ function handleRouting() {
   const app = document.getElementById("wiki-app");
 
   document.querySelectorAll(".nav-link").forEach(el => el.classList.remove("active"));
-  if (route === "index") document.getElementById("nav-index").classList.add("active");
-  if (route === "search") document.getElementById("nav-search").classList.add("active");
-  if (route === "formulas" || route === "formula") document.getElementById("nav-formulas").classList.add("active");
+  if (route === "index") document.getElementById("nav-index")?.classList.add("active");
+  if (route === "search") document.getElementById("nav-search")?.classList.add("active");
+  if (route === "formulas" || route === "formula") document.getElementById("nav-formulas")?.classList.add("active");
 
   window.scrollTo(0, 0);
 
@@ -507,14 +467,13 @@ function handleRouting() {
   else renderIndexPage();
 }
 
-// ==================== SIDA D: OBJEKTINDEX (A–Ö) ====================
+// ==================== SIDA D: OBJEKTINDEX (WIKIPEDIA LISTA) ====================
 function renderIndexPage() {
   const app = document.getElementById("wiki-app");
   const sorted = [...db.objects].sort((a,b) => a.name.localeCompare(b.name, 'sv'));
 
-  // Skapa bokstavslista
   const letters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","X","Y","Z","Å","Ä","Ö"];
-  const alphaHtml = letters.map(l => `<a href="#letter-${l}" class="alpha-btn">${l}</a>`).join("");
+  const alphaHtml = letters.map(l => `<a href="#letter-${l}">${l}</a>`).join(" · ");
 
   let listHtml = "";
   let currentLetter = "";
@@ -522,30 +481,33 @@ function renderIndexPage() {
   sorted.forEach(obj => {
     const first = obj.name.trim().charAt(0).toUpperCase();
     if (first !== currentLetter) {
+      if (currentLetter !== "") listHtml += `</ul>`;
       currentLetter = first;
-      listHtml += `<div id="letter-${currentLetter}" style="font-size:20px; font-weight:800; color:var(--accent-gold); margin:20px 0 8px 4px;">${currentLetter}</div>`;
+      listHtml += `<h2 class="wiki-section" id="letter-${currentLetter}">${currentLetter}</h2><ul class="wiki-list">`;
     }
     const tagCount = Object.keys(obj.props || {}).length;
     listHtml += `
-      <a href="#herb/${obj.id}" class="item-row">
-        <span style="font-weight:700; font-size:17px;">${obj.name}</span>
-        <span style="color:var(--text-muted); font-size:14px; font-family:monospace;">[${tagCount}]</span>
-      </a>
+      <li>
+        <a href="#herb/${obj.id}" class="wiki-link" style="font-weight:700;">${obj.name}</a>
+        <span style="color:var(--text-muted); font-size:13px; font-family:monospace;"> [${tagCount} egenskaper]</span>
+      </li>
     `;
   });
+  if (sorted.length > 0) listHtml += `</ul>`;
 
   app.innerHTML = `
-    <h1 class="page-title">
-      <span>Ört- & Objektindex</span>
-      <button class="btn primary" onclick="promptCreateHerb()">+ Ny Ört</button>
+    <h1 class="wiki-title">
+      <span>Ört- och växtindex</span>
+      <a class="wiki-action-link" onclick="promptCreateHerb()">[+ Skapa ny ört]</a>
     </h1>
-    <div class="alpha-bar">${alphaHtml}</div>
-    <div class="item-list">${listHtml}</div>
+    <div class="wiki-paragraph">Alfabetisk förteckning över samtliga registrerade växter, örter och mineraler i databasen.</div>
+    <div class="wiki-alpha-bar">${alphaHtml}</div>
+    <div>${listHtml}</div>
   `;
 }
 
 function promptCreateHerb() {
-  const name = prompt("Ange örtens/objektets namn:");
+  const name = prompt("Ange örtens namn:");
   if (!name || !name.trim()) return;
   const id = "herb_" + Date.now();
   db.objects.push({ id, name: name.trim(), desc: "", props: {} });
@@ -553,45 +515,40 @@ function promptCreateHerb() {
   window.location.hash = `#herb/${id}`;
 }
 
-// ==================== SIDA A: OBJEKTPROFIL (HERB) ====================
+// ==================== SIDA A: ÖRTPROFIL (HERB) ====================
 function renderHerbPage(herbId) {
   const app = document.getElementById("wiki-app");
   const obj = db.objects.find(o => o.id === herbId);
-  if (!obj) { app.innerHTML = `<h2>Örten hittades inte.</h2><a href="#index">Tillbaka</a>`; return; }
+  if (!obj) { app.innerHTML = `<h2>Artikeln existerar inte.</h2><a href="#index" class="wiki-link">Gå till index</a>`; return; }
 
-  // 1. Kategorirader
+  // 1. Kategorier & Egenskaper (Helt ramlöst med kommatecken)
   let rowsHtml = "";
   const catNames = Object.keys(db.categories);
 
   catNames.forEach(cat => {
     const assigned = Object.keys(obj.props || {}).filter(p => db.properties[p]?.category === cat);
-    let tagsHtml = assigned.map(p => `
-      <a href="#property/${encodeURIComponent(p)}" class="tag-link">
-        <span>${p}</span>
-      </a>
-    `).join("");
+    let tagsList = assigned.map(p => `<a href="#property/${encodeURIComponent(p)}" class="wiki-link">${p}</a>`).join(", ");
 
     rowsHtml += `
-      <div class="inline-row">
-        <a href="#category/${encodeURIComponent(cat)}" class="row-label">${cat}</a>
-        <div class="row-items">
-          ${tagsHtml}
-          <button class="btn-add-tag" onclick="openAssignPropertyPopup('${obj.id}', '${cat}')">[+]</button>
+      <div class="wiki-data-row">
+        <a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${cat}:</a>
+        <div class="wiki-row-content">
+          ${tagsList || '<i>inga</i>'}
+          <a class="btn-wiki-add" onclick="openAssignPropertyPopup('${obj.id}', '${cat}')">[+]</a>
         </div>
       </div>
     `;
   });
 
-  // 2. Formler som örten ingår i
+  // 2. Formler
   const formulasIn = Object.entries(db.formulas).filter(([_, fData]) => {
     return fData.components && fData.components.some(c => c.objId === obj.id);
   });
-  let formulasHtml = formulasIn.length === 0 ? `<i style="color:var(--text-muted);">Inga formler än.</i>` : formulasIn.map(([fName]) => `
-    <a href="#formula/${encodeURIComponent(fName)}" class="tag-link"><span>⚗ ${fName}</span></a>
-  `).join(" ");
+  let formulasHtml = formulasIn.length === 0 
+    ? `<i>Inga registrerade recept.</i>` 
+    : formulasIn.map(([fName]) => `<a href="#formula/${encodeURIComponent(fName)}" class="wiki-link">⚗ ${fName}</a>`).join(", ");
 
-  // 3. Besläktade objekt & relevansberäkning:
-  // Relevans = (Gemensamma taggar / Antalet kategorier hos örten) * 100%
+  // 3. Besläktade objekt: (Gemensamma / Totala kategorier hos örten) * 100%
   const totalCategories = Object.keys(db.categories).length || 20;
   const myProps = new Set(Object.keys(obj.props || {}));
 
@@ -607,133 +564,130 @@ function renderHerbPage(herbId) {
   });
   related.sort((a,b) => b.pct - a.pct || b.common - a.common);
 
-  let relatedHtml = related.length === 0 ? `<i style="color:var(--text-muted);">Inga besläktade örter funna än.</i>` : related.slice(0, 10).map(r => `
-    <a href="#herb/${r.id}" class="item-row">
-      <span>${r.name}</span>
-      <b style="color:var(--accent-gold); font-family:monospace;">${r.pct}% (${r.common} gemensamma)</b>
-    </a>
-  `).join("");
+  let relatedHtml = related.length === 0 
+    ? `<li><i>Inga besläktade örter funna än.</i></li>` 
+    : related.slice(0, 8).map(r => `
+      <li>
+        <a href="#herb/${r.id}" class="wiki-link" style="font-weight:700;">${r.name}</a>
+        — <span style="color:var(--text-muted);">${r.pct}% relevans (${r.common} gemensamma egenskaper)</span>
+      </li>
+    `).join("");
 
   app.innerHTML = `
-    <h1 class="page-title">
+    <h1 class="wiki-title">
       <span>${obj.name}</span>
-      <button class="btn" style="font-size:13px;" onclick="promptDeleteHerb('${obj.id}')">Radera</button>
+      <a class="wiki-action-link" style="color:var(--danger);" onclick="promptDeleteHerb('${obj.id}')">[radera ört]</a>
     </h1>
 
-    <div class="description-block">
-      <div class="desc-header">
-        <span>Beskrivning</span>
-        <button class="btn" style="padding:1px 6px; font-size:12px;" onclick="openEditor('herb', '${obj.id}')">🖋 Ändra</button>
-      </div>
-      <div class="desc-text">${obj.desc || '<i style="color:var(--text-muted);">Ingen beskrivning skriven än. Klicka på pennan för att lägga till.</i>'}</div>
+    <div class="wiki-paragraph">
+      <span style="float:right;">
+        <a class="wiki-action-link" onclick="openEditor('herb', '${obj.id}')">[redigera beskrivning]</a>
+      </span>
+      ${obj.desc || '<i>Denna artikel saknar tills vidare en encyklopedisk beskrivning.</i>'}
     </div>
 
-    <div class="row-list">${rowsHtml}</div>
-    <div style="margin-bottom:20px;">
-      <button class="btn" onclick="promptCreateCategory()">+ Lägg till ny kategori</button>
+    <h2 class="wiki-section">Taxonomisk klassificering</h2>
+    <div class="wiki-data-table">${rowsHtml}</div>
+    <div style="margin: 8px 0 24px 0;">
+      <a class="wiki-action-link" onclick="promptCreateCategory()">[+ Lägg till ny kategori]</a>
     </div>
 
-    <div class="section-title">Formler</div>
-    <div style="margin-bottom:24px;">${formulasHtml}</div>
+    <h2 class="wiki-section">Förekomst i formler och recept</h2>
+    <div class="wiki-paragraph">${formulasHtml}</div>
 
-    <div class="section-title">Besläktade Örter & Relevans</div>
-    <div class="item-list">${relatedHtml}</div>
+    <h2 class="wiki-section">Besläktade örter och relevans</h2>
+    <ul class="wiki-list">${relatedHtml}</ul>
   `;
 }
 
 function promptDeleteHerb(id) {
-  if (!confirm("Är du säker på att du vill radera denna ört?")) return;
+  if (!confirm("Vill du permanent radera denna ört ur wikin?")) return;
   db.objects = db.objects.filter(o => o.id !== id);
   persist();
   window.location.hash = "#index";
 }
 
-// ==================== SIDA B: EGENSKAPSPROFIL (PROPERTY) ====================
+// ==================== SIDA B: EGENSKAP (PROPERTY) ====================
 function renderPropertyPage(propName) {
   const app = document.getElementById("wiki-app");
   const prop = db.properties[propName];
-  if (!prop) { app.innerHTML = `<h2>Egenskapen '${propName}' hittades inte.</h2><a href="#index">Tillbaka</a>`; return; }
+  if (!prop) { app.innerHTML = `<h2>Egenskapen existerar inte.</h2><a href="#index" class="wiki-link">Tillbaka till index</a>`; return; }
 
-  // Örter med denna egenskap
   const herbsWith = db.objects.filter(o => o.props && o.props[propName] !== undefined);
-  let herbsHtml = herbsWith.length === 0 ? `<i style="color:var(--text-muted);">Inga örter har denna egenskap ännu.</i>` : herbsWith.map(o => `
-    <a href="#herb/${o.id}" class="item-row">
-      <span style="font-weight:600;">${o.name}</span>
-      <span style="color:var(--accent);">Öppna ➔</span>
-    </a>
-  `).join("");
+  let herbsList = herbsWith.length === 0 
+    ? `<li><i>Inga örter bär denna egenskap ännu.</i></li>` 
+    : herbsWith.map(o => `<li><a href="#herb/${o.id}" class="wiki-link" style="font-weight:700;">${o.name}</a></li>`).join("");
 
   app.innerHTML = `
-    <h1 class="page-title">
+    <h1 class="wiki-title">
       <span>${propName}</span>
-      <a href="#category/${encodeURIComponent(prop.category)}" class="btn" style="font-size:13px; text-decoration:none;">Kategori: ${prop.category}</a>
+      <a href="#category/${encodeURIComponent(prop.category)}" class="wiki-action-link">[Kategori: ${prop.category}]</a>
     </h1>
 
-    <div class="description-block">
-      <div class="desc-header">
-        <span>Beskrivning</span>
-        <button class="btn" style="padding:1px 6px; font-size:12px;" onclick="openEditor('prop', '${propName}')">🖋 Ändra</button>
-      </div>
-      <div class="desc-text">${prop.desc || '<i style="color:var(--text-muted);">Ingen beskrivning skriven än.</i>'}</div>
+    <div class="wiki-paragraph">
+      <span style="float:right;">
+        <a class="wiki-action-link" onclick="openEditor('prop', '${propName}')">[redigera beskrivning]</a>
+      </span>
+      ${prop.desc || '<i>Ingen förklarande text skriven för denna egenskap.</i>'}
     </div>
 
-    <div class="section-title">Örter med denna egenskap (${herbsWith.length})</div>
-    <div class="item-list">${herbsHtml}</div>
-    <div style="margin-top:10px;">
-      <button class="btn primary" onclick="openConnectHerbsToPropertyPopup('${propName}')">+ Koppla till ört</button>
-    </div>
+    <h2 class="wiki-section">
+      <span>Örter och preparat (${herbsWith.length})</span>
+      <a class="wiki-action-link" onclick="openConnectHerbsToPropertyPopup('${propName}')">[+ Koppla till ört]</a>
+    </h2>
+    <ul class="wiki-list">${herbsList}</ul>
   `;
 }
 
-// ==================== SIDA C: KATEGORIPROFIL (CATEGORY) ====================
+// ==================== SIDA C: KATEGORI (CATEGORY) ====================
 function renderCategoryPage(catName) {
   const app = document.getElementById("wiki-app");
   const cat = db.categories[catName];
-  if (!cat) { app.innerHTML = `<h2>Kategorin '${catName}' hittades inte.</h2><a href="#index">Tillbaka</a>`; return; }
+  if (!cat) { app.innerHTML = `<h2>Kategorin existerar inte.</h2><a href="#index" class="wiki-link">Tillbaka till index</a>`; return; }
 
-  // Egenskaper i kategorin och vilka örter som har vad
   const propsIn = Object.keys(db.properties).filter(p => db.properties[p].category === catName);
 
-  let rowsHtml = propsIn.length === 0 ? `<i style="color:var(--text-muted);">Inga egenskaper skapade under denna kategori.</i>` : propsIn.map(p => {
-    const herbs = db.objects.filter(o => o.props && o.props[p] !== undefined);
-    const herbsLinks = herbs.map(h => `<a href="#herb/${h.id}" class="tag-link"><span>${h.name}</span></a>`).join("");
-    return `
-      <div class="inline-row">
-        <a href="#property/${encodeURIComponent(p)}" class="row-label">${p}</a>
-        <div class="row-items">
-          ${herbsLinks || '<i style="color:var(--text-muted); font-size:13px;">Inga örter</i>'}
-          <button class="btn-add-tag" onclick="openConnectHerbsToPropertyPopup('${p}')">[+]</button>
+  let rowsHtml = propsIn.length === 0 
+    ? `<i>Inga egenskaper definierade under denna kategori.</i>` 
+    : propsIn.map(p => {
+      const herbs = db.objects.filter(o => o.props && o.props[p] !== undefined);
+      const herbsLinks = herbs.map(h => `<a href="#herb/${h.id}" class="wiki-link">${h.name}</a>`).join(", ");
+      return `
+        <div class="wiki-data-row">
+          <a href="#property/${encodeURIComponent(p)}" class="wiki-row-label">${p}:</a>
+          <div class="wiki-row-content">
+            ${herbsLinks || '<i>inga örter kopplade</i>'}
+            <a class="btn-wiki-add" onclick="openConnectHerbsToPropertyPopup('${p}')">[+]</a>
+          </div>
         </div>
-      </div>
-    `;
-  }).join("");
+      `;
+    }).join("");
 
   app.innerHTML = `
-    <h1 class="page-title">
-      <span>${catName}</span>
-      <span style="font-size:13px; color:var(--text-muted);">${cat.system || 'System'}</span>
+    <h1 class="wiki-title">
+      <span>Kategori: ${catName}</span>
+      <span style="font-size:14px; color:var(--text-muted);">[System: ${cat.system || 'Generellt'}]</span>
     </h1>
 
-    <div class="description-block">
-      <div class="desc-header">
-        <span>Beskrivning</span>
-        <button class="btn" style="padding:1px 6px; font-size:12px;" onclick="openEditor('cat', '${catName}')">🖋 Ändra</button>
-      </div>
-      <div class="desc-text">${cat.desc || '<i style="color:var(--text-muted);">Ingen beskrivning skriven än.</i>'}</div>
+    <div class="wiki-paragraph">
+      <span style="float:right;">
+        <a class="wiki-action-link" onclick="openEditor('cat', '${catName}')">[redigera beskrivning]</a>
+      </span>
+      ${cat.desc || '<i>Ingen beskrivning skriven för denna kategori.</i>'}
     </div>
 
-    <div class="section-title">Egenskaper & tillhörande örter</div>
-    <div class="row-list">${rowsHtml}</div>
-    <div>
-      <button class="btn primary" onclick="promptCreateProperty('${catName}')">+ Skapa ny egenskap under ${catName}</button>
-    </div>
+    <h2 class="wiki-section">
+      <span>Ingående egenskaper och örter</span>
+      <a class="wiki-action-link" onclick="promptCreateProperty('${catName}')">[+ Skapa ny egenskap]</a>
+    </h2>
+    <div class="wiki-data-table">${rowsHtml}</div>
   `;
 }
 
 function promptCreateCategory() {
   const name = prompt("Ange namn på ny kategori:");
   if (!name || !name.trim()) return;
-  const sys = prompt("Ange tillhörande system (General, Western, Ayurveda, TCM):", "General Information") || "General Information";
+  const sys = prompt("Ange tillhörande system (General Information, Western Herbalism, Ayurveda, Traditional Chinese Medicine):", "General Information") || "General Information";
   db.categories[name.trim()] = { system: sys.trim(), desc: "" };
   persist();
   window.location.hash = `#category/${encodeURIComponent(name.trim())}`;
@@ -747,22 +701,23 @@ function promptCreateProperty(catName) {
   renderCategoryPage(catName);
 }
 
-// ==================== FORMLER: ÖVERSIKT & DETALJSIDA ====================
+// ==================== FORMLER (RECEPT) ====================
 function renderFormulasIndexPage() {
   const app = document.getElementById("wiki-app");
   const listHtml = Object.entries(db.formulas).map(([fName, fData]) => `
-    <a href="#formula/${encodeURIComponent(fName)}" class="item-row">
-      <span style="font-weight:700; font-size:17px;">⚗ ${fName}</span>
-      <span style="color:var(--text-muted); font-size:14px;">${fData.components ? fData.components.length : 0} komponenter</span>
-    </a>
+    <li>
+      <a href="#formula/${encodeURIComponent(fName)}" class="wiki-link" style="font-weight:700;">⚗ ${fName}</a>
+      <span style="color:var(--text-muted); font-size:13px;"> — ${fData.components ? fData.components.length : 0} komponenter</span>
+    </li>
   `).join("");
 
   app.innerHTML = `
-    <h1 class="page-title">
-      <span>Recept & Formler</span>
-      <button class="btn primary" onclick="promptCreateFormula()">+ Ny Formel</button>
+    <h1 class="wiki-title">
+      <span>Formel- och receptarkiv</span>
+      <a class="wiki-action-link" onclick="promptCreateFormula()">[+ Ny formel]</a>
     </h1>
-    <div class="item-list">${listHtml || '<i style="color:var(--text-muted);">Inga formler sparade än.</i>'}</div>
+    <div class="wiki-paragraph">Samling av sammansatta örtrecept, tinkturer och teblandningar.</div>
+    <ul class="wiki-list">${listHtml || '<li><i>Inga formler sparade än.</i></li>'}</ul>
   `;
 }
 
@@ -779,7 +734,7 @@ function promptCreateFormula() {
 function renderFormulaDetailPage(fName) {
   const app = document.getElementById("wiki-app");
   const formula = db.formulas[fName];
-  if (!formula) { app.innerHTML = `<h2>Formeln hittades inte.</h2><a href="#formulas">Tillbaka</a>`; return; }
+  if (!formula) { app.innerHTML = `<h2>Formeln existerar inte.</h2><a href="#formulas" class="wiki-link">Tillbaka till formelarkivet</a>`; return; }
 
   const total = (formula.components || []).reduce((sum, c) => sum + (c.qty || 1), 0);
 
@@ -787,41 +742,36 @@ function renderFormulaDetailPage(fName) {
     const herb = db.objects.find(o => o.id === c.objId);
     const share = total > 0 ? Math.round((c.qty / total) * 100) : 0;
     return `
-      <div class="item-row" style="cursor:default;">
-        <div>
-          <a href="#herb/${c.objId}" style="color:var(--accent); font-weight:700; text-decoration:none;">${herb ? herb.name : c.objId}</a>
-          <div style="font-size:12px; color:var(--text-muted);">${c.role || 'Komponent'}</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button class="btn" style="padding:1px 6px;" onclick="updateFormulaQty('${fName}', ${idx}, -1)">-</button>
-          <b>${c.qty}</b>
-          <button class="btn" style="padding:1px 6px;" onclick="updateFormulaQty('${fName}', ${idx}, 1)">+</button>
-          <span style="font-family:monospace; margin-left:6px;">${share}%</span>
-          <button class="btn danger" style="padding:1px 6px; margin-left:6px;" onclick="removeFormulaComp('${fName}', ${idx})">✕</button>
-        </div>
-      </div>
+      <li>
+        <a href="#herb/${c.objId}" class="wiki-link" style="font-weight:700;">${herb ? herb.name : c.objId}</a>
+        (${c.role || 'Komponent'}) — 
+        <button class="wiki-btn" style="padding:0 5px;" onclick="updateFormulaQty('${fName}', ${idx}, -1)">-</button>
+        <b>${c.qty} delar</b>
+        <button class="wiki-btn" style="padding:0 5px;" onclick="updateFormulaQty('${fName}', ${idx}, 1)">+</button>
+        <span style="font-family:monospace; margin-left:6px;">(${share}%)</span>
+        <a class="wiki-action-link" style="color:var(--danger); margin-left:8px;" onclick="removeFormulaComp('${fName}', ${idx})">[ta bort]</a>
+      </li>
     `;
   }).join("");
 
   app.innerHTML = `
-    <h1 class="page-title">
+    <h1 class="wiki-title">
       <span>⚗ ${fName}</span>
-      <button class="btn danger" onclick="deleteFormula('${fName}')">Radera</button>
+      <a class="wiki-action-link" style="color:var(--danger);" onclick="deleteFormula('${fName}')">[radera formel]</a>
     </h1>
 
-    <div class="description-block">
-      <div class="desc-header">
-        <span>Beskrivning & Indikationer</span>
-        <button class="btn" style="padding:1px 6px; font-size:12px;" onclick="openEditor('formula', '${fName}')">🖋 Ändra</button>
-      </div>
-      <div class="desc-text">${formula.desc || '<i style="color:var(--text-muted);">Ingen beskrivning angiven.</i>'}</div>
+    <div class="wiki-paragraph">
+      <span style="float:right;">
+        <a class="wiki-action-link" onclick="openEditor('formula', '${fName}')">[redigera indikationer]</a>
+      </span>
+      ${formula.desc || '<i>Inga kliniska indikationer eller beskrivning angiven.</i>'}
     </div>
 
-    <div class="section-title">Komponenter</div>
-    <div class="item-list">${compRows || '<i style="color:var(--text-muted);">Inga örter i denna formel än.</i>'}</div>
-    <div style="margin-top:12px;">
-      <button class="btn primary" onclick="promptAddCompToFormula('${fName}')">+ Lägg till ört i formeln</button>
-    </div>
+    <h2 class="wiki-section">
+      <span>Ingående komponenter</span>
+      <a class="wiki-action-link" onclick="promptAddCompToFormula('${fName}')">[+ Lägg till ört]</a>
+    </h2>
+    <ul class="wiki-list">${compRows || '<li><i>Inga örter tillagda i receptet än.</i></li>'}</ul>
   `;
 }
 
@@ -852,14 +802,14 @@ function promptAddCompToFormula(fName) {
   if (!choice) return;
   const idx = parseInt(choice) - 1;
   if (herbs[idx]) {
-    const role = prompt(`Ange roll för ${herbs[idx].name} (t.ex. Katalysator, Huvudört):`, "Komponent") || "Komponent";
+    const role = prompt(`Ange roll för ${herbs[idx].name} (t.ex. Huvudört, Katalysator):`, "Komponent") || "Komponent";
     db.formulas[fName].components.push({ objId: herbs[idx].id, role, qty: 1 });
     persist();
     renderFormulaDetailPage(fName);
   }
 }
 
-// ==================== SÖKSIDAN (KATEGORI-FILTER) ====================
+// ==================== SÖKSIDAN (WIKIPEDIA FILTER) ====================
 let activeSearchCategories = {};
 
 function renderSearchPage() {
@@ -868,24 +818,23 @@ function renderSearchPage() {
   let catFilterRows = Object.keys(activeSearchCategories).map(cat => {
     const props = activeSearchCategories[cat];
     const tags = props.map(p => `
-      <span class="tag-link">
-        <span>${p}</span>
-        <span style="color:var(--danger); cursor:pointer; margin-left:4px;" onclick="removeSearchProp('${cat}', '${p}')">✕</span>
+      <span>
+        <a href="#property/${encodeURIComponent(p)}" class="wiki-link">${p}</a>
+        <a class="wiki-action-link" style="color:var(--danger); margin-right:6px;" onclick="removeSearchProp('${cat}', '${p}')">[✕]</a>
       </span>
-    `).join("");
+    `).join(", ");
 
     return `
-      <div class="inline-row">
-        <span class="row-label">${cat}</span>
-        <div class="row-items">
-          ${tags}
-          <button class="btn-add-tag" onclick="openSearchPropPopup('${cat}')">[+]</button>
+      <div class="wiki-data-row">
+        <span class="wiki-row-label" style="color:#000;">${cat}:</span>
+        <div class="wiki-row-content">
+          ${tags || '<i>inga valda</i>'}
+          <a class="btn-wiki-add" onclick="openSearchPropPopup('${cat}')">[+]</a>
         </div>
       </div>
     `;
   }).join("");
 
-  // Beräkna matchningar
   const allFilterProps = Object.values(activeSearchCategories).flat();
   let matchesHtml = "";
 
@@ -900,35 +849,35 @@ function renderSearchPage() {
     });
     hits.sort((a,b) => b.pct - a.pct);
 
-    matchesHtml = hits.length === 0 ? `<i>Inga träffar.</i>` : hits.map(h => `
-      <a href="#herb/${h.id}" class="item-row">
-        <span style="font-weight:700;">${h.name}</span>
-        <b style="color:var(--accent-gold); font-family:monospace;">${h.pct}% match (${h.matchCount}/${allFilterProps.length})</b>
-      </a>
+    matchesHtml = hits.length === 0 ? `<li><i>Inga örter matchade sökningen.</i></li>` : hits.map(h => `
+      <li>
+        <a href="#herb/${h.id}" class="wiki-link" style="font-weight:700;">${h.name}</a>
+        — <b style="color:var(--accent-gold); font-family:monospace;">${h.pct}% match</b> (${h.matchCount}/${allFilterProps.length} egenskaper)
+      </li>
     `).join("");
   } else {
-    matchesHtml = `<i style="color:var(--text-muted);">Lägg till kategorier och egenskaper ovan för att söka i biblioteket.</i>`;
+    matchesHtml = `<li><i>Välj kategorier och egenskaper ovan för att filtrera databasen.</i></li>`;
   }
 
   app.innerHTML = `
-    <h1 class="page-title">
-      <span>Filtersök</span>
-      <button class="btn danger" onclick="resetSearch()">Ny sökning</button>
+    <h1 class="wiki-title">
+      <span>Filtersökning</span>
+      <a class="wiki-action-link" style="color:var(--danger);" onclick="resetSearch()">[återställ filter]</a>
     </h1>
 
-    <div class="row-list">${catFilterRows || '<i style="color:var(--text-muted);">Inga sökkategorier valda än.</i>'}</div>
-    <div style="margin-bottom:24px;">
-      <button class="btn" onclick="promptAddSearchCategory()">+ Lägg till sökkategori</button>
+    <div class="wiki-data-table">${catFilterRows}</div>
+    <div style="margin: 8px 0 24px 0;">
+      <a class="wiki-action-link" onclick="promptAddSearchCategory()">[+ Lägg till sökkategori]</a>
     </div>
 
-    <div class="section-title">Matchade Örter</div>
-    <div class="item-list">${matchesHtml}</div>
+    <h2 class="wiki-section">Matchade artiklar</h2>
+    <ul class="wiki-list">${matchesHtml}</ul>
   `;
 }
 
 function promptAddSearchCategory() {
   const cats = Object.keys(db.categories);
-  const choice = prompt("Välj kategori att filtrera på:\n" + cats.map((c, i) => `${i+1}. ${c}`).join("\n"));
+  const choice = prompt("Välj kategori att söka i:\n" + cats.map((c, i) => `${i+1}. ${c}`).join("\n"));
   if (!choice) return;
   const idx = parseInt(choice) - 1;
   if (cats[idx]) {
@@ -940,7 +889,7 @@ function promptAddSearchCategory() {
 function openSearchPropPopup(cat) {
   activePopupMode = "search_prop";
   activePopupTarget = cat;
-  document.getElementById("popup-check-title").innerText = `Välj egenskaper under ${cat}`;
+  document.getElementById("popup-check-title").innerText = `Välj [${cat}]`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   renderPopupList();
@@ -956,8 +905,8 @@ function resetSearch() {
   renderSearchPage();
 }
 
-// ==================== CHECKLIST POPUP LOGIK (DIREKTBOCKNING) ====================
-let activePopupMode = ""; // 'assign_prop' | 'connect_herb' | 'search_prop'
+// ==================== CHECKLIST POPUP ====================
+let activePopupMode = "";
 let activePopupTarget = "";
 let activePopupExtra = "";
 
@@ -1038,7 +987,6 @@ function renderPopupList() {
   }
 }
 
-// Skapa ny vid Enter
 document.getElementById("popup-filter-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     const val = e.target.value.trim();
@@ -1081,7 +1029,6 @@ function toggleHerbProperty(herbId, propName, isChecked) {
   }
   persist();
 
-  // Återspegla direkt i bakgrunden utan att stänga popupen
   if (window.location.hash.startsWith("#herb")) renderHerbPage(herbId);
   if (window.location.hash.startsWith("#property")) renderPropertyPage(propName);
 }
@@ -1101,7 +1048,7 @@ function closePopup() {
   document.getElementById("popup-editor").style.display = "none";
 }
 
-// ==================== FÖNSTER: REDIGERA BESKRIVNING ====================
+// ==================== REDIGERA TEXT ====================
 let editorMode = "";
 let editorTargetId = "";
 
