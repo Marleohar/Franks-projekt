@@ -29,6 +29,18 @@
       flex-direction: column;
     }
 
+    /* TELEGRAM WEBVIEW VARNING */
+    #telegram-warning-banner {
+      display: none;
+      background: #fff3cd;
+      color: #856404;
+      border-bottom: 2px solid #ffeeba;
+      padding: 10px 16px;
+      font-size: 14px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
     /* TOPPVERKTYG */
     header.wiki-header {
       background: #ffffff;
@@ -54,7 +66,8 @@
     .header-nav {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+      flex-wrap: wrap;
     }
     .nav-link {
       color: var(--link);
@@ -301,6 +314,12 @@
 </head>
 <body>
 
+  <!-- TELEGRAM WARNING BANNER -->
+  <div id="telegram-warning-banner">
+    ⚠️ <b>Obs:</b> Du kör i en inbyggd app-webbläsare (t.ex. Telegram). Dina ändringar kan raderas när appen stängs. 
+    Klicka på <b>⋮</b> (tre prickarna uppe till höger) och välj <b>"Öppna i Chrome"</b> eller <b>"Öppna i webbläsare"</b> så sparas allt permanent!
+  </div>
+
   <!-- TOPP-NAVIGERING -->
   <header class="wiki-header">
     <a href="#index" class="header-logo" onclick="navigateTo('index')">
@@ -311,6 +330,9 @@
       <a class="nav-link" id="nav-search" onclick="navigateTo('search')">Search</a>
       <a class="nav-link" id="nav-formulas" onclick="navigateTo('formulas')">Formulas</a>
       <a class="nav-link" id="nav-sources" onclick="navigateTo('sources')">Sources</a>
+      <a class="wiki-action-link" onclick="downloadBackupFile()" title="Ladda ner backup som JSON-fil">💾 Backup</a>
+      <a class="wiki-action-link" onclick="document.getElementById('import-file-input').click()" title="Återställ från sparad fil">📂 Ladda</a>
+      <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importBackupFile(event)">
       <button class="lang-toggle" onclick="toggleLanguage()" id="btn-lang-toggle">🌐 SV</button>
     </nav>
   </header>
@@ -354,7 +376,7 @@
     </div>
   </div>
 
-  <!-- POPUP: LAYOUTFÖNSTER FÖR SYSTEM & KATEGORIER (HELT UTAN CIRKLAR) -->
+  <!-- POPUP: LAYOUTFÖNSTER FÖR SYSTEM & KATEGORIER -->
   <div class="popup-overlay" id="popup-layout">
     <div class="popup-box" style="max-width:520px;">
       <div class="popup-header">
@@ -381,7 +403,7 @@
     </div>
   </div>
 
-  <!-- POPUP: MIKROFÖNSTER FÖR HORISONTELL EGENSKAPSSORTERING -->
+  <!-- POPUP: MIKROFÖNSTER FÖR EGENSKAPSSORTERING -->
   <div class="popup-overlay" id="popup-prop-sorter">
     <div class="popup-box" style="max-width:480px;">
       <div class="popup-header">
@@ -452,7 +474,7 @@
     </div>
   </div>
 
-  <!-- POPUP: NATIVE HERBS MODAL (SPECIFIED HERBS AS NATIVE TO SYSTEM) -->
+  <!-- POPUP: NATIVE HERBS MODAL -->
   <div class="popup-overlay" id="popup-native-herbs">
     <div class="popup-box" style="max-width:520px;">
       <div class="popup-header">
@@ -511,7 +533,7 @@
     </div>
   </div>
 
-  <!-- POPUP: LÄGG TILL TAGG TILL KÄLLA (I KÄLL-BIBLIOTEKET) -->
+  <!-- POPUP: LÄGG TILL TAGG TILL KÄLLA -->
   <div class="popup-overlay" id="popup-add-tag-to-source">
     <div class="popup-box" style="max-width:520px;">
       <div class="popup-header">
@@ -544,7 +566,7 @@
   </div>
 
 <script>
-// ==================== ENHETER & VOLYM/VIKT ====================
+// ==================== ENHETER ====================
 const unitConversions = {
   "g":     { base: 1,    type: "weight" },
   "oz":    { base: 28.35,type: "weight" },
@@ -555,7 +577,7 @@ const unitConversions = {
   "pinch": { base: 0.35, type: "volume" }
 };
 
-// ==================== SPRÅKMOTOR ====================
+// ==================== SPRÅK ====================
 let currentLang = localStorage.getItem("wiki_lang") || "sv";
 
 const i18n = {
@@ -688,7 +710,7 @@ const i18n = {
 };
 
 function t(key) {
-  return i18n[currentLang][key] || i18n["sv"][key] || key;
+  return i18n[currentLang][key] || key;
 }
 
 function toggleLanguage() {
@@ -709,7 +731,7 @@ function updateUILabels() {
   document.getElementById("popup-help-text").innerHTML = t("checkHelp");
 }
 
-// ==================== DATABAS & FELSÄKER LAGRING ====================
+// ==================== DATABAS & DJUP-SKANNING ====================
 const MASTER_STORAGE_KEY = "taxonomy_ide_master_db";
 const BACKUP_STORAGE_KEY = "taxonomy_ide_master_db_bak";
 
@@ -765,13 +787,13 @@ const defaultData = {
     "Carminative":{ category: "Actions", desc: "Relieves gastrointestinal cramping and dispels gas.", synonyms: ["Gas-relieving"], related: [], sources: [] },
     "Ushna":      { category: "Gunas", desc: "Warming metabolic quality promoting Agni.", synonyms: ["Warm", "Hot", "Varm"], related: ["Pungent", "Fire"], sources: [] },
     "Sheeta":     { category: "Gunas", desc: "Cooling metabolic quality.", synonyms: ["Cold", "Kall"], related: [], sources: [] },
-    "Vata -":     { category: "Doshas", desc: "Reduces excess Vata dosha.", synonyms: [], related: [], sources: [] },
-    "Kapha -":    { category: "Doshas", desc: "Reduces cold, sluggish Kapha.", synonyms: [], related: [], sources: [] },
-    "Pitta +":    { category: "Doshas", desc: "Increases Pitta heat.", synonyms: [], related: [], sources: [] },
+    "Vata -":     { category: "Doshas", desc: "Reduces excess Vata dosha.", synonyms: [], related: [] },
+    "Kapha -":    { category: "Doshas", desc: "Reduces cold, sluggish Kapha.", synonyms: [], related: [] },
+    "Pitta +":    { category: "Doshas", desc: "Increases Pitta heat.", synonyms: [], related: [] },
     "Pitta -":    { category: "Doshas", desc: "Cools and pacifies agitated Pitta.", synonyms: [], related: [] },
     "Spleen":     { category: "Entered Channels", desc: "Channels action through Spleen meridian.", synonyms: ["Mjälte"], related: ["Stomach"], sources: [] },
     "Stomach":    { category: "Entered Channels", desc: "Channels action through Stomach meridian.", synonyms: ["Magsäck"], related: ["Spleen"], sources: [] },
-    "Release Exterior": { category: "Actions (TCM)", desc: "Induces diaphoresis to dispel exterior pathogens.", synonyms: [], related: [], sources: [] }
+    "Release Exterior": { category: "Actions (TCM)", desc: "Induces diaphoresis to dispel exterior pathogens.", synonyms: [], related: [] }
   },
   objects: [
     {
@@ -809,71 +831,131 @@ const defaultData = {
       sources: []
     }
   },
-  sources: [
-    {
-      id: "src_1",
-      author: "Vasant Lad",
-      year: "2002",
-      title: "Textbook of Ayurveda: Fundamental Principles",
-      publisher: "Ayurvedic Press",
-      link: "https://ayurveda.com",
-      tags: [
-        { type: "object", id: "ginger", pages: "110-112" },
-        { type: "property", id: "Ushna", pages: "42-45" },
-        { type: "system", id: "Ayurveda", pages: "" }
-      ]
-    },
-    {
-      id: "src_2",
-      author: "David Hoffmann",
-      year: "2003",
-      title: "Medical Herbalism: The Science and Practice",
-      publisher: "Healing Arts Press",
-      link: "",
-      tags: [
-        { type: "object", id: "peppermint", pages: "567" },
-        { type: "property", id: "Carminative", pages: "80-85, 120-125" }
-      ]
-    }
-  ]
+  sources: []
 };
 
-let db = defaultData;
+let db = JSON.parse(JSON.stringify(defaultData));
 let hideUntaggedInHerbView = false;
-let indexViewMode = "alpha"; // "alpha" | "native_system"
-let indexAlphaSortField = "name"; // "name" | "botanicalName" | "chineseName" | "ayurvedicName"
-let sourceSortMode = "author"; // "author" | "year" | "publisher" | "title"
+let indexViewMode = "alpha";
+let indexAlphaSortField = "name";
+let sourceSortMode = "author";
 
-function loadStoredData() {
-  let raw = localStorage.getItem(MASTER_STORAGE_KEY) || localStorage.getItem(BACKUP_STORAGE_KEY);
-  if (raw) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.objects && Array.isArray(parsed.objects)) {
-        db = parsed;
-        if (!db.systemOrder) db.systemOrder = defaultData.systemOrder;
-        if (!db.systems) db.systems = defaultData.systems;
-        if (!db.sources) db.sources = defaultData.sources;
-      }
-    } catch(err) {
-      db = defaultData;
+// DJUP-SKANNING EFTER FRANKS SPARADE ÖRTER I ALLA LOCALSTORAGE-NYCKLAR
+function loadAndRecoverAllData() {
+  let bestCandidate = null;
+  let maxHerbCount = 0;
+
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      const val = localStorage.getItem(key);
+      if (!val) continue;
+
+      try {
+        const parsed = JSON.parse(val);
+        // Fall 1: Nytt wiki-format
+        if (parsed && Array.isArray(parsed.objects)) {
+          if (parsed.objects.length > maxHerbCount) {
+            maxHerbCount = parsed.objects.length;
+            bestCandidate = parsed;
+          }
+        }
+        // Fall 2: Gammalt IDE-format
+        else if (parsed && parsed.libraries && parsed.libraries.herbal && Array.isArray(parsed.libraries.herbal.objects)) {
+          const hObjs = parsed.libraries.herbal.objects;
+          if (hObjs.length > maxHerbCount) {
+            maxHerbCount = hObjs.length;
+            bestCandidate = {
+              objects: hObjs,
+              categories: parsed.libraries.herbal.categories || defaultData.categories,
+              properties: parsed.libraries.herbal.properties || defaultData.properties,
+              systems: parsed.libraries.herbal.systems || defaultData.systems,
+              systemOrder: defaultData.systemOrder,
+              formulas: defaultData.formulas,
+              sources: defaultData.sources
+            };
+          }
+        }
+      } catch(e) {}
     }
+  } catch(e) {
+    console.error("Storage scan error:", e);
+  }
+
+  if (bestCandidate && bestCandidate.objects && bestCandidate.objects.length >= 2) {
+    db = bestCandidate;
+    if (!db.systemOrder) db.systemOrder = defaultData.systemOrder;
+    if (!db.systems) db.systems = defaultData.systems;
+    if (!db.sources) db.sources = defaultData.sources;
   }
 }
-loadStoredData();
+loadAndRecoverAllData();
 
+// SPARA DIREKT OCH SÄKERT
 function persist() {
   try {
+    // ÖVERSKRIVNINGSSPÄRR: Om minnet har 0 objekt, skriv aldrig över med tom lista!
+    if (!db.objects || db.objects.length === 0) return;
     const str = JSON.stringify(db);
     localStorage.setItem(MASTER_STORAGE_KEY, str);
     localStorage.setItem(BACKUP_STORAGE_KEY, str);
   } catch(e) {
-    console.error("Storage error:", e);
+    console.error("Save error:", e);
   }
 }
 window.addEventListener("beforeunload", persist);
 
-// Hjälpfunktion för att hämta namn
+// KONTROLLERA TELEGRAM / IN-APP WEBVIEW
+function checkInAppBrowser() {
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  const isTelegram = /Telegram/i.test(ua) || /FBAN/i.test(ua) || /FBAV/i.test(ua) || /Instagram/i.test(ua);
+  if (isTelegram) {
+    const banner = document.getElementById("telegram-warning-banner");
+    if (banner) banner.style.display = "block";
+  }
+}
+
+// EXPORT & IMPORT (FIL-BACKUP SOM FRANKS LIVFÖRSÄKRING)
+function downloadBackupFile() {
+  const str = JSON.stringify(db, null, 2);
+  const blob = new Blob([str], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `ort-wiki-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importBackupFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const parsed = JSON.parse(event.target.result);
+      if (parsed && (parsed.objects || (parsed.libraries && parsed.libraries.herbal))) {
+        if (parsed.objects) {
+          db = parsed;
+        } else {
+          db.objects = parsed.libraries.herbal.objects || db.objects;
+          db.categories = parsed.libraries.herbal.categories || db.categories;
+          db.properties = parsed.libraries.herbal.properties || db.properties;
+        }
+        persist();
+        alert(currentLang === 'en' ? "Backup restored successfully!" : "Biblioteket återställt från fil!");
+        handleRouting();
+      } else {
+        alert("Ogiltigt backup-format.");
+      }
+    } catch(err) {
+      alert("Fel vid läsning av fil.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Hjälpfunktion för visningsnamn
 function getDisplayObjName(obj) {
   if (!obj) return "";
   if (obj.id === "ginger") return currentLang === "en" ? "Ginger (Zingiber officinale)" : "Ingefära (Zingiber officinale)";
@@ -888,7 +970,6 @@ function getDisplayFormulaName(name) {
   return name;
 }
 
-// SIDINTERVALL-VALIDERING & SORTERING (FRANKS MATEMATISKA SPECIFIKATION)
 function cleanAndSortPages(str) {
   if (!str) return "";
   let cleaned = str.replace(/[^0-9,\-]/g, "");
@@ -906,7 +987,6 @@ function cleanAndSortPages(str) {
     return null;
   }).filter(Boolean);
 
-  // Sortera stigande efter start- och slutnummer
   intervals.sort((a, b) => a.start - b.start || a.end - b.end);
   return intervals.map(i => i.text).join(", ");
 }
@@ -919,6 +999,7 @@ function navigateTo(route) {
 
 window.addEventListener("hashchange", handleRouting);
 window.addEventListener("DOMContentLoaded", () => {
+  checkInAppBrowser();
   updateUILabels();
   if (!window.location.hash) window.location.hash = "#index";
   handleRouting();
@@ -952,19 +1033,17 @@ function handleRouting() {
   }
 }
 
-// ==================== SIDA D: OBJECT INDEX (A–Ö & NATIVE SYSTEM) ====================
+// ==================== SIDA D: OBJECT INDEX ====================
 function renderIndexPage() {
   const app = document.getElementById("wiki-app");
 
   let contentHtml = "";
 
   if (indexViewMode === "native_system") {
-    // Sortering efter Native System
     const sortedSystems = Object.keys(db.systems).sort((a,b) => a.localeCompare(b));
     let sysSectionsHtml = "";
 
     sortedSystems.forEach(sysName => {
-      // Hämta örter som är native till detta system
       const nativeHerbs = db.objects.filter(o => o.nativeSystems && o.nativeSystems.includes(sysName));
       nativeHerbs.sort((a,b) => getDisplayObjName(a).localeCompare(getDisplayObjName(b)));
 
@@ -989,7 +1068,6 @@ function renderIndexPage() {
     contentHtml = sysSectionsHtml;
 
   } else {
-    // Bokstavsordning (A–Ö)
     const sorted = [...db.objects].sort((a, b) => {
       let valA = (a[indexAlphaSortField] || a.name || "").toLowerCase();
       let valB = (b[indexAlphaSortField] || b.name || "").toLowerCase();
@@ -1033,7 +1111,6 @@ function renderIndexPage() {
     </h1>
     <div class="wiki-paragraph">${t("indexIntro")}</div>
 
-    <!-- KONTROLLER FÖR INDEX-VY -->
     <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; background:#f8f9fa; border:1px solid var(--border-subtle); padding:8px 12px; margin-bottom:16px;">
       <div style="display:flex; align-items:center; gap:6px;">
         <span style="font-size:13px; font-weight:700;">View:</span>
@@ -1085,7 +1162,6 @@ function renderHerbPage(herbId) {
   const obj = db.objects.find(o => o.id === herbId);
   if (!obj) { app.innerHTML = `<h2>Article not found.</h2><a href="#index" class="wiki-link">Back to Index</a>`; return; }
 
-  // System sorteras så att NATIVE-SYSTEM hamnar högst upp med 💚
   const sysOrder = [...(db.systemOrder || Object.keys(db.systems))];
   sysOrder.sort((a, b) => {
     const isANative = (obj.nativeSystems || []).includes(a);
@@ -1105,7 +1181,6 @@ function renderHerbPage(herbId) {
 
     let catRowsInSys = "";
     sysData.categories.forEach(cat => {
-      // Hämta egenskaper i specificerad ordning om propOrder finns för denna ört
       let assigned = Object.keys(obj.props || {}).filter(p => db.properties[p]?.category === cat);
       if (obj.propOrder && obj.propOrder[cat]) {
         assigned.sort((a,b) => {
@@ -1172,7 +1247,6 @@ function renderHerbPage(herbId) {
       </li>
     `).join("");
 
-  // Källor kopplade till denna ört
   const sourcesHtml = renderProfileSourcesSection("object", obj.id);
 
   app.innerHTML = `
@@ -1209,7 +1283,6 @@ function renderHerbPage(herbId) {
     <h2 class="wiki-section">${t("relatedSection")}</h2>
     <ul class="wiki-list">${relatedHtml}</ul>
 
-    <!-- KÄLLOR SEKTION -->
     ${sourcesHtml}
   `;
 }
@@ -1234,19 +1307,16 @@ function renderPropertyPage(propName) {
   const prop = db.properties[propName];
   if (!prop) { app.innerHTML = `<h2>Property not found.</h2><a href="#index" class="wiki-link">Back to Index</a>`; return; }
 
-  // 1. Örter med denna egenskap (Placeras FÖRE besläktade egenskaper!)
   const herbsWith = db.objects.filter(o => o.props && o.props[propName] !== undefined);
   let herbsList = herbsWith.length === 0 
     ? `<li><i>None currently.</i></li>` 
     : herbsWith.map(o => `<li><a href="#herb/${o.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(o)}</a></li>`).join("");
 
-  // 2. Besläktade egenskaper
   const relatedProps = prop.related || [];
   let relatedPropsList = relatedProps.length === 0 
     ? `<i>${t("noRelatedProps")}</i>` 
     : relatedProps.map(rp => `<a href="#property/${encodeURIComponent(rp)}" class="wiki-link">${rp}</a>`).join(", ");
 
-  // 3. Emphasized in Formulas
   const matchingFormulas = [];
   Object.entries(db.formulas).forEach(([fName, fData]) => {
     let compCount = 0;
@@ -1308,14 +1378,14 @@ function renderPropertyPage(propName) {
       ${prop.desc || `<i>${t("noDesc")}</i>`}
     </div>
 
-    <!-- ÖRTER MED DENNA EGENSKAP (ÖVERST ENLIGT FRANK) -->
+    <!-- ÖRTER MED DENNA EGENSKAP -->
     <h2 class="wiki-section">
       <span>${t("propHerbsSection")} (${herbsWith.length})</span>
       <a class="wiki-action-link" onclick="openConnectHerbsToPropertyPopup('${propName}')">${t("connectHerbBtn")}</a>
     </h2>
     <ul class="wiki-list">${herbsList}</ul>
 
-    <!-- BESLÄKTADE EGENSKAPER (NEDANFÖR ÖRTERNA) -->
+    <!-- BESLÄKTADE EGENSKAPER -->
     <h2 class="wiki-section">
       <span>${t("relatedPropsSection")}</span>
       <a class="wiki-action-link" onclick="openRelatedPropertiesPopup('${propName}')">${t("addRelatedPropBtn")}</a>
@@ -1328,7 +1398,6 @@ function renderPropertyPage(propName) {
     </h2>
     <ul class="wiki-list">${formulaListHtml}</ul>
 
-    <!-- KÄLLOR SEKTION -->
     ${sourcesHtml}
   `;
 }
@@ -1359,7 +1428,6 @@ function promptRenameProperty(oldName) {
     }
   });
 
-  // Uppdatera källreferenser
   db.sources.forEach(src => {
     (src.tags || []).forEach(tg => {
       if (tg.type === 'property' && tg.id === oldName) tg.id = cleanNew;
@@ -1415,7 +1483,6 @@ function renderCategoryPage(catName) {
     </h2>
     <div class="wiki-data-table">${rowsHtml}</div>
 
-    <!-- KÄLLOR SEKTION -->
     ${sourcesHtml}
   `;
 }
@@ -1561,7 +1628,6 @@ function renderFormulaDetailPage(fName) {
       ${effectCategoryRows || '<i>No component properties found to calculate effect.</i>'}
     </div>
 
-    <!-- KÄLLOR SEKTION -->
     ${sourcesHtml}
   `;
 }
@@ -1586,9 +1652,8 @@ function promptAddCompToFormula(fName) {
   }
 }
 
-// ==================== KÄLLOR PÅ PROFILER & KÄLL-BIBLIOTEK ====================
+// ==================== KÄLL-BIBLIOTEK ====================
 function renderProfileSourcesSection(itemType, itemId) {
-  // Samla källor som refererar till detta objekt
   const linked = [];
   db.sources.forEach(src => {
     const match = (src.tags || []).find(tg => tg.type === itemType && tg.id === itemId);
@@ -1597,7 +1662,7 @@ function renderProfileSourcesSection(itemType, itemId) {
     }
   });
 
-  let itemsHtml = linked.map((item, idx) => {
+  let itemsHtml = linked.map((item) => {
     const s = item.src;
     const pagesText = item.pages ? ` (pp. ${item.pages})` : '';
     return `
@@ -1617,11 +1682,9 @@ function renderProfileSourcesSection(itemType, itemId) {
   `;
 }
 
-// KÄLL-BIBLIOTEKET SIDA (`#sources`)
 function renderSourcesLibraryPage() {
   const app = document.getElementById("wiki-app");
 
-  // Sortera källor
   const sortedSources = [...db.sources].sort((a,b) => {
     let fA = (a[sourceSortMode] || "").toLowerCase();
     let fB = (b[sourceSortMode] || "").toLowerCase();
@@ -1629,7 +1692,6 @@ function renderSourcesLibraryPage() {
   });
 
   let sourcesListHtml = sortedSources.map(src => {
-    // Dynamisk layout baserat på valt sorteringsfält!
     let biblioText = "";
     if (sourceSortMode === "title") {
       biblioText = `<i>${src.title}</i>. ${src.author || 'Unknown'} (${src.year || 'n.d.'})${src.publisher ? `, ${src.publisher}` : ''}.`;
@@ -1638,7 +1700,6 @@ function renderSourcesLibraryPage() {
     } else if (sourceSortMode === "publisher") {
       biblioText = `${src.publisher || 'Unknown Publisher'}. ${src.author || 'Unknown'} (${src.year || 'n.d.'}), <i>${src.title}</i>.`;
     } else {
-      // Default: Author
       biblioText = `${src.author || 'Unknown'} (${src.year || 'n.d.'}). <i>${src.title}</i>${src.publisher ? `. ${src.publisher}` : ''}.`;
     }
 
@@ -1646,7 +1707,6 @@ function renderSourcesLibraryPage() {
       biblioText += ` [<a href="${src.link}" target="_blank" class="wiki-link">link</a>]`;
     }
 
-    // Taggar: Rad 1 (med sidor) & Rad 2 (generella)
     const withPages = [];
     const withoutPages = [];
 
@@ -1677,7 +1737,6 @@ function renderSourcesLibraryPage() {
       }
     });
 
-    // Sortera Rad 1 i strikt nummerordning efter lägsta sidnummer!
     withPages.sort((a,b) => a.pageNum - b.pageNum);
 
     let row1 = withPages.map(w => `<a href="${w.link}" class="wiki-link">${w.name}</a> (s. ${w.pages})`).join(", ");
@@ -1702,7 +1761,6 @@ function renderSourcesLibraryPage() {
     </h1>
     <div class="wiki-paragraph">${t("sourceLibIntro")}</div>
 
-    <!-- SORTERINGSKONTROLLER -->
     <div style="display:flex; align-items:center; gap:8px; background:#f8f9fa; border:1px solid var(--border-subtle); padding:6px 12px; margin-bottom:20px;">
       <span style="font-size:13px; font-weight:700;">${t("sortByLabel")}</span>
       <select onchange="switchSourceSort(this.value)" style="width:auto; padding:2px 6px; font-size:13px;">
@@ -1743,7 +1801,7 @@ function promptCreateNewSource() {
   renderSourcesLibraryPage();
 }
 
-// ==================== LÄGG TILL KÄLLA TILL OBJEKT/PROFIL ====================
+// ==================== LÄGG TILL KÄLLA PÅ OBJEKT ====================
 let activeSourceTargetItem = { type: "", id: "" };
 
 function openAddSourceToItemModal(type, id) {
@@ -1815,7 +1873,7 @@ function submitAddSourceToItem() {
   handleRouting();
 }
 
-// ==================== LÄGG TILL TAGG TILL KÄLLA (I KÄLL-BIBLIOTEKET) ====================
+// ==================== LÄGG TILL TAGG TILL KÄLLA ====================
 let activeSourceForTagging = null;
 let currentTagTypeForSource = "object";
 
@@ -1874,7 +1932,6 @@ function renderSourceTagsList() {
     const chk = row.querySelector(`#chk_tag_${item.id}`);
     const pgInput = row.querySelector(`#pages_input_${item.id}`);
 
-    // Validering och auto-formatering
     pgInput.oninput = (e) => {
       let cleaned = e.target.value.replace(/[^0-9,\-]/g, "");
       e.target.value = cleaned;
@@ -1921,7 +1978,6 @@ function updateSourceTagData(itemId, isChecked, pagesVal) {
   renderSourcesLibraryPage();
 }
 
-// Skapa ny tagg i bakgrunden vid Enter
 document.getElementById("source-tag-search-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     const val = e.target.value.trim();
@@ -1939,12 +1995,12 @@ document.getElementById("source-tag-search-input").addEventListener("keydown", (
       updateSourceTagData(val, true, "");
     } else if (currentTagTypeForSource === "category") {
       if (!db.categories[val]) {
-        db.categories[val] = { system: "General Information", desc: "" };
+        db.categories[val] = { system: "General Information", desc: "", sources: [] };
       }
       updateSourceTagData(val, true, "");
     } else if (currentTagTypeForSource === "property") {
       if (!db.properties[val]) {
-        db.properties[val] = { category: "General Information", desc: "", related: [] };
+        db.properties[val] = { category: "General Information", desc: "", related: [], sources: [] };
       }
       updateSourceTagData(val, true, "");
     } else if (currentTagTypeForSource === "formula") {
@@ -1960,7 +2016,7 @@ document.getElementById("source-tag-search-input").addEventListener("keydown", (
   }
 });
 
-// ==================== NATIVE HERBS MODAL LOGIK ====================
+// ==================== NATIVE HERBS MODAL ====================
 let activeSystemForNativeModal = "";
 
 function openNativeModal(sysName) {
@@ -1999,7 +2055,6 @@ function renderNativeHerbsList() {
         herb.nativeSystems = herb.nativeSystems.filter(s => s !== activeSystemForNativeModal);
       }
       persist();
-      // Uppdatera bakomliggande vy i realtid!
       if (window.location.hash.startsWith("#herb")) {
         const [, id] = window.location.hash.slice(1).split("/");
         if (id) renderHerbPage(id);
@@ -2011,7 +2066,6 @@ function renderNativeHerbsList() {
   });
 }
 
-// Skapa ny ört i bakgrunden vid Enter i Native-modalen
 document.getElementById("native-search-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     const val = e.target.value.trim();
@@ -2031,7 +2085,7 @@ document.getElementById("native-search-input").addEventListener("keydown", (e) =
   }
 });
 
-// ==================== LIVE-SÖK & KATEGORIFILTER ====================
+// ==================== SÖKSIDAN ====================
 let activeSearchCategories = {};
 let liveSearchQuery = "";
 
@@ -2438,7 +2492,7 @@ function saveDescription() {
   closePopup();
 }
 
-// ==================== LAYOUT-FÖNSTER (HELT UTAN CIRKLAR) ====================
+// ==================== LAYOUT-FÖNSTER ====================
 let selectedLayoutNode = null;
 let activeHerbIdForLayout = null;
 
@@ -2485,7 +2539,6 @@ function renderLayoutModalItems() {
       catLabel.className = "check-label";
       catLabel.style.paddingLeft = "24px";
 
-      // Räkna aktiva egenskaper hos örten i denna kategori!
       let activePropsCount = 0;
       if (currentHerb && currentHerb.props) {
         activePropsCount = Object.keys(currentHerb.props).filter(p => db.properties[p]?.category === catName).length;
@@ -2498,7 +2551,6 @@ function renderLayoutModalItems() {
       catLabel.querySelector("input").onchange = (e) => {
         if (e.target.checked) {
           selectedLayoutNode = { type: 'category', name: catName, parentSystem: sysName, activePropsCount };
-          // Visa knappen "sort properties" ENDAST om det finns aktiva egenskaper!
           document.getElementById("btn-open-prop-sorter").style.display = activePropsCount > 0 ? "inline-block" : "none";
         } else {
           selectedLayoutNode = null;
@@ -2546,7 +2598,7 @@ function saveLayoutOrder() {
   if (activeHerbIdForLayout) renderHerbPage(activeHerbIdForLayout);
 }
 
-// ==================== MIKROFÖNSTER: EGENSKAPSSORTERING FÖR ÖRTEN ====================
+// ==================== MIKROFÖNSTER: EGENSKAPSSORTERING ====================
 let microActivePropsArray = [];
 let selectedMicroProp = null;
 
@@ -2559,7 +2611,6 @@ function openPropertySorterMicroModal() {
   selectedMicroProp = null;
   document.getElementById("prop-sorter-cat-title").innerText = catName;
 
-  // Filtrera ut ENDAST aktiva egenskaper för denna ört!
   let activeProps = Object.keys(herb.props).filter(p => db.properties[p]?.category === catName);
 
   if (herb.propOrder && herb.propOrder[catName]) {
@@ -2700,7 +2751,7 @@ function submitCatFlowStep1() {
   }
 
   const nameVal = document.getElementById("new-cat-name-input").value.trim();
-  if (!nameVal) { alert("Please enter category name."); return; }
+  if (!nameVal) { alert(currentLang === 'en' ? "Please enter category name." : "Vänligen ange ett kategorinamn."); return; }
   pendingNewCatName = nameVal;
 
   document.getElementById("cat-flow-step-1").style.display = "none";
@@ -2727,7 +2778,7 @@ function submitCatFlowStep2() {
   const newSysCustom = document.getElementById("new-system-input").value.trim();
   if (newSysCustom) chosenSystem = newSysCustom;
 
-  if (!chosenSystem) { alert("Please choose or enter a system."); return; }
+  if (!chosenSystem) { alert(currentLang === 'en' ? "Please choose a system." : "Välj ett system."); return; }
 
   if (!db.systems[chosenSystem]) {
     db.systems[chosenSystem] = { categories: [] };
