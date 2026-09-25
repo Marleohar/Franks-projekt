@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ört-Wiki (Wikipedia Style)</title>
+  <title>Herbal Taxonomy Wiki</title>
   <style>
     :root {
       --bg: #ffffff;
@@ -11,7 +11,6 @@
       --text-muted: #54595d;
       --link: #0645ad;
       --link-hover: #0b0080;
-      --link-new: #a55858;
       --border-wiki: #a2a9b1;
       --border-subtle: #eaecf0;
       --accent-gold: #c27803;
@@ -30,7 +29,7 @@
       flex-direction: column;
     }
 
-    /* TOPPVERKTYG / WIKIPEDIA-STYLE HEADER */
+    /* TOPPVERKTYG / WIKIPEDIA HEADER */
     header.wiki-header {
       background: #ffffff;
       border-bottom: 1px solid var(--border-wiki);
@@ -55,7 +54,7 @@
     .header-nav {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
     .nav-link {
       color: var(--link);
@@ -64,17 +63,25 @@
       font-weight: 600;
       padding: 4px 6px;
     }
-    .nav-link:hover {
-      text-decoration: underline;
-      color: var(--link-hover);
-    }
+    .nav-link:hover { text-decoration: underline; color: var(--link-hover); }
     .nav-link.active {
       color: var(--text);
       font-weight: 800;
       border-bottom: 2px solid var(--text);
     }
 
-    /* WIKI ARTIKEL-CONTAINER (HELT RAMLÖS) */
+    .lang-toggle {
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 3px 6px;
+      border: 1px solid var(--border-wiki);
+      border-radius: 2px;
+      background: #f8f9fa;
+    }
+    .lang-toggle:hover { background: #fff; }
+
+    /* WIKI CONTAINER */
     main.wiki-container {
       max-width: 820px;
       width: 100%;
@@ -83,7 +90,7 @@
       flex-grow: 1;
     }
 
-    /* WIKIPEDIA RUBRIKER */
+    /* TYPOGRAFI */
     h1.wiki-title {
       font-family: "Linux Libertine", Georgia, Times, serif;
       font-size: 29px;
@@ -94,6 +101,7 @@
       display: flex;
       align-items: baseline;
       justify-content: space-between;
+      gap: 10px;
     }
     h2.wiki-section {
       font-family: "Linux Libertine", Georgia, Times, serif;
@@ -109,7 +117,7 @@
 
     .wiki-action-link {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 400;
       color: var(--link);
       text-decoration: none;
@@ -117,15 +125,12 @@
     }
     .wiki-action-link:hover { text-decoration: underline; }
 
-    /* PARAGRAFER & BESKRIVNING */
     .wiki-paragraph {
       margin-bottom: 16px;
       color: #000000;
       white-space: pre-wrap;
     }
-    .wiki-paragraph i {
-      color: var(--text-muted);
-    }
+    .wiki-paragraph i { color: var(--text-muted); }
 
     /* RAMLÖSA KATEGORIRADER */
     .wiki-data-table {
@@ -139,7 +144,7 @@
       display: flex;
       align-items: baseline;
       gap: 10px;
-      padding: 4px 0;
+      padding: 5px 0;
       border-bottom: 1px solid var(--border-subtle);
     }
     .wiki-row-label {
@@ -155,7 +160,6 @@
       display: inline;
     }
 
-    /* LÄNKAR A LA WIKIPEDIA */
     a.wiki-link {
       color: var(--link);
       text-decoration: none;
@@ -175,16 +179,12 @@
     }
     .btn-wiki-add:hover { text-decoration: underline; }
 
-    /* WIKI LISTOR */
     ul.wiki-list {
       margin: 8px 0 16px 20px;
       padding: 0;
     }
-    ul.wiki-list li {
-      margin-bottom: 6px;
-    }
+    ul.wiki-list li { margin-bottom: 6px; }
 
-    /* A–Ö BOKSTAVSRAD */
     .wiki-alpha-bar {
       display: flex;
       flex-wrap: wrap;
@@ -194,14 +194,10 @@
       border-bottom: 1px solid var(--border-wiki);
       font-size: 15px;
     }
-    .wiki-alpha-bar a {
-      color: var(--link);
-      text-decoration: none;
-      padding: 2px 4px;
-    }
+    .wiki-alpha-bar a { color: var(--link); text-decoration: none; padding: 2px 4px; }
     .wiki-alpha-bar a:hover { text-decoration: underline; }
 
-    /* POPUP / MODAL (STILREN WIKIPEDIA-RUTA) */
+    /* POPUP */
     .popup-overlay {
       position: fixed;
       inset: 0;
@@ -259,7 +255,7 @@
     }
     .check-label:hover { background: #eaecf0; }
 
-    input[type="text"], textarea {
+    input[type="text"], input[type="number"], select, textarea {
       width: 100%;
       background: #ffffff;
       border: 1px solid var(--border-wiki);
@@ -269,7 +265,7 @@
       font-size: 15px;
       font-family: inherit;
     }
-    input[type="text"]:focus, textarea:focus {
+    input:focus, textarea:focus, select:focus {
       border-color: var(--link);
       outline: none;
     }
@@ -283,24 +279,9 @@
       font-size: 14px;
       cursor: pointer;
     }
-    button.wiki-btn:hover {
-      background: #ffffff;
-      border-color: #72777d;
-    }
-    button.wiki-btn.primary {
-      background: #36c;
-      border-color: #36c;
-      color: #fff;
-      font-weight: 700;
-    }
-    button.wiki-btn.primary:hover {
-      background: #447ff5;
-      border-color: #447ff5;
-    }
-    button.wiki-btn.danger {
-      color: var(--danger);
-      border-color: #faa;
-    }
+    button.wiki-btn:hover { background: #ffffff; border-color: #72777d; }
+    button.wiki-btn.primary { background: #36c; border-color: #36c; color: #fff; font-weight: 700; }
+    button.wiki-btn.primary:hover { background: #447ff5; }
   </style>
 </head>
 <body>
@@ -308,54 +289,184 @@
   <!-- TOPP-NAVIGERING -->
   <header class="wiki-header">
     <a href="#index" class="header-logo">
-      <span>🌿</span> <span>Ört-Wiki</span>
+      <span>🌿</span> <span id="brand-title">Herbal Wiki</span>
     </a>
     <nav class="header-nav">
-      <a href="#index" class="nav-link" id="nav-index">Index (A–Ö)</a>
-      <a href="#search" class="nav-link" id="nav-search">Sök</a>
-      <a href="#formulas" class="nav-link" id="nav-formulas">Formler</a>
+      <a href="#index" class="nav-link" id="nav-index">Index</a>
+      <a href="#search" class="nav-link" id="nav-search">Search</a>
+      <a href="#formulas" class="nav-link" id="nav-formulas">Formulas</a>
+      <button class="lang-toggle" onclick="toggleLanguage()" id="btn-lang-toggle">🌐 SV</button>
     </nav>
   </header>
 
-  <!-- HUVUDDOKUMENT (EN SIDVY I TAGET) -->
+  <!-- HUVUDDOKUMENT -->
   <main class="wiki-container" id="wiki-app"></main>
 
-  <!-- POPUP: CHECKLISTA FÖR ATT BOCKA I/AV ELLER SKAPA VID ENTER -->
+  <!-- POPUP: CHECKLISTA MED DIREKT-SPAR -->
   <div class="popup-overlay" id="popup-checklist">
     <div class="popup-box">
       <div class="popup-header">
-        <span id="popup-check-title">Hantera koppling</span>
+        <span id="popup-check-title">Manage</span>
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
-        <input type="text" id="popup-filter-input" placeholder="🔍 Skriv för att filtrera eller skapa..." oninput="renderPopupList()">
+        <input type="text" id="popup-filter-input" placeholder="🔍 Search or type new..." oninput="renderPopupList()">
         <div class="checklist-container" id="popup-checklist-items"></div>
-        <div style="font-size:12px; color:var(--text-muted); line-height: 1.4;">
-          • Bocka i/ur för att spara direkt.<br>
-          • Skriv i sökrutan och tryck <b>Enter</b> för att skapa en helt ny post.
+        <div style="font-size:12px; color:var(--text-muted); line-height: 1.4;" id="popup-help-text">
+          • Check/uncheck to save instantly.<br>
+          • Type in the box and press <b>Enter</b> to create a new item.
         </div>
       </div>
     </div>
   </div>
 
-  <!-- POPUP: REDIGERA TEXTBESKRIVNING -->
+  <!-- POPUP: REDIGERA TEXT -->
   <div class="popup-overlay" id="popup-editor">
     <div class="popup-box">
       <div class="popup-header">
-        <span id="popup-editor-title">Redigera artikeltext</span>
+        <span id="popup-editor-title">Edit Description</span>
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
         <textarea id="popup-editor-input" rows="8"></textarea>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button class="wiki-btn primary" onclick="saveDescription()">Spara ändringar</button>
-          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
+          <button class="wiki-btn primary" onclick="saveDescription()" id="btn-save-desc">Save</button>
+          <button class="wiki-btn" onclick="closePopup()">Cancel</button>
         </div>
       </div>
     </div>
   </div>
 
 <script>
+// ==================== ENHETER & VOLYM/VIKT-NORMALISERING ====================
+// Standardiserade enheter med officiella förkortningar
+const unitConversions = {
+  "g":     { base: 1,    type: "weight" },
+  "oz":    { base: 28.35,type: "weight" },
+  "ml":    { base: 1,    type: "volume" },
+  "tsp":   { base: 5,    type: "volume" },
+  "tbsp":  { base: 15,   type: "volume" },
+  "c":     { base: 240,  type: "volume" },
+  "pinch": { base: 0.35, type: "volume" }
+};
+
+// ==================== SPRÅK (ENGLISKA SOM STANDARD) ====================
+let currentLang = localStorage.getItem("wiki_lang") || "en";
+
+const i18n = {
+  en: {
+    brand: "Herbal Wiki",
+    index: "Index (A–Z)",
+    search: "Search",
+    formulas: "Formulas",
+    btnLang: "🌐 SV",
+    newHerb: "[+ Add New Herb]",
+    indexIntro: "Alphabetical index of herbs, plants and preparations registered in the database.",
+    propsLabel: "properties",
+    deleteHerb: "[delete herb]",
+    editDesc: "[edit description]",
+    noDesc: "This article currently lacks a description.",
+    taxSection: "Taxonomic Classification",
+    addCategory: "[+ Add New Category]",
+    formulaSection: "Formula Occurrences",
+    noFormulas: "No registered formulas.",
+    relatedSection: "Related Herbs & Relevance",
+    noRelated: "No related herbs found yet.",
+    relevanceLabel: "relevance",
+    sharedProps: "common properties",
+    editPropDesc: "[edit description]",
+    propHerbsSection: "Herbs & Preparations with this Property",
+    connectHerbBtn: "[+ Connect Herb]",
+    catSection: "Properties & Associated Herbs",
+    newPropBtn: "[+ Create New Property]",
+    formulaArchive: "Formula Archive",
+    formulaIntro: "Compounded herbal formulas, tinctures and infusions.",
+    newFormulaBtn: "[+ New Formula]",
+    deleteFormula: "[delete formula]",
+    editFormulaDesc: "[edit indications]",
+    formulaComponents: "Included Components",
+    addHerbToFormula: "[+ Add Herb Component]",
+    theoreticalEffect: "Theoretical Effect & Synergy",
+    synergyLabel: "Synergy",
+    effectLabel: "Effect",
+    searchTitle: "Filter Search",
+    resetFilter: "[reset filters]",
+    addSearchCat: "[+ Add Category Filter]",
+    matchedHerbs: "Matched Articles",
+    noSearchHits: "No herbs matched the given criteria.",
+    relatedPropsSection: "Related Properties",
+    addRelatedPropBtn: "[+ Add Related Property]",
+    noRelatedProps: "No related properties assigned yet.",
+    checkHelp: "• Check/uncheck to save instantly.<br>• Type and press <b>Enter</b> to create a new item."
+  },
+  sv: {
+    brand: "Ört-Wiki",
+    index: "Index (A–Ö)",
+    search: "Sök",
+    formulas: "Formler",
+    btnLang: "🌐 EN",
+    newHerb: "[+ Skapa ny ört]",
+    indexIntro: "Alfabetisk förteckning över samtliga registrerade växter, örter och preparat.",
+    propsLabel: "egenskaper",
+    deleteHerb: "[radera ört]",
+    editDesc: "[redigera beskrivning]",
+    noDesc: "Denna artikel saknar tills vidare en beskrivning.",
+    taxSection: "Taxonomisk klassificering",
+    addCategory: "[+ Lägg till ny kategori]",
+    formulaSection: "Förekomst i formler",
+    noFormulas: "Inga registrerade formler.",
+    relatedSection: "Besläktade örter och relevans",
+    noRelated: "Inga besläktade örter funna än.",
+    relevanceLabel: "relevans",
+    sharedProps: "gemensamma egenskaper",
+    editPropDesc: "[redigera beskrivning]",
+    propHerbsSection: "Örter med denna egenskap",
+    connectHerbBtn: "[+ Koppla ört]",
+    catSection: "Egenskaper och ingående örter",
+    newPropBtn: "[+ Skapa ny egenskap]",
+    formulaArchive: "Formelarkiv",
+    formulaIntro: "Sammansatta örtrecept, tinkturer och teblandningar.",
+    newFormulaBtn: "[+ Ny formel]",
+    deleteFormula: "[radera formel]",
+    editFormulaDesc: "[redigera indikationer]",
+    formulaComponents: "Ingående komponenter",
+    addHerbToFormula: "[+ Lägg till ört]",
+    theoreticalEffect: "Teoretisk effekt & Synergi",
+    synergyLabel: "Synergi",
+    effectLabel: "Effekt",
+    searchTitle: "Filtersökning",
+    resetFilter: "[återställ filter]",
+    addSearchCat: "[+ Lägg till sökkategori]",
+    matchedHerbs: "Matchade artiklar",
+    noSearchHits: "Inga örter matchade sökningen.",
+    relatedPropsSection: "Besläktade egenskaper",
+    addRelatedPropBtn: "[+ Lägg till besläktad egenskap]",
+    noRelatedProps: "Inga besläktade egenskaper länkade än.",
+    checkHelp: "• Bocka i/ur för att spara direkt.<br>• Skriv och tryck <b>Enter</b> för att skapa nytt."
+  }
+};
+
+function t(key) {
+  return i18n[currentLang][key] || key;
+}
+
+function toggleLanguage() {
+  currentLang = (currentLang === "en") ? "sv" : "en";
+  localStorage.setItem("wiki_lang", currentLang);
+  updateUILabels();
+  handleRouting();
+}
+
+function updateUILabels() {
+  document.documentElement.lang = currentLang;
+  document.getElementById("brand-title").innerText = t("brand");
+  document.getElementById("nav-index").innerText = t("index");
+  document.getElementById("nav-search").innerText = t("search");
+  document.getElementById("nav-formulas").innerText = t("formulas");
+  document.getElementById("btn-lang-toggle").innerText = t("btnLang");
+  document.getElementById("popup-help-text").innerHTML = t("checkHelp");
+}
+
 // ==================== DATABAS & MASTER LAGRING ====================
 const MASTER_STORAGE_KEY = "taxonomy_ide_master_db";
 
@@ -363,14 +474,14 @@ const defaultData = {
   objects: [
     {
       id: "ginger",
-      name: "Ingefära (Zingiber officinale)",
-      desc: "Ingefära är en flerårig ört med kraftig, förgrenad rotstock. Inom såväl västerländsk som ayurvedisk och kinesisk medicin används den främst som värmande katalysator, mot illamående och för att stimulera matsmältningselden.",
+      name: "Ginger (Zingiber officinale)",
+      desc: "Zingiber officinale is a pungent, warming rhizome widely utilized across Western, Ayurvedic, and Chinese traditions for cold tissue depression, nausea, and digestive weakness.",
       props: { "Pungent": {}, "Mars": {}, "Fire": {}, "Carminative": {}, "Ushna": {}, "Vata -": {}, "Kapha -": {}, "Pitta +": {}, "Spleen": {}, "Stomach": {}, "Release Exterior": {} }
     },
     {
       id: "peppermint",
-      name: "Pepparmynta (Mentha piperita)",
-      desc: "Pepparmynta är en aromatisk ört ur familjen kransblommiga växter. Den har en utpräglat svalkande kvalitet och används traditionellt för att dämpa hetta, lindra gallkramper och lugna spänningshuvudvärk.",
+      name: "Peppermint (Mentha piperita)",
+      desc: "Mentha piperita is a classic cooling, aromatic herb excellent for dispelling heat, relieving gastrointestinal spasms, and clearing tension.",
       props: { "Sheeta": {}, "Carminative": {}, "Pitta -": {}, "Stomach": {} }
     }
   ],
@@ -379,13 +490,13 @@ const defaultData = {
     "Botanical Name":        { system: "General Information", desc: "" },
     "Family":                { system: "General Information", desc: "" },
     "Precautions":           { system: "General Information", desc: "" },
-    "Tastes (Western)":      { system: "Western Herbalism", desc: "" },
+    "Tastes":                { system: "Western Herbalism", desc: "" },
     "Six Tissue States":     { system: "Western Herbalism", desc: "" },
     "Planetary Ruler":       { system: "Western Herbalism", desc: "" },
     "Elemental Ruler":       { system: "Western Herbalism", desc: "" },
     "Humors":                { system: "Western Herbalism", desc: "" },
     "Culpepper Uses":        { system: "Western Herbalism", desc: "" },
-    "Actions (Western)":     { system: "Western Herbalism", desc: "" },
+    "Actions":               { system: "Western Herbalism", desc: "" },
     "Affinities":            { system: "Western Herbalism", desc: "" },
     "Tastes (Ayurveda)":     { system: "Ayurveda", desc: "" },
     "Gunas":                 { system: "Ayurveda", desc: "" },
@@ -397,35 +508,35 @@ const defaultData = {
     "Actions (TCM)":         { system: "Traditional Chinese Medicine", desc: "" }
   },
   properties: {
-    "Pungent":    { category: "Tastes (Western)", desc: "Värmande och cirkulationsökande smak som skingrar stagnation." },
-    "Excitation": { category: "Six Tissue States", desc: "Överhettat och irriterat vävnadstillstånd." },
-    "Depression": { category: "Six Tissue States", desc: "Kallt och underaktivt vävnadstillstånd med nedsatt funktion." },
-    "Mars":       { category: "Planetary Ruler", desc: "Kopplad till hetta, drivkraft och blodcirkulation." },
-    "Fire":       { category: "Elemental Ruler", desc: "Eldelementet som transformerar och tillför metabol värme." },
-    "Carminative":{ category: "Actions (Western)", desc: "Väderdelande och kramplindrande effekt på mag- och tarmkanalen." },
-    "Ushna":      { category: "Gunas", desc: "Värmande metabol kvalitet som stimulerar Agni." },
-    "Sheeta":     { category: "Gunas", desc: "Kylande metabol kvalitet som dämpar inflammation." },
-    "Vata -":     { category: "Doshas", desc: "Lugnar och balanserar Vata-doshan vid kyla och torka." },
-    "Kapha -":    { category: "Doshas", desc: "Reducerar överskott av slem, tyngd och vätskeansamling." },
-    "Pitta +":    { category: "Doshas", desc: "Ökar Pitta och bör användas varsamt vid akut hetta." },
-    "Pitta -":    { category: "Doshas", desc: "Kyler och balanserar en överhettad Pitta." },
-    "Spleen":     { category: "Entered Channels", desc: "Kanaliserar energi in i Mjältens meridian och matsmältningsfunktion." },
-    "Stomach":    { category: "Entered Channels", desc: "Riktar verkan mot Magsäckens nedåtgående energi." },
-    "Release Exterior": { category: "Actions (TCM)", desc: "Öppnar porerna och driver ut patogen vind-kyla via transpiration." }
+    "Pungent":    { category: "Tastes", desc: "Warming, circulating taste that dispels cold and moves stagnation.", related: ["Ushna", "Fire"] },
+    "Excitation": { category: "Six Tissue States", desc: "Overheated, irritated tissue condition.", related: [] },
+    "Depression": { category: "Six Tissue States", desc: "Cold, depressed, sub-metabolic tissue state.", related: [] },
+    "Mars":       { category: "Planetary Ruler", desc: "Governs acute metabolic drive and circulation.", related: ["Fire"] },
+    "Fire":       { category: "Elemental Ruler", desc: "Element of transformation, acute warmth and metabolism.", related: ["Pungent", "Mars", "Ushna"] },
+    "Carminative":{ category: "Actions", desc: "Relieves gastrointestinal cramping and dispels gas.", related: [] },
+    "Ushna":      { category: "Gunas", desc: "Warming metabolic quality promoting digestive fire (Agni).", related: ["Pungent", "Fire"] },
+    "Sheeta":     { category: "Gunas", desc: "Cooling metabolic quality.", related: [] },
+    "Vata -":     { category: "Doshas", desc: "Reduces and grounds excess Vata dosha.", related: [] },
+    "Kapha -":    { category: "Doshas", desc: "Reduces cold, sluggish, damp Kapha accumulations.", related: [] },
+    "Pitta +":    { category: "Doshas", desc: "Increases Pitta heat.", related: [] },
+    "Pitta -":    { category: "Doshas", desc: "Cools and pacifies agitated Pitta.", related: [] },
+    "Spleen":     { category: "Entered Channels", desc: "Channels therapeutic action through the Spleen meridian.", related: ["Stomach"] },
+    "Stomach":    { category: "Entered Channels", desc: "Channels action into the Stomach meridian.", related: ["Spleen"] },
+    "Release Exterior": { category: "Actions (TCM)", desc: "Induces diaphoresis to expel exterior pathogens.", related: [] }
   },
   formulas: {
-    "Magbalans & Skärpa": {
-      desc: "Balanserande matsmältningsrecept som förenar ingefärans skarpa hetta med pepparmyntans svalkande kramplösning.",
+    "Digestive Balance": {
+      desc: "Synergistic compound harmonizing warming pungency with cooling antispasmodic action.",
       components: [
-        { objId: "ginger", role: "Värmande rot", qty: 2 },
-        { objId: "peppermint", role: "Svalkande balans", qty: 3 }
+        { objId: "ginger", role: "Active Driver", qty: 2, unit: "g" },
+        { objId: "peppermint", role: "Cooling Balance", qty: 3, unit: "g" }
       ]
     }
   }
 };
 
 let db = defaultData;
-const stored = localStorage.getItem(MASTER_STORAGE_KEY) || localStorage.getItem("taxonomy_ide_v18_3");
+const stored = localStorage.getItem(MASTER_STORAGE_KEY);
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -442,6 +553,7 @@ function persist() {
 // ==================== WIKI NAVIGATION (URL HASH) ====================
 window.addEventListener("hashchange", handleRouting);
 window.addEventListener("DOMContentLoaded", () => {
+  updateUILabels();
   if (!window.location.hash) window.location.hash = "#index";
   handleRouting();
 });
@@ -467,12 +579,12 @@ function handleRouting() {
   else renderIndexPage();
 }
 
-// ==================== SIDA D: OBJEKTINDEX (WIKIPEDIA LISTA) ====================
+// ==================== SIDA D: OBJECT INDEX (A–Z) ====================
 function renderIndexPage() {
   const app = document.getElementById("wiki-app");
-  const sorted = [...db.objects].sort((a,b) => a.name.localeCompare(b.name, 'sv'));
+  const sorted = [...db.objects].sort((a,b) => a.name.localeCompare(b.name));
 
-  const letters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","X","Y","Z","Å","Ä","Ö"];
+  const letters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
   const alphaHtml = letters.map(l => `<a href="#letter-${l}">${l}</a>`).join(" · ");
 
   let listHtml = "";
@@ -489,7 +601,7 @@ function renderIndexPage() {
     listHtml += `
       <li>
         <a href="#herb/${obj.id}" class="wiki-link" style="font-weight:700;">${obj.name}</a>
-        <span style="color:var(--text-muted); font-size:13px; font-family:monospace;"> [${tagCount} egenskaper]</span>
+        <span style="color:var(--text-muted); font-size:13px; font-family:monospace;"> [${tagCount} ${t("propsLabel")}]</span>
       </li>
     `;
   });
@@ -497,17 +609,17 @@ function renderIndexPage() {
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>Ört- och växtindex</span>
-      <a class="wiki-action-link" onclick="promptCreateHerb()">[+ Skapa ny ört]</a>
+      <span>${t("index")}</span>
+      <a class="wiki-action-link" onclick="promptCreateHerb()">${t("newHerb")}</a>
     </h1>
-    <div class="wiki-paragraph">Alfabetisk förteckning över samtliga registrerade växter, örter och mineraler i databasen.</div>
+    <div class="wiki-paragraph">${t("indexIntro")}</div>
     <div class="wiki-alpha-bar">${alphaHtml}</div>
     <div>${listHtml}</div>
   `;
 }
 
 function promptCreateHerb() {
-  const name = prompt("Ange örtens namn:");
+  const name = prompt(currentLang === 'en' ? "Enter herb/object name:" : "Ange örtens namn:");
   if (!name || !name.trim()) return;
   const id = "herb_" + Date.now();
   db.objects.push({ id, name: name.trim(), desc: "", props: {} });
@@ -519,9 +631,9 @@ function promptCreateHerb() {
 function renderHerbPage(herbId) {
   const app = document.getElementById("wiki-app");
   const obj = db.objects.find(o => o.id === herbId);
-  if (!obj) { app.innerHTML = `<h2>Artikeln existerar inte.</h2><a href="#index" class="wiki-link">Gå till index</a>`; return; }
+  if (!obj) { app.innerHTML = `<h2>Article not found.</h2><a href="#index" class="wiki-link">Back to Index</a>`; return; }
 
-  // 1. Kategorier & Egenskaper (Helt ramlöst med kommatecken)
+  // 1. Kategorirader
   let rowsHtml = "";
   const catNames = Object.keys(db.categories);
 
@@ -533,7 +645,7 @@ function renderHerbPage(herbId) {
       <div class="wiki-data-row">
         <a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${cat}:</a>
         <div class="wiki-row-content">
-          ${tagsList || '<i>inga</i>'}
+          ${tagsList || '<i>none</i>'}
           <a class="btn-wiki-add" onclick="openAssignPropertyPopup('${obj.id}', '${cat}')">[+]</a>
         </div>
       </div>
@@ -545,10 +657,10 @@ function renderHerbPage(herbId) {
     return fData.components && fData.components.some(c => c.objId === obj.id);
   });
   let formulasHtml = formulasIn.length === 0 
-    ? `<i>Inga registrerade recept.</i>` 
+    ? `<i>${t("noFormulas")}</i>` 
     : formulasIn.map(([fName]) => `<a href="#formula/${encodeURIComponent(fName)}" class="wiki-link">⚗ ${fName}</a>`).join(", ");
 
-  // 3. Besläktade objekt: (Gemensamma / Totala kategorier hos örten) * 100%
+  // 3. Besläktade objekt: (Gemensamma taggar / Antal kategorier hos örten) * 100%
   const totalCategories = Object.keys(db.categories).length || 20;
   const myProps = new Set(Object.keys(obj.props || {}));
 
@@ -565,75 +677,89 @@ function renderHerbPage(herbId) {
   related.sort((a,b) => b.pct - a.pct || b.common - a.common);
 
   let relatedHtml = related.length === 0 
-    ? `<li><i>Inga besläktade örter funna än.</i></li>` 
+    ? `<li><i>${t("noRelated")}</i></li>` 
     : related.slice(0, 8).map(r => `
       <li>
         <a href="#herb/${r.id}" class="wiki-link" style="font-weight:700;">${r.name}</a>
-        — <span style="color:var(--text-muted);">${r.pct}% relevans (${r.common} gemensamma egenskaper)</span>
+        — <span style="color:var(--text-muted);">${r.pct}% ${t("relevanceLabel")} (${r.common} ${t("sharedProps")})</span>
       </li>
     `).join("");
 
   app.innerHTML = `
     <h1 class="wiki-title">
       <span>${obj.name}</span>
-      <a class="wiki-action-link" style="color:var(--danger);" onclick="promptDeleteHerb('${obj.id}')">[radera ört]</a>
+      <a class="wiki-action-link" style="color:var(--danger);" onclick="promptDeleteHerb('${obj.id}')">${t("deleteHerb")}</a>
     </h1>
 
     <div class="wiki-paragraph">
       <span style="float:right;">
-        <a class="wiki-action-link" onclick="openEditor('herb', '${obj.id}')">[redigera beskrivning]</a>
+        <a class="wiki-action-link" onclick="openEditor('herb', '${obj.id}')">${t("editDesc")}</a>
       </span>
-      ${obj.desc || '<i>Denna artikel saknar tills vidare en encyklopedisk beskrivning.</i>'}
+      ${obj.desc || `<i>${t("noDesc")}</i>`}
     </div>
 
-    <h2 class="wiki-section">Taxonomisk klassificering</h2>
+    <h2 class="wiki-section">${t("taxSection")}</h2>
     <div class="wiki-data-table">${rowsHtml}</div>
     <div style="margin: 8px 0 24px 0;">
-      <a class="wiki-action-link" onclick="promptCreateCategory()">[+ Lägg till ny kategori]</a>
+      <a class="wiki-action-link" onclick="promptCreateCategory()">${t("addCategory")}</a>
     </div>
 
-    <h2 class="wiki-section">Förekomst i formler och recept</h2>
+    <h2 class="wiki-section">${t("formulaSection")}</h2>
     <div class="wiki-paragraph">${formulasHtml}</div>
 
-    <h2 class="wiki-section">Besläktade örter och relevans</h2>
+    <h2 class="wiki-section">${t("relatedSection")}</h2>
     <ul class="wiki-list">${relatedHtml}</ul>
   `;
 }
 
 function promptDeleteHerb(id) {
-  if (!confirm("Vill du permanent radera denna ört ur wikin?")) return;
+  if (!confirm("Delete this herb from the database?")) return;
   db.objects = db.objects.filter(o => o.id !== id);
   persist();
   window.location.hash = "#index";
 }
 
-// ==================== SIDA B: EGENSKAP (PROPERTY) ====================
+// ==================== SIDA B: EGENSKAP (PROPERTY) & BESLÄKTADE EGENSKAPER ====================
 function renderPropertyPage(propName) {
   const app = document.getElementById("wiki-app");
   const prop = db.properties[propName];
-  if (!prop) { app.innerHTML = `<h2>Egenskapen existerar inte.</h2><a href="#index" class="wiki-link">Tillbaka till index</a>`; return; }
+  if (!prop) { app.innerHTML = `<h2>Property not found.</h2><a href="#index" class="wiki-link">Back to Index</a>`; return; }
 
+  // 1. Örter med denna egenskap
   const herbsWith = db.objects.filter(o => o.props && o.props[propName] !== undefined);
   let herbsList = herbsWith.length === 0 
-    ? `<li><i>Inga örter bär denna egenskap ännu.</i></li>` 
+    ? `<li><i>None currently.</i></li>` 
     : herbsWith.map(o => `<li><a href="#herb/${o.id}" class="wiki-link" style="font-weight:700;">${o.name}</a></li>`).join("");
+
+  // 2. Besläktade egenskaper (Related Properties)
+  const relatedProps = prop.related || [];
+  let relatedPropsList = relatedProps.length === 0 
+    ? `<i>${t("noRelatedProps")}</i>` 
+    : relatedProps.map(rp => `<a href="#property/${encodeURIComponent(rp)}" class="wiki-link">${rp}</a>`).join(", ");
 
   app.innerHTML = `
     <h1 class="wiki-title">
       <span>${propName}</span>
-      <a href="#category/${encodeURIComponent(prop.category)}" class="wiki-action-link">[Kategori: ${prop.category}]</a>
+      <a href="#category/${encodeURIComponent(prop.category)}" class="wiki-action-link">[${prop.category}]</a>
     </h1>
 
     <div class="wiki-paragraph">
       <span style="float:right;">
-        <a class="wiki-action-link" onclick="openEditor('prop', '${propName}')">[redigera beskrivning]</a>
+        <a class="wiki-action-link" onclick="openEditor('prop', '${propName}')">${t("editPropDesc")}</a>
       </span>
-      ${prop.desc || '<i>Ingen förklarande text skriven för denna egenskap.</i>'}
+      ${prop.desc || `<i>${t("noDesc")}</i>`}
     </div>
 
+    <!-- BESLÄKTADE EGENSKAPER (FRANKS KRAV) -->
     <h2 class="wiki-section">
-      <span>Örter och preparat (${herbsWith.length})</span>
-      <a class="wiki-action-link" onclick="openConnectHerbsToPropertyPopup('${propName}')">[+ Koppla till ört]</a>
+      <span>${t("relatedPropsSection")}</span>
+      <a class="wiki-action-link" onclick="openRelatedPropertiesPopup('${propName}')">${t("addRelatedPropBtn")}</a>
+    </h2>
+    <div class="wiki-paragraph">${relatedPropsList}</div>
+
+    <h2 class="wiki-section">
+      <span>${t("propHerbsSection")} (${herbsWith.length})</span>
+      <a class="wiki-action-link" onclick="openConnectHerbsToPropertyPopup('${propName}')">${t("connectHerbBtn")}</a>
     </h2>
     <ul class="wiki-list">${herbsList}</ul>
   `;
@@ -643,12 +769,12 @@ function renderPropertyPage(propName) {
 function renderCategoryPage(catName) {
   const app = document.getElementById("wiki-app");
   const cat = db.categories[catName];
-  if (!cat) { app.innerHTML = `<h2>Kategorin existerar inte.</h2><a href="#index" class="wiki-link">Tillbaka till index</a>`; return; }
+  if (!cat) { app.innerHTML = `<h2>Category not found.</h2><a href="#index" class="wiki-link">Back to Index</a>`; return; }
 
   const propsIn = Object.keys(db.properties).filter(p => db.properties[p].category === catName);
 
   let rowsHtml = propsIn.length === 0 
-    ? `<i>Inga egenskaper definierade under denna kategori.</i>` 
+    ? `<i>No properties defined in this category.</i>` 
     : propsIn.map(p => {
       const herbs = db.objects.filter(o => o.props && o.props[p] !== undefined);
       const herbsLinks = herbs.map(h => `<a href="#herb/${h.id}" class="wiki-link">${h.name}</a>`).join(", ");
@@ -656,7 +782,7 @@ function renderCategoryPage(catName) {
         <div class="wiki-data-row">
           <a href="#property/${encodeURIComponent(p)}" class="wiki-row-label">${p}:</a>
           <div class="wiki-row-content">
-            ${herbsLinks || '<i>inga örter kopplade</i>'}
+            ${herbsLinks || '<i>none</i>'}
             <a class="btn-wiki-add" onclick="openConnectHerbsToPropertyPopup('${p}')">[+]</a>
           </div>
         </div>
@@ -665,64 +791,64 @@ function renderCategoryPage(catName) {
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>Kategori: ${catName}</span>
-      <span style="font-size:14px; color:var(--text-muted);">[System: ${cat.system || 'Generellt'}]</span>
+      <span>${catName}</span>
+      <span style="font-size:14px; color:var(--text-muted);">[${cat.system || 'System'}]</span>
     </h1>
 
     <div class="wiki-paragraph">
       <span style="float:right;">
-        <a class="wiki-action-link" onclick="openEditor('cat', '${catName}')">[redigera beskrivning]</a>
+        <a class="wiki-action-link" onclick="openEditor('cat', '${catName}')">${t("editDesc")}</a>
       </span>
-      ${cat.desc || '<i>Ingen beskrivning skriven för denna kategori.</i>'}
+      ${cat.desc || `<i>${t("noDesc")}</i>`}
     </div>
 
     <h2 class="wiki-section">
-      <span>Ingående egenskaper och örter</span>
-      <a class="wiki-action-link" onclick="promptCreateProperty('${catName}')">[+ Skapa ny egenskap]</a>
+      <span>${t("catSection")}</span>
+      <a class="wiki-action-link" onclick="promptCreateProperty('${catName}')">${t("newPropBtn")}</a>
     </h2>
     <div class="wiki-data-table">${rowsHtml}</div>
   `;
 }
 
 function promptCreateCategory() {
-  const name = prompt("Ange namn på ny kategori:");
+  const name = prompt("Enter new category name:");
   if (!name || !name.trim()) return;
-  const sys = prompt("Ange tillhörande system (General Information, Western Herbalism, Ayurveda, Traditional Chinese Medicine):", "General Information") || "General Information";
+  const sys = prompt("Enter system (General Information, Western Herbalism, Ayurveda, Traditional Chinese Medicine):", "General Information") || "General Information";
   db.categories[name.trim()] = { system: sys.trim(), desc: "" };
   persist();
   window.location.hash = `#category/${encodeURIComponent(name.trim())}`;
 }
 
 function promptCreateProperty(catName) {
-  const name = prompt(`Ange namn på ny egenskap under '${catName}':`);
+  const name = prompt(`Enter property name under '${catName}':`);
   if (!name || !name.trim()) return;
-  db.properties[name.trim()] = { category: catName, desc: "" };
+  db.properties[name.trim()] = { category: catName, desc: "", related: [] };
   persist();
   renderCategoryPage(catName);
 }
 
-// ==================== FORMLER (RECEPT) ====================
+// ==================== FORMLER: ENHETSKONVERTERING, SYNERGI & EFFEKT ====================
 function renderFormulasIndexPage() {
   const app = document.getElementById("wiki-app");
   const listHtml = Object.entries(db.formulas).map(([fName, fData]) => `
     <li>
       <a href="#formula/${encodeURIComponent(fName)}" class="wiki-link" style="font-weight:700;">⚗ ${fName}</a>
-      <span style="color:var(--text-muted); font-size:13px;"> — ${fData.components ? fData.components.length : 0} komponenter</span>
+      <span style="color:var(--text-muted); font-size:13px;"> — ${fData.components ? fData.components.length : 0} components</span>
     </li>
   `).join("");
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>Formel- och receptarkiv</span>
-      <a class="wiki-action-link" onclick="promptCreateFormula()">[+ Ny formel]</a>
+      <span>${t("formulaArchive")}</span>
+      <a class="wiki-action-link" onclick="promptCreateFormula()">${t("newFormulaBtn")}</a>
     </h1>
-    <div class="wiki-paragraph">Samling av sammansatta örtrecept, tinkturer och teblandningar.</div>
-    <ul class="wiki-list">${listHtml || '<li><i>Inga formler sparade än.</i></li>'}</ul>
+    <div class="wiki-paragraph">${t("formulaIntro")}</div>
+    <ul class="wiki-list">${listHtml || '<li><i>No formulas created yet.</i></li>'}</ul>
   `;
 }
 
 function promptCreateFormula() {
-  const name = prompt("Ange namn på formeln (t.ex. Mag-te, Förkylningsbrygd):");
+  const name = prompt("Enter formula name (e.g. Daily Tonic, Lung Tea):");
   if (!name || !name.trim()) return;
   if (!db.formulas[name.trim()]) {
     db.formulas[name.trim()] = { desc: "", components: [] };
@@ -734,62 +860,136 @@ function promptCreateFormula() {
 function renderFormulaDetailPage(fName) {
   const app = document.getElementById("wiki-app");
   const formula = db.formulas[fName];
-  if (!formula) { app.innerHTML = `<h2>Formeln existerar inte.</h2><a href="#formulas" class="wiki-link">Tillbaka till formelarkivet</a>`; return; }
+  if (!formula) { app.innerHTML = `<h2>Formula not found.</h2><a href="#formulas" class="wiki-link">Back to Formulas</a>`; return; }
 
-  const total = (formula.components || []).reduce((sum, c) => sum + (c.qty || 1), 0);
+  // Beräkna total normaliserad volym/vikt för exakt andelsberäkning
+  let totalNormalized = 0;
+  (formula.components || []).forEach(c => {
+    const unitDef = unitConversions[c.unit] || { base: 1 };
+    totalNormalized += (c.qty || 1) * unitDef.base;
+  });
 
-  let compRows = (formula.components || []).map((c, idx) => {
+  // 1. Ingående Komponenter: Herb: role, amount unit, share%
+  const compRows = (formula.components || []).map((c, idx) => {
     const herb = db.objects.find(o => o.id === c.objId);
-    const share = total > 0 ? Math.round((c.qty / total) * 100) : 0;
+    const unitDef = unitConversions[c.unit] || { base: 1 };
+    const myNormalized = (c.qty || 1) * unitDef.base;
+    const share = totalNormalized > 0 ? Math.round((myNormalized / totalNormalized) * 100) : 0;
+
+    const unitOptions = Object.keys(unitConversions).map(u => 
+      `<option value="${u}" ${u === c.unit ? 'selected' : ''}>${u}</option>`
+    ).join("");
+
     return `
       <li>
-        <a href="#herb/${c.objId}" class="wiki-link" style="font-weight:700;">${herb ? herb.name : c.objId}</a>
-        (${c.role || 'Komponent'}) — 
-        <button class="wiki-btn" style="padding:0 5px;" onclick="updateFormulaQty('${fName}', ${idx}, -1)">-</button>
-        <b>${c.qty} delar</b>
-        <button class="wiki-btn" style="padding:0 5px;" onclick="updateFormulaQty('${fName}', ${idx}, 1)">+</button>
-        <span style="font-family:monospace; margin-left:6px;">(${share}%)</span>
-        <a class="wiki-action-link" style="color:var(--danger); margin-left:8px;" onclick="removeFormulaComp('${fName}', ${idx})">[ta bort]</a>
+        <a href="#herb/${c.objId}" class="wiki-link" style="font-weight:700;">${herb ? herb.name : c.objId}</a>: 
+        <input type="text" value="${c.role || ''}" placeholder="Role..." style="width:130px; display:inline-block; padding:2px 4px; font-size:13px;" onchange="updateCompRole('${fName}', ${idx}, this.value)">, 
+        <input type="number" step="any" value="${c.qty}" style="width:55px; display:inline-block; padding:2px 4px; font-size:13px;" onchange="updateCompQty('${fName}', ${idx}, this.value)"> 
+        <select style="width:65px; display:inline-block; padding:2px 4px; font-size:13px;" onchange="updateCompUnit('${fName}', ${idx}, this.value)">
+          ${unitOptions}
+        </select>, 
+        <b style="font-family:monospace; margin:0 4px;">${share}%</b>
+        <a class="wiki-action-link" style="color:var(--danger); margin-left:6px;" onclick="removeFormulaComp('${fName}', ${idx})">[✕]</a>
       </li>
     `;
   }).join("");
 
+  // 2. TEORETISK EFFEKT: Beräknas per kategori
+  // Varje egenskap har två värden: Synergi (antal örter med egenskapen / totala antalet örter) och Effekt (andel av totala mängden)
+  const totalComponentsCount = (formula.components || []).length;
+  const propStats = {};
+
+  (formula.components || []).forEach(c => {
+    const herb = db.objects.find(o => o.id === c.objId);
+    if (!herb || !herb.props) return;
+    const unitDef = unitConversions[c.unit] || { base: 1 };
+    const compAmount = (c.qty || 1) * unitDef.base;
+
+    Object.keys(herb.props).forEach(pName => {
+      const pData = db.properties[pName];
+      if (!pData) return;
+      const cat = pData.category || "General";
+
+      if (!propStats[cat]) propStats[cat] = {};
+      if (!propStats[cat][pName]) {
+        propStats[cat][pName] = { count: 0, amount: 0 };
+      }
+      propStats[cat][pName].count += 1;
+      propStats[cat][pName].amount += compAmount;
+    });
+  });
+
+  // Generera kategori-rader för teoretisk effekt
+  let effectCategoryRows = "";
+  Object.keys(propStats).forEach(cat => {
+    const propsInCat = propStats[cat];
+    const formattedProps = Object.keys(propsInCat).map(pName => {
+      const s = propsInCat[pName];
+      const effShare = totalNormalized > 0 ? Math.round((s.amount / totalNormalized) * 100) : 0;
+      // Format: Carminative (3/6, 45%)
+      return `<a href="#property/${encodeURIComponent(pName)}" class="wiki-link">${pName}</a> <b>(${s.count}/${totalComponentsCount}, ${effShare}%)</b>`;
+    }).join(", ");
+
+    effectCategoryRows += `
+      <div class="wiki-data-row">
+        <span class="wiki-row-label">${cat}:</span>
+        <div class="wiki-row-content">${formattedProps}</div>
+      </div>
+    `;
+  });
+
   app.innerHTML = `
     <h1 class="wiki-title">
       <span>⚗ ${fName}</span>
-      <a class="wiki-action-link" style="color:var(--danger);" onclick="deleteFormula('${fName}')">[radera formel]</a>
+      <a class="wiki-action-link" style="color:var(--danger);" onclick="deleteFormula('${fName}')">${t("deleteFormula")}</a>
     </h1>
 
     <div class="wiki-paragraph">
       <span style="float:right;">
-        <a class="wiki-action-link" onclick="openEditor('formula', '${fName}')">[redigera indikationer]</a>
+        <a class="wiki-action-link" onclick="openEditor('formula', '${fName}')">${t("editFormulaDesc")}</a>
       </span>
-      ${formula.desc || '<i>Inga kliniska indikationer eller beskrivning angiven.</i>'}
+      ${formula.desc || `<i>${t("noDesc")}</i>`}
     </div>
 
+    <!-- INGÅENDE KOMPONENTER -->
     <h2 class="wiki-section">
-      <span>Ingående komponenter</span>
-      <a class="wiki-action-link" onclick="promptAddCompToFormula('${fName}')">[+ Lägg till ört]</a>
+      <span>${t("formulaComponents")} (${totalComponentsCount})</span>
+      <a class="wiki-action-link" onclick="promptAddCompToFormula('${fName}')">${t("addHerbToFormula")}</a>
     </h2>
-    <ul class="wiki-list">${compRows || '<li><i>Inga örter tillagda i receptet än.</i></li>'}</ul>
+    <ul class="wiki-list">${compRows || '<li><i>No components added yet.</i></li>'}</ul>
+
+    <!-- TEORETISK EFFEKT -->
+    <h2 class="wiki-section">
+      <span>${t("theoreticalEffect")}</span>
+    </h2>
+    <div class="wiki-data-table">
+      ${effectCategoryRows || '<i>No component properties found to calculate effect.</i>'}
+    </div>
   `;
 }
 
-function updateFormulaQty(fName, idx, delta) {
-  const c = db.formulas[fName].components[idx];
-  c.qty = Math.max(1, (c.qty || 1) + delta);
+function updateCompRole(fName, idx, val) {
+  db.formulas[fName].components[idx].role = val;
+  persist();
+}
+function updateCompQty(fName, idx, val) {
+  const num = parseFloat(val);
+  db.formulas[fName].components[idx].qty = isNaN(num) ? 1 : num;
   persist();
   renderFormulaDetailPage(fName);
 }
-
+function updateCompUnit(fName, idx, val) {
+  db.formulas[fName].components[idx].unit = val;
+  persist();
+  renderFormulaDetailPage(fName);
+}
 function removeFormulaComp(fName, idx) {
   db.formulas[fName].components.splice(idx, 1);
   persist();
   renderFormulaDetailPage(fName);
 }
-
 function deleteFormula(fName) {
-  if (!confirm(`Vill du radera formeln '${fName}'?`)) return;
+  if (!confirm(`Delete formula '${fName}'?`)) return;
   delete db.formulas[fName];
   persist();
   window.location.hash = "#formulas";
@@ -797,19 +997,19 @@ function deleteFormula(fName) {
 
 function promptAddCompToFormula(fName) {
   const herbs = db.objects;
-  if (herbs.length === 0) return alert("Inga örter registrerade i databasen.");
-  const choice = prompt("Välj ört att lägga till:\n" + herbs.map((h, i) => `${i+1}. ${h.name}`).join("\n"));
+  if (herbs.length === 0) return alert("No herbs registered in database.");
+  const choice = prompt("Select herb index to add:\n" + herbs.map((h, i) => `${i+1}. ${h.name}`).join("\n"));
   if (!choice) return;
   const idx = parseInt(choice) - 1;
   if (herbs[idx]) {
-    const role = prompt(`Ange roll för ${herbs[idx].name} (t.ex. Huvudört, Katalysator):`, "Komponent") || "Komponent";
-    db.formulas[fName].components.push({ objId: herbs[idx].id, role, qty: 1 });
+    const role = prompt(`Enter role for ${herbs[idx].name}:`, "Active Component") || "Active Component";
+    db.formulas[fName].components.push({ objId: herbs[idx].id, role, qty: 1, unit: "g" });
     persist();
     renderFormulaDetailPage(fName);
   }
 }
 
-// ==================== SÖKSIDAN (WIKIPEDIA FILTER) ====================
+// ==================== SÖKSIDAN (KATEGORI-FILTER) ====================
 let activeSearchCategories = {};
 
 function renderSearchPage() {
@@ -828,7 +1028,7 @@ function renderSearchPage() {
       <div class="wiki-data-row">
         <span class="wiki-row-label" style="color:#000;">${cat}:</span>
         <div class="wiki-row-content">
-          ${tags || '<i>inga valda</i>'}
+          ${tags || '<i>none selected</i>'}
           <a class="btn-wiki-add" onclick="openSearchPropPopup('${cat}')">[+]</a>
         </div>
       </div>
@@ -849,35 +1049,35 @@ function renderSearchPage() {
     });
     hits.sort((a,b) => b.pct - a.pct);
 
-    matchesHtml = hits.length === 0 ? `<li><i>Inga örter matchade sökningen.</i></li>` : hits.map(h => `
+    matchesHtml = hits.length === 0 ? `<li><i>${t("noSearchHits")}</i></li>` : hits.map(h => `
       <li>
         <a href="#herb/${h.id}" class="wiki-link" style="font-weight:700;">${h.name}</a>
-        — <b style="color:var(--accent-gold); font-family:monospace;">${h.pct}% match</b> (${h.matchCount}/${allFilterProps.length} egenskaper)
+        — <b style="color:var(--accent-gold); font-family:monospace;">${h.pct}% match</b> (${h.matchCount}/${allFilterProps.length} ${t("propsLabel")})
       </li>
     `).join("");
   } else {
-    matchesHtml = `<li><i>Välj kategorier och egenskaper ovan för att filtrera databasen.</i></li>`;
+    matchesHtml = `<li><i>Select categories and properties above to filter the encyclopedia.</i></li>`;
   }
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>Filtersökning</span>
-      <a class="wiki-action-link" style="color:var(--danger);" onclick="resetSearch()">[återställ filter]</a>
+      <span>${t("searchTitle")}</span>
+      <a class="wiki-action-link" style="color:var(--danger);" onclick="resetSearch()">${t("resetFilter")}</a>
     </h1>
 
-    <div class="wiki-data-table">${catFilterRows}</div>
+    <div class="wiki-data-table">${catFilterRows || '<i>No search categories added.</i>'}</div>
     <div style="margin: 8px 0 24px 0;">
-      <a class="wiki-action-link" onclick="promptAddSearchCategory()">[+ Lägg till sökkategori]</a>
+      <a class="wiki-action-link" onclick="promptAddSearchCategory()">${t("addSearchCat")}</a>
     </div>
 
-    <h2 class="wiki-section">Matchade artiklar</h2>
+    <h2 class="wiki-section">${t("matchedHerbs")}</h2>
     <ul class="wiki-list">${matchesHtml}</ul>
   `;
 }
 
 function promptAddSearchCategory() {
   const cats = Object.keys(db.categories);
-  const choice = prompt("Välj kategori att söka i:\n" + cats.map((c, i) => `${i+1}. ${c}`).join("\n"));
+  const choice = prompt("Select category to filter:\n" + cats.map((c, i) => `${i+1}. ${c}`).join("\n"));
   if (!choice) return;
   const idx = parseInt(choice) - 1;
   if (cats[idx]) {
@@ -889,7 +1089,7 @@ function promptAddSearchCategory() {
 function openSearchPropPopup(cat) {
   activePopupMode = "search_prop";
   activePopupTarget = cat;
-  document.getElementById("popup-check-title").innerText = `Välj [${cat}]`;
+  document.getElementById("popup-check-title").innerText = `Filter [${cat}]`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   renderPopupList();
@@ -905,8 +1105,8 @@ function resetSearch() {
   renderSearchPage();
 }
 
-// ==================== CHECKLIST POPUP ====================
-let activePopupMode = "";
+// ==================== CHECKLIST POPUP & BESLÄKTADE EGENSKAPER ====================
+let activePopupMode = ""; // 'assign_prop' | 'connect_herb' | 'search_prop' | 'related_prop'
 let activePopupTarget = "";
 let activePopupExtra = "";
 
@@ -914,7 +1114,7 @@ function openAssignPropertyPopup(herbId, catName) {
   activePopupMode = "assign_prop";
   activePopupTarget = herbId;
   activePopupExtra = catName;
-  document.getElementById("popup-check-title").innerText = `Hantera [${catName}]`;
+  document.getElementById("popup-check-title").innerText = `Assign [${catName}]`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   document.getElementById("popup-filter-input").focus();
@@ -924,7 +1124,17 @@ function openAssignPropertyPopup(herbId, catName) {
 function openConnectHerbsToPropertyPopup(propName) {
   activePopupMode = "connect_herb";
   activePopupTarget = propName;
-  document.getElementById("popup-check-title").innerText = `Koppla örter till [${propName}]`;
+  document.getElementById("popup-check-title").innerText = `Connect herbs to [${propName}]`;
+  document.getElementById("popup-filter-input").value = "";
+  document.getElementById("popup-checklist").style.display = "flex";
+  document.getElementById("popup-filter-input").focus();
+  renderPopupList();
+}
+
+function openRelatedPropertiesPopup(propName) {
+  activePopupMode = "related_prop";
+  activePopupTarget = propName;
+  document.getElementById("popup-check-title").innerText = `Related Properties for [${propName}]`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   document.getElementById("popup-filter-input").focus();
@@ -968,6 +1178,25 @@ function renderPopupList() {
       listCont.appendChild(lbl);
     });
 
+  } else if (activePopupMode === "related_prop") {
+    const currentPropName = activePopupTarget;
+    const prop = db.properties[currentPropName];
+    if (!prop.related) prop.related = [];
+
+    const allOtherProps = Object.keys(db.properties).filter(p => p !== currentPropName);
+    const filtered = allOtherProps.filter(p => p.toLowerCase().includes(query));
+
+    filtered.forEach(p => {
+      const isChecked = prop.related.includes(p);
+      const lbl = document.createElement("label");
+      lbl.className = "check-label";
+      lbl.innerHTML = `
+        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleRelatedProperty('${currentPropName}', '${p}', this.checked)">
+        <span>${p} <span style="font-size:12px; color:var(--text-muted);">[${db.properties[p].category}]</span></span>
+      `;
+      listCont.appendChild(lbl);
+    });
+
   } else if (activePopupMode === "search_prop") {
     const cat = activePopupTarget;
     const allProps = Object.keys(db.properties).filter(p => db.properties[p].category === cat);
@@ -987,6 +1216,7 @@ function renderPopupList() {
   }
 }
 
+// Skapa ny vid Enter
 document.getElementById("popup-filter-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     const val = e.target.value.trim();
@@ -996,7 +1226,7 @@ document.getElementById("popup-filter-input").addEventListener("keydown", (e) =>
       const cat = activePopupExtra;
       const herb = db.objects.find(o => o.id === activePopupTarget);
       if (!db.properties[val]) {
-        db.properties[val] = { category: cat, desc: "" };
+        db.properties[val] = { category: cat, desc: "", related: [] };
       }
       if (!herb.props) herb.props = {};
       herb.props[val] = {};
@@ -1013,6 +1243,20 @@ document.getElementById("popup-filter-input").addEventListener("keydown", (e) =>
       e.target.value = "";
       renderPopupList();
       renderPropertyPage(propName);
+
+    } else if (activePopupMode === "related_prop") {
+      const currentPropName = activePopupTarget;
+      const prop = db.properties[currentPropName];
+      if (!db.properties[val]) {
+        const cat = prompt("Category for new property:", prop.category) || prop.category;
+        db.properties[val] = { category: cat, desc: "", related: [currentPropName] };
+      }
+      if (!prop.related) prop.related = [];
+      if (!prop.related.includes(val)) prop.related.push(val);
+      persist();
+      e.target.value = "";
+      renderPopupList();
+      renderPropertyPage(currentPropName);
     }
   }
 });
@@ -1021,16 +1265,25 @@ function toggleHerbProperty(herbId, propName, isChecked) {
   const herb = db.objects.find(o => o.id === herbId);
   if (!herb) return;
   if (!herb.props) herb.props = {};
-
-  if (isChecked) {
-    herb.props[propName] = {};
-  } else {
-    delete herb.props[propName];
-  }
+  if (isChecked) herb.props[propName] = {};
+  else delete herb.props[propName];
   persist();
 
   if (window.location.hash.startsWith("#herb")) renderHerbPage(herbId);
   if (window.location.hash.startsWith("#property")) renderPropertyPage(propName);
+}
+
+function toggleRelatedProperty(propName, targetPropName, isChecked) {
+  const prop = db.properties[propName];
+  if (!prop.related) prop.related = [];
+
+  if (isChecked) {
+    if (!prop.related.includes(targetPropName)) prop.related.push(targetPropName);
+  } else {
+    prop.related = prop.related.filter(p => p !== targetPropName);
+  }
+  persist();
+  renderPropertyPage(propName);
 }
 
 function toggleSearchFilterProperty(cat, propName, isChecked) {
@@ -1048,7 +1301,7 @@ function closePopup() {
   document.getElementById("popup-editor").style.display = "none";
 }
 
-// ==================== REDIGERA TEXT ====================
+// ==================== REDIGERA ARTIKELBESKRIVNING ====================
 let editorMode = "";
 let editorTargetId = "";
 
