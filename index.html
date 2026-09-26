@@ -345,7 +345,7 @@
   <!-- HUVUDDOKUMENT -->
   <main class="wiki-container" id="wiki-app"></main>
 
-  <!-- FOTNOT MED RESERV-BACKUP -->
+  <!-- FOTNOT MED BACKUP -->
   <footer class="wiki-footer">
     <span>Ört-Wiki Molndatabas (Google Firestore)</span> • 
     <a class="wiki-action-link" onclick="downloadBackupFile()">Exportera JSON</a> • 
@@ -615,7 +615,6 @@
 
 <script>
 // ==================== FIREBASE FIRESTORE MOLNKOPPLING ====================
-// Dina autentiseringsnycklar direkt från ditt Firebase-projekt
 const firebaseConfig = {
   apiKey: "AIzaSyDX3KFiW_nScowsEyNoveIC7u-u2WY2NCc",
   authDomain: "ort-wiki.firebaseapp.com",
@@ -815,7 +814,7 @@ function updateUILabels() {
   document.getElementById("popup-help-text").innerHTML = t("checkHelp");
 }
 
-// ==================== DATABASSTRUKTUR ====================
+// ==================== DATABAS & STANDARDMALL ====================
 const MASTER_STORAGE_KEY = "taxonomy_ide_master_db";
 
 const defaultData = {
@@ -891,7 +890,7 @@ const defaultData = {
       ayurvedicName: "Sunthi / Ardraka",
       desc: "Zingiber officinale är en flerårig värmande rot med bred användning vid kyla, illamående och matsmältningssvaghet.",
       nativeSystems: ["Western Herbalism", "Ayurveda", "Traditional Chinese Medicine"],
-      props: { "Pungent": {}, "Mars": {}, "Fire": {}, "Carminative": {}, "Ushna": {}, "Vata -": {}, "Kapha -": {}, "Pitta +": {}, "Spleen": {}, "Stomach": {}, "Release Exterior": {} },
+      props: { "Pungent": true, "Mars": true, "Fire": true, "Carminative": true, "Ushna": true, "Vata -": true, "Kapha -": true, "Pitta +": true, "Spleen": true, "Stomach": true, "Release Exterior": true },
       propOrder: {},
       sources: []
     },
@@ -903,7 +902,7 @@ const defaultData = {
       ayurvedicName: "Pudina",
       desc: "Mentha piperita är en klassisk kylande och aromatisk ört för att dämpa hetta, lindra kramper och lugna sinnet.",
       nativeSystems: ["Western Herbalism"],
-      props: { "Sheeta": {}, "Carminative": {}, "Pitta -": {}, "Stomach": {} },
+      props: { "Sheeta": true, "Carminative": true, "Pitta -": true, "Stomach": true },
       propOrder: {},
       sources: []
     }
@@ -927,21 +926,102 @@ let indexViewMode = "alpha";
 let indexAlphaSortField = "name";
 let sourceSortMode = "author";
 
-// HÄMTA LOKAL DATA FÖRST
-function loadLocalFallback() {
-  const raw = localStorage.getItem(MASTER_STORAGE_KEY);
-  if (raw) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.objects) && parsed.objects.length > 0) {
-        db = parsed;
-      }
-    } catch(e) {}
+// FIRESTORE-SÄKRA HJÄLPFUNKTIONER FÖR EGENSKAPER (ELIMINERAR {} FELET)
+function hasProp(obj, propName) {
+  if (!obj || !obj.props) return false;
+  if (Array.isArray(obj.props)) return obj.props.includes(propName);
+  return obj.props[propName] !== undefined && obj.props[propName] !== null && obj.props[propName] !== false;
+}
+
+function getPropKeys(obj) {
+  if (!obj || !obj.props) return [];
+  if (Array.isArray(obj.props)) return obj.props;
+  return Object.keys(obj.props).filter(p => obj.props[p] !== null && obj.props[p] !== undefined && obj.props[p] !== false);
+}
+
+function setProp(obj, propName, isChecked) {
+  if (!obj.props) obj.props = {};
+  if (Array.isArray(obj.props)) {
+    if (isChecked) { if (!obj.props.includes(propName)) obj.props.push(propName); }
+    else { obj.props = obj.props.filter(p => p !== propName); }
+  } else {
+    if (isChecked) obj.props[propName] = true; // Spara alltid som true, ALDRIG tomt objekt {}!
+    else delete obj.props[propName];
   }
 }
-loadLocalFallback();
 
-// INITIERA FIRESTORE MOLN-SYNC I REALTID
+function ensureDbStructure() {
+  if (!db.systems) db.systems = defaultData.systems;
+  if (!db.systemOrder) db.systemOrder = defaultData.systemOrder;
+  if (!db.categories) db.categories = defaultData.categories;
+  if (!db.properties) db.properties = defaultData.properties;
+  if (!db.formulas) db.formulas = defaultData.formulas;
+  if (!db.sources) db.sources = defaultData.sources;
+  if (!db.objects) db.objects = defaultData.objects;
+
+  // Normalisera alla örters props så att Firestore inte raderar dem
+  db.objects.forEach(o => {
+    if (!o.props) o.props = {};
+    if (typeof o.props === "object" && !Array.isArray(o.props)) {
+      Object.keys(o.props).forEach(p => {
+        if (typeof o.props[p] === "object") o.props[p] = true;
+      });
+    }
+  });
+}
+
+// ÅTERSKAPA FRANKS TIDIGARE SPARADE ÖRTER FRÅN ALLA NYCKLAR I TELEFONEN
+function loadAndRecoverAllData() {
+  let bestCandidate = null;
+  let maxHerbCount = 0;
+
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      const val = localStorage.getItem(key);
+      if (!val) continue;
+
+      try {
+        const parsed = JSON.parse(val);
+        if (parsed && Array.isArray(parsed.objects)) {
+          if (parsed.objects.length > maxHerbCount) {
+            maxHerbCount = parsed.objects.length;
+            bestCandidate = parsed;
+          }
+        } else if (parsed && parsed.libraries && parsed.libraries.herbal && Array.isArray(parsed.libraries.herbal.objects)) {
+          const hObjs = parsed.libraries.herbal.objects;
+          if (hObjs.length > maxHerbCount) {
+            maxHerbCount = hObjs.length;
+            bestCandidate = {
+              objects: hObjs,
+              categories: parsed.libraries.herbal.categories || defaultData.categories,
+              properties: parsed.libraries.herbal.properties || defaultData.properties,
+              systems: parsed.libraries.herbal.systems || defaultData.systems,
+              systemOrder: defaultData.systemOrder,
+              formulas: defaultData.formulas,
+              sources: defaultData.sources
+            };
+          }
+        }
+      } catch(e) {}
+    }
+  } catch(e) {}
+
+  if (bestCandidate && bestCandidate.objects && bestCandidate.objects.length >= 2) {
+    db = bestCandidate;
+  }
+  ensureDbStructure();
+}
+loadAndRecoverAllData();
+
+// SANITERA INFÖR FIRESTORE (INGA UNDEFINED ELLER TOMMA OBJEKT)
+function cleanForFirestore(data) {
+  return JSON.parse(JSON.stringify(data, (key, value) => {
+    return value === undefined ? "" : value;
+  }));
+}
+
+// INITIERA FIRESTORE MED SMART MERGE
 function initFirestoreSync() {
   if (!firestoreDb) {
     updateCloudStatus("⚠️ Endast lokalt", false);
@@ -955,14 +1035,28 @@ function initFirestoreSync() {
     if (doc.exists) {
       const cloudData = doc.data();
       if (cloudData && Array.isArray(cloudData.objects)) {
+        const localCount = (db.objects || []).length;
+        const cloudCount = cloudData.objects.length;
+
+        // SMART MERGE: Om telefonen har FLER örter än molnet, skriv ALDRIG över telefonen!
+        // Ladda istället upp telefonens örter till molnet så att inget raderas!
+        if (localCount > cloudCount) {
+          updateCloudStatus("☁️ Uppdaterar moln...");
+          docRef.set(cleanForFirestore(db)).then(() => {
+            updateCloudStatus("☁️ Synkad");
+          });
+          return;
+        }
+
         db = cloudData;
+        ensureDbStructure();
         try { localStorage.setItem(MASTER_STORAGE_KEY, JSON.stringify(db)); } catch(e) {}
         updateCloudStatus("☁️ Synkad");
         handleRouting();
       }
     } else {
-      // Första uppstarten: Skapa master-dokumentet i molnet
-      docRef.set(db).then(() => {
+      // Första körningen: Skapa i molnet
+      docRef.set(cleanForFirestore(db)).then(() => {
         updateCloudStatus("☁️ Moln skapat");
       });
     }
@@ -972,8 +1066,9 @@ function initFirestoreSync() {
   });
 }
 
-// SPARA (SPARAR LOKALT DIREKT OCH PUSHAS TILL FIRESTORE)
+// SPARA LOKALT & TILL MOLNET
 function persist() {
+  ensureDbStructure();
   try {
     localStorage.setItem(MASTER_STORAGE_KEY, JSON.stringify(db));
   } catch(e) {}
@@ -982,7 +1077,7 @@ function persist() {
     updateCloudStatus("☁️ Sparar...");
     clearTimeout(cloudSaveTimeout);
     cloudSaveTimeout = setTimeout(() => {
-      firestoreDb.collection("wiki_database").doc("master_library").set(db)
+      firestoreDb.collection("wiki_database").doc("master_library").set(cleanForFirestore(db))
         .then(() => { updateCloudStatus("☁️ Synkad"); })
         .catch((err) => {
           console.error("Cloud push failed:", err);
@@ -991,6 +1086,7 @@ function persist() {
     }, 400);
   }
 }
+window.addEventListener("beforeunload", persist);
 
 // EXPORT/IMPORT
 function downloadBackupFile() {
@@ -1013,6 +1109,7 @@ function importBackupFile(e) {
       const parsed = JSON.parse(event.target.result);
       if (parsed && Array.isArray(parsed.objects)) {
         db = parsed;
+        ensureDbStructure();
         persist();
         alert(currentLang === 'en' ? "Database imported and saved to cloud!" : "Biblioteket importerat och sparat till molnet!");
         handleRouting();
@@ -1211,7 +1308,7 @@ function renderIndexPage() {
         currentLetter = first;
         listHtml += `<h2 class="wiki-section" id="letter-${currentLetter}">${currentLetter}</h2><ul class="wiki-list">`;
       }
-      const tagCount = Object.keys(obj.props || {}).length;
+      const tagCount = getPropKeys(obj).length;
       listHtml += `
         <li>
           <a href="#herb/${obj.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(obj)}</a>
@@ -1332,8 +1429,7 @@ function processQuickCreateStep1() {
     renderQuickCreateStep2List();
   } else {
     pairs.forEach(pair => {
-      if (!pair.herbObj.props) pair.herbObj.props = {};
-      pair.herbObj.props[pair.propName] = {};
+      setProp(pair.herbObj, pair.propName, true);
     });
     persist();
     closePopup();
@@ -1364,8 +1460,7 @@ function confirmQuickCreateStep2() {
   });
 
   pendingNewPropsForQC.pairs.forEach(pair => {
-    if (!pair.herbObj.props) pair.herbObj.props = {};
-    pair.herbObj.props[pair.propName] = {};
+    setProp(pair.herbObj, pair.propName, true);
   });
 
   persist();
@@ -1396,7 +1491,8 @@ function renderHerbPage(herbId) {
     const isNative = (obj.nativeSystems || []).includes(sysName);
     let catRowsInSys = "";
     sysData.categories.forEach(cat => {
-      let assigned = Object.keys(obj.props || {}).filter(p => db.properties[p]?.category === cat);
+      // Hämtar egenskaper pålitligt via getPropKeys (stödjer både booleans och gamla format)
+      let assigned = getPropKeys(obj).filter(p => db.properties[p]?.category === cat);
       if (obj.propOrder && obj.propOrder[cat]) {
         assigned.sort((a,b) => {
           let ia = obj.propOrder[cat].indexOf(a);
@@ -1437,12 +1533,12 @@ function renderHerbPage(herbId) {
     : formulasIn.map(([fName]) => `<a href="#formula/${encodeURIComponent(fName)}" class="wiki-link">⚗ ${getDisplayFormulaName(fName)}</a>`).join(", ");
 
   const totalCategories = Object.keys(db.categories).length || 20;
-  const myProps = new Set(Object.keys(obj.props || {}));
+  const myProps = new Set(getPropKeys(obj));
 
   const related = [];
   db.objects.forEach(other => {
     if (other.id === obj.id) return;
-    const otherProps = Object.keys(other.props || {});
+    const otherProps = getPropKeys(other);
     const common = otherProps.filter(p => myProps.has(p)).length;
     if (common > 0) {
       const pct = Math.min(100, Math.round((common / totalCategories) * 100));
@@ -1519,16 +1615,19 @@ function renderPropertyPage(propName) {
   const prop = db.properties[propName];
   if (!prop) { app.innerHTML = `<h2>Egenskapen hittades inte.</h2><a href="#index" class="wiki-link">Tillbaka till index</a>`; return; }
 
-  const herbsWith = db.objects.filter(o => o.props && o.props[propName] !== undefined);
+  // 1. Örter med denna egenskap (Korrekt koppling via hasProp)
+  const herbsWith = db.objects.filter(o => hasProp(o, propName));
   let herbsList = herbsWith.length === 0 
     ? `<li><i>Inga örter bär denna egenskap än.</i></li>` 
     : herbsWith.map(o => `<li><a href="#herb/${o.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(o)}</a></li>`).join("");
 
+  // 2. Besläktade egenskaper
   const relatedProps = prop.related || [];
   let relatedPropsList = relatedProps.length === 0 
     ? `<i>${t("noRelatedProps")}</i>` 
     : relatedProps.map(rp => `<a href="#property/${encodeURIComponent(rp)}" class="wiki-link">${rp}</a>`).join(", ");
 
+  // 3. Emphasized in Formulas
   const matchingFormulas = [];
   Object.entries(db.formulas).forEach(([fName, fData]) => {
     let compCount = 0;
@@ -1541,7 +1640,7 @@ function renderPropertyPage(propName) {
       totalNorm += normAmt;
 
       const herb = db.objects.find(o => o.id === c.objId);
-      if (herb && herb.props && herb.props[propName] !== undefined) {
+      if (herb && hasProp(herb, propName)) {
         compCount++;
         propAmount += normAmt;
       }
@@ -1584,18 +1683,21 @@ function renderPropertyPage(propName) {
       ${prop.desc || `<i>${t("noDesc")}</i>`}
     </div>
 
+    <!-- 1. ÖRTER MED DENNA EGENSKAP -->
     <h2 class="wiki-section">
       <span>${t("propHerbsSection")} (${herbsWith.length})</span>
       <a class="wiki-action-link" onclick="openConnectHerbsToPropertyPopup('${propName}')">${t("connectHerbBtn")}</a>
     </h2>
     <ul class="wiki-list">${herbsList}</ul>
 
+    <!-- 2. BESLÄKTADE EGENSKAPER -->
     <h2 class="wiki-section">
       <span>${t("relatedPropsSection")}</span>
       <a class="wiki-action-link" onclick="openRelatedPropertiesPopup('${propName}')">${t("addRelatedPropBtn")}</a>
     </h2>
     <div class="wiki-paragraph">${relatedPropsList}</div>
 
+    <!-- 3. FRAMHÄVD I FORMLER -->
     <h2 class="wiki-section">
       <span>${t("emphasizedInFormulas")}</span>
     </h2>
@@ -1616,9 +1718,9 @@ function promptRenameProperty(oldName) {
   delete db.properties[oldName];
 
   db.objects.forEach(o => {
-    if (o.props && o.props[oldName] !== undefined) {
-      o.props[cleanNew] = o.props[oldName];
-      delete o.props[oldName];
+    if (hasProp(o, oldName)) {
+      setProp(o, oldName, false);
+      setProp(o, cleanNew, true);
     }
   });
 
@@ -1649,7 +1751,7 @@ function renderCategoryPage(catName) {
   let rowsHtml = propsIn.length === 0 
     ? `<i>Inga egenskaper definierade i denna kategori.</i>` 
     : propsIn.map(p => {
-      const herbs = db.objects.filter(o => o.props && o.props[p] !== undefined);
+      const herbs = db.objects.filter(o => hasProp(o, p));
       const herbsLinks = herbs.map(h => `<a href="#herb/${h.id}" class="wiki-link">${getDisplayObjName(h)}</a>`).join(", ");
       return `
         <div class="wiki-data-row">
@@ -1765,17 +1867,19 @@ function renderFormulaDetailPage(fName) {
 
   (formula.components || []).forEach(c => {
     const herb = db.objects.find(o => o.id === c.objId);
-    if (!herb || !herb.props) return;
+    if (!herb) return;
     const unitDef = unitConversions[c.unit] || { base: 1 };
     const compAmount = (c.qty || 1) * unitDef.base;
 
-    Object.keys(herb.props).forEach(pName => {
+    getPropKeys(herb).forEach(pName => {
       const pData = db.properties[pName];
       if (!pData) return;
       const cat = pData.category || "General Information";
 
       if (!propStats[cat]) propStats[cat] = {};
-      if (!propStats[cat][pName]) propStats[cat][pName] = { count: 0, amount: 0 };
+      if (!propStats[cat][pName]) {
+        propStats[cat][pName] = { count: 0, amount: 0 };
+      }
       propStats[cat][pName].count += 1;
       propStats[cat][pName].amount += compAmount;
     });
@@ -2311,7 +2415,7 @@ function renderSearchPage() {
   if (allFilterProps.length > 0) {
     const hits = [];
     db.objects.forEach(obj => {
-      const matchCount = allFilterProps.filter(p => obj.props && obj.props[p] !== undefined).length;
+      const matchCount = allFilterProps.filter(p => hasProp(obj, p)).length;
       if (matchCount > 0) {
         const pct = Math.round((matchCount / allFilterProps.length) * 100);
         hits.push({ id: obj.id, name: getDisplayObjName(obj), pct, matchCount });
@@ -2438,7 +2542,7 @@ function renderPopupList() {
     const filtered = allPropsInCat.filter(p => p.toLowerCase().includes(query));
 
     filtered.forEach(p => {
-      const isChecked = herb.props && herb.props[p] !== undefined;
+      const isChecked = hasProp(herb, p);
       const lbl = document.createElement("label");
       lbl.className = "check-label";
       lbl.innerHTML = `
@@ -2453,7 +2557,7 @@ function renderPopupList() {
     const filteredHerbs = db.objects.filter(o => getDisplayObjName(o).toLowerCase().includes(query));
 
     filteredHerbs.forEach(herb => {
-      const isChecked = herb.props && herb.props[propName] !== undefined;
+      const isChecked = hasProp(herb, propName);
       const lbl = document.createElement("label");
       lbl.className = "check-label";
       lbl.innerHTML = `
@@ -2510,8 +2614,7 @@ document.getElementById("popup-filter-input").addEventListener("keydown", (e) =>
       const cat = activePopupExtra;
       const herb = db.objects.find(o => o.id === activePopupTarget);
       if (!db.properties[val]) db.properties[val] = { category: cat, desc: "", related: [], sources: [] };
-      if (!herb.props) herb.props = {};
-      herb.props[val] = {};
+      setProp(herb, val, true);
       persist();
       e.target.value = "";
       renderPopupList();
@@ -2520,7 +2623,9 @@ document.getElementById("popup-filter-input").addEventListener("keydown", (e) =>
     } else if (activePopupMode === "connect_herb") {
       const propName = activePopupTarget;
       const newId = "herb_" + Date.now();
-      db.objects.push({ id: newId, name: val, desc: "", props: { [propName]: {} }, nativeSystems: [] });
+      const newHerb = { id: newId, name: val, desc: "", props: {}, nativeSystems: [] };
+      setProp(newHerb, propName, true);
+      db.objects.push(newHerb);
       persist();
       e.target.value = "";
       renderPopupList();
@@ -2546,9 +2651,7 @@ document.getElementById("popup-filter-input").addEventListener("keydown", (e) =>
 function toggleHerbProperty(herbId, propName, isChecked) {
   const herb = db.objects.find(o => o.id === herbId);
   if (!herb) return;
-  if (!herb.props) herb.props = {};
-  if (isChecked) herb.props[propName] = {};
-  else delete herb.props[propName];
+  setProp(herb, propName, isChecked);
   persist();
 
   if (window.location.hash.startsWith("#herb")) renderHerbPage(herbId);
@@ -2704,8 +2807,8 @@ function renderLayoutModalItems() {
       catLabel.style.paddingLeft = "24px";
 
       let activePropsCount = 0;
-      if (currentHerb && currentHerb.props) {
-        activePropsCount = Object.keys(currentHerb.props).filter(p => db.properties[p]?.category === catName).length;
+      if (currentHerb) {
+        activePropsCount = getPropKeys(currentHerb).filter(p => db.properties[p]?.category === catName).length;
       }
 
       catLabel.innerHTML = `
@@ -2770,12 +2873,12 @@ function openPropertySorterMicroModal() {
   if (!selectedLayoutNode || selectedLayoutNode.type !== 'category') return;
   const catName = selectedLayoutNode.name;
   const herb = db.objects.find(o => o.id === activeHerbIdForLayout);
-  if (!herb || !herb.props) return;
+  if (!herb) return;
 
   selectedMicroProp = null;
   document.getElementById("prop-sorter-cat-title").innerText = catName;
 
-  let activeProps = Object.keys(herb.props).filter(p => db.properties[p]?.category === catName);
+  let activeProps = getPropKeys(herb).filter(p => db.properties[p]?.category === catName);
 
   if (herb.propOrder && herb.propOrder[catName]) {
     activeProps.sort((a,b) => {
