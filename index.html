@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Herbal Taxonomy Wiki</title>
+  <title>Ört-Wiki (Herbal Taxonomy)</title>
   <style>
     :root {
       --bg: #ffffff;
@@ -27,18 +27,6 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-    }
-
-    /* TELEGRAM WEBVIEW VARNING */
-    #telegram-warning-banner {
-      display: none;
-      background: #fff3cd;
-      color: #856404;
-      border-bottom: 2px solid #ffeeba;
-      padding: 10px 16px;
-      font-size: 14px;
-      line-height: 1.4;
-      font-weight: 600;
     }
 
     /* TOPPVERKTYG */
@@ -66,8 +54,7 @@
     .header-nav {
       display: flex;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 12px;
     }
     .nav-link {
       color: var(--link);
@@ -99,7 +86,7 @@
       max-width: 840px;
       width: 100%;
       margin: 0 auto;
-      padding: 24px 18px 80px 18px;
+      padding: 24px 18px 60px 18px;
       flex-grow: 1;
     }
 
@@ -240,7 +227,7 @@
       background: #ffffff;
       border: 1px solid var(--border-wiki);
       border-radius: 3px;
-      max-width: 500px;
+      max-width: 520px;
       width: 100%;
       max-height: 85vh;
       display: flex;
@@ -310,49 +297,58 @@
     button.wiki-btn:hover { background: #ffffff; border-color: #72777d; }
     button.wiki-btn.primary { background: #36c; border-color: #36c; color: #fff; font-weight: 700; }
     button.wiki-btn.primary:hover { background: #447ff5; }
+
+    /* FOOTER */
+    footer.wiki-footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 16px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
   </style>
 </head>
 <body>
 
-  <!-- TELEGRAM WARNING BANNER -->
-  <div id="telegram-warning-banner">
-    ⚠️ <b>Obs:</b> Du kör i en inbyggd app-webbläsare (t.ex. Telegram). Dina ändringar kan raderas när appen stängs. 
-    Klicka på <b>⋮</b> (tre prickarna uppe till höger) och välj <b>"Öppna i Chrome"</b> eller <b>"Öppna i webbläsare"</b> så sparas allt permanent!
-  </div>
-
-  <!-- TOPP-NAVIGERING -->
+  <!-- TOPP-NAVIGERING (HELT REN UTAN BACKUP-KNAPPAR) -->
   <header class="wiki-header">
     <a href="#index" class="header-logo" onclick="navigateTo('index')">
-      <span>🌿</span> <span id="brand-title">Herbal Wiki</span>
+      <span>🌿</span> <span id="brand-title">Ört-Wiki</span>
     </a>
     <nav class="header-nav">
       <a class="nav-link" id="nav-index" onclick="navigateTo('index')">Index</a>
-      <a class="nav-link" id="nav-search" onclick="navigateTo('search')">Search</a>
-      <a class="nav-link" id="nav-formulas" onclick="navigateTo('formulas')">Formulas</a>
-      <a class="nav-link" id="nav-sources" onclick="navigateTo('sources')">Sources</a>
-      <a class="wiki-action-link" onclick="downloadBackupFile()" title="Ladda ner backup som JSON-fil">💾 Backup</a>
-      <a class="wiki-action-link" onclick="document.getElementById('import-file-input').click()" title="Återställ från sparad fil">📂 Ladda</a>
-      <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importBackupFile(event)">
-      <button class="lang-toggle" onclick="toggleLanguage()" id="btn-lang-toggle">🌐 SV</button>
+      <a class="nav-link" id="nav-search" onclick="navigateTo('search')">Sök</a>
+      <a class="nav-link" id="nav-formulas" onclick="navigateTo('formulas')">Formler</a>
+      <a class="nav-link" id="nav-sources" onclick="navigateTo('sources')">Källor</a>
+      <button class="lang-toggle" onclick="toggleLanguage()" id="btn-lang-toggle">🌐 EN</button>
     </nav>
   </header>
 
   <!-- HUVUDDOKUMENT -->
   <main class="wiki-container" id="wiki-app"></main>
 
+  <!-- DISKRET FOTNOT MED BACKUP/ÅTERSTÄLLNING -->
+  <footer class="wiki-footer">
+    <span>Ört-Wiki Databas</span> • 
+    <a class="wiki-action-link" onclick="downloadBackupFile()">Exportera JSON</a> • 
+    <a class="wiki-action-link" onclick="document.getElementById('import-file-input').click()">Importera JSON</a>
+    <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importBackupFile(event)">
+  </footer>
+
   <!-- POPUP: CHECKLISTA -->
   <div class="popup-overlay" id="popup-checklist">
     <div class="popup-box">
       <div class="popup-header">
-        <span id="popup-check-title">Manage</span>
+        <span id="popup-check-title">Hantera</span>
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
-        <input type="text" id="popup-filter-input" placeholder="🔍 Search or type new..." oninput="renderPopupList()">
+        <input type="text" id="popup-filter-input" placeholder="🔍 Sök eller skriv ny..." oninput="renderPopupList()">
         <div class="checklist-container" id="popup-checklist-items"></div>
         <div style="font-size:12px; color:var(--text-muted); line-height: 1.4;" id="popup-help-text">
-          • Check/uncheck to save instantly.<br>
-          • Type in the box and press <b>Enter</b> to create a new item.
+          • Bocka i/av för att spara direkt.<br>
+          • Skriv i sökrutan och tryck <b>Enter</b> för att skapa nytt.
         </div>
       </div>
     </div>
@@ -362,64 +358,122 @@
   <div class="popup-overlay" id="popup-editor">
     <div class="popup-box">
       <div class="popup-header">
-        <span id="popup-editor-title">Edit Description</span>
+        <span id="popup-editor-title">Redigera beskrivning</span>
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
         <div id="editor-extra-inputs"></div>
-        <textarea id="popup-editor-input" rows="7" placeholder="Description..."></textarea>
+        <textarea id="popup-editor-input" rows="7" placeholder="Beskrivning..."></textarea>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button class="wiki-btn primary" onclick="saveDescription()" id="btn-save-desc">Save</button>
-          <button class="wiki-btn" onclick="closePopup()">Cancel</button>
+          <button class="wiki-btn primary" onclick="saveDescription()" id="btn-save-desc">Spara</button>
+          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- POPUP: LAYOUTFÖNSTER FÖR SYSTEM & KATEGORIER -->
+  <!-- POPUP: LAYOUTFÖNSTER (REN UTAN CIRKLAR) -->
   <div class="popup-overlay" id="popup-layout">
     <div class="popup-box" style="max-width:520px;">
       <div class="popup-header">
-        <span>Properties & Systems Layout</span>
+        <span>Kategori- & Systemlayout</span>
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
         <div style="font-size:13px; color:var(--text-muted);">
-          Select a system or category to shift up/down. Categories move strictly within their parent system.
+          Markera ett system eller kategori för att flytta upp/ner. Kategorier flyttas inom sitt system.
         </div>
         <div class="checklist-container" id="popup-layout-items" style="max-height:280px;"></div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
           <div style="display:flex; gap:6px;">
-            <button class="wiki-btn" onclick="moveLayoutItem(-1)">⬆️ Up</button>
-            <button class="wiki-btn" onclick="moveLayoutItem(1)">⬇️ Down</button>
+            <button class="wiki-btn" onclick="moveLayoutItem(-1)">⬆️ Upp</button>
+            <button class="wiki-btn" onclick="moveLayoutItem(1)">⬇️ Ner</button>
           </div>
-          <button class="wiki-btn" id="btn-open-prop-sorter" onclick="openPropertySorterMicroModal()" style="display:none;">Sort properties</button>
+          <button class="wiki-btn" id="btn-open-prop-sorter" onclick="openPropertySorterMicroModal()" style="display:none;">Sortera egenskaper</button>
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px; border-top:1px solid var(--border-subtle); padding-top:8px;">
-          <button class="wiki-btn primary" onclick="saveLayoutOrder()">Save Layout</button>
-          <button class="wiki-btn" onclick="closePopup()">Close</button>
+          <button class="wiki-btn primary" onclick="saveLayoutOrder()">Spara layout</button>
+          <button class="wiki-btn" onclick="closePopup()">Stäng</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- POPUP: MIKROFÖNSTER FÖR EGENSKAPSSORTERING -->
+  <!-- POPUP: MIKROFÖNSTER FÖR ATT SORTERA ÖRTENS AKTIVA EGENSKAPER -->
   <div class="popup-overlay" id="popup-prop-sorter">
     <div class="popup-box" style="max-width:480px;">
       <div class="popup-header">
-        <span>Sort Active Properties in <b id="prop-sorter-cat-title"></b></span>
+        <span>Sortera aktiva egenskaper i <b id="prop-sorter-cat-title"></b></span>
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePropSorter()">✕</button>
       </div>
       <div class="popup-body">
-        <div style="font-size:13px; color:var(--text-muted);">Order of active properties for this herb:</div>
+        <div style="font-size:13px; color:var(--text-muted);">Ordning för denna specifika ört:</div>
         <div style="display:flex; flex-wrap:wrap; gap:8px; padding:10px; border:1px solid var(--border-subtle); background:#f8f9fa;" id="prop-sorter-items"></div>
         <div style="display:flex; gap:8px; justify-content:center; margin-top:10px;">
-          <button class="wiki-btn" onclick="shiftPropInSorter(-1)">⬅️ Left</button>
-          <button class="wiki-btn" onclick="shiftPropInSorter(1)">➡️ Right</button>
+          <button class="wiki-btn" onclick="shiftPropInSorter(-1)">⬅️ Vänster</button>
+          <button class="wiki-btn" onclick="shiftPropInSorter(1)">➡️ Höger</button>
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px; border-top:1px solid var(--border-subtle); padding-top:8px;">
-          <button class="wiki-btn primary" onclick="savePropSorterOrder()">Save</button>
-          <button class="wiki-btn" onclick="closePropSorter()">Cancel</button>
+          <button class="wiki-btn primary" onclick="savePropSorterOrder()">Spara</button>
+          <button class="wiki-btn" onclick="closePropSorter()">Avbryt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: SNABBSKAPA (I OBJEKTINDEX) -->
+  <div class="popup-overlay" id="popup-quick-create">
+    <div class="popup-box" style="max-width:560px;">
+      <div class="popup-header">
+        <span id="qc-title">Snabbskapa Örter & Egenskaper</span>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
+      </div>
+      
+      <!-- STEG 1: RADER MED OBJEKT OCH EGENSKAPER -->
+      <div class="popup-body" id="qc-step-1">
+        <div style="font-size:13px; color:var(--text-muted);">
+          Skriv objektnamn och dess egenskaper (kommaseparerat per rad):
+        </div>
+        <div id="qc-rows-container" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;"></div>
+        <div>
+          <button class="wiki-btn" onclick="addQuickCreateRow()">+ Lägg till rad</button>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+          <button class="wiki-btn primary" onclick="processQuickCreateStep1()">Skapa / Nästa</button>
+          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
+        </div>
+      </div>
+
+      <!-- STEG 2: VÄLJ KATEGORIER FÖR HELT NYA EGENSKAPER -->
+      <div class="popup-body" id="qc-step-2" style="display:none;">
+        <div style="font-size:13px; color:var(--text-muted);">
+          Följande egenskaper är helt nya. Välj kategori för var och en:
+        </div>
+        <div class="checklist-container" id="qc-new-props-list" style="max-height:280px;"></div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+          <button class="wiki-btn primary" onclick="confirmQuickCreateStep2()">Spara allt</button>
+          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: NATIVE OBJECTS (SYSTEMSIDA) -->
+  <div class="popup-overlay" id="popup-native-herbs">
+    <div class="popup-box" style="max-width:520px;">
+      <div class="popup-header">
+        <span>Add/Remove Native Objects: <b id="native-modal-sys-name"></b></span>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
+      </div>
+      <div class="popup-body">
+        <input type="text" id="native-search-input" placeholder="🔍 Search or create new (Press Enter)..." oninput="renderNativeHerbsList()">
+        <div class="checklist-container" id="native-herbs-list" style="max-height:280px;"></div>
+        <div style="font-size:12px; color:var(--text-muted);">
+          * Bocka i/av för att koppla native-status.<br>
+          * Skriv ett namn som saknas och tryck <b>Enter</b> för att skapa örten i bakgrunden!
+        </div>
+        <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+          <button class="wiki-btn primary" onclick="closePopup()">Klar</button>
         </div>
       </div>
     </div>
@@ -429,67 +483,46 @@
   <div class="popup-overlay" id="popup-new-category">
     <div class="popup-box">
       <div class="popup-header">
-        <span id="popup-cat-flow-title">Add Category</span>
+        <span>Lägg till kategori</span>
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
 
       <div class="popup-body" id="cat-flow-step-1">
         <label class="check-label" style="font-weight:700;">
           <input type="radio" name="cat_choice_mode" value="browse" id="radio-cat-browse" onchange="toggleCatFlowStep1(this.value)">
-          <span id="lbl-browse-lib">Browse library (scroll-list)</span>
+          <span>Bläddra i biblioteket (scroll-lista)</span>
         </label>
         
         <div id="cat-browse-container" style="display:none; margin-left:24px;">
-          <input type="text" id="cat-browse-search" placeholder="🔍 Search properties or categories..." oninput="renderLibraryScrollList(this.value)" style="margin-bottom:6px;">
+          <input type="text" id="cat-browse-search" placeholder="🔍 Sök egenskaper/kategorier (synonymer stöds)..." oninput="renderLibraryScrollList(this.value)" style="margin-bottom:6px;">
           <div class="checklist-container" id="cat-browse-list" style="max-height:180px;"></div>
         </div>
 
         <label class="check-label" style="font-weight:700; margin-top:10px;">
           <input type="radio" name="cat_choice_mode" value="create" id="radio-cat-create" checked onchange="toggleCatFlowStep1(this.value)">
-          <span id="lbl-create-cat">Create new category:</span>
+          <span>Skapa ny kategori:</span>
         </label>
         <div style="margin-left:24px;">
-          <input type="text" id="new-cat-name-input" placeholder="e.g. Energetic Actions, Plant Part...">
+          <input type="text" id="new-cat-name-input" placeholder="t.ex. Smaker, Vävnadstillstånd...">
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-          <button class="wiki-btn primary" onclick="submitCatFlowStep1()" id="btn-next-cat">Next / Ok</button>
-          <button class="wiki-btn" onclick="closePopup()">Cancel</button>
+          <button class="wiki-btn primary" onclick="submitCatFlowStep1()">Nästa</button>
+          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
         </div>
       </div>
 
       <div class="popup-body" id="cat-flow-step-2" style="display:none;">
         <div style="font-size:14px; margin-bottom:8px;">
-          <span>Apply</span> <b id="display-pending-cat-name"></b> <span>to System:</span>
+          Applicera <b id="display-pending-cat-name"></b> till system:
         </div>
         <div class="checklist-container" id="cat-system-radio-list"></div>
         <div style="margin-top:6px;">
-          <input type="text" id="new-system-input" placeholder="Or enter a new system name...">
+          <input type="text" id="new-system-input" placeholder="Eller skriv ett helt nytt systemnamn...">
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-          <button class="wiki-btn primary" onclick="submitCatFlowStep2()">Save</button>
-          <button class="wiki-btn" onclick="closePopup()">Cancel</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- POPUP: NATIVE HERBS MODAL -->
-  <div class="popup-overlay" id="popup-native-herbs">
-    <div class="popup-box" style="max-width:520px;">
-      <div class="popup-header">
-        <span>Specified Herbs as Native to <b id="native-modal-sys-name"></b></span>
-        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
-      </div>
-      <div class="popup-body">
-        <input type="text" id="native-search-input" placeholder="🔍 Search in library (Press Enter to create new)..." oninput="renderNativeHerbsList()">
-        <div class="checklist-container" id="native-herbs-list" style="max-height:280px;"></div>
-        <div style="font-size:12px; color:var(--text-muted);">
-          * Check/uncheck to assign/remove native status instantly.<br>
-          * If an herb does not exist, type its name and press <b>Enter</b> to create it in the background!
-        </div>
-        <div style="display:flex; justify-content:flex-end; margin-top:8px;">
-          <button class="wiki-btn" onclick="closePopup()">Done</button>
+          <button class="wiki-btn primary" onclick="submitCatFlowStep2()">Spara</button>
+          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
         </div>
       </div>
     </div>
@@ -499,35 +532,35 @@
   <div class="popup-overlay" id="popup-add-source-to-item">
     <div class="popup-box">
       <div class="popup-header">
-        <span>Add Source Reference</span>
+        <span>Lägg till källreferens</span>
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
         <label class="check-label">
           <input type="radio" name="src_add_mode" value="existing" id="radio-src-existing" checked onchange="toggleSourceAddMode(this.value)">
-          <span>Select existing source from library:</span>
+          <span>Välj befintlig källa ur biblioteket:</span>
         </label>
         <div id="src-existing-container" style="margin-left:24px;">
           <select id="select-existing-source" style="margin-bottom:6px;"></select>
-          <input type="text" id="existing-src-pages" placeholder="Page reference (e.g. 110-112)...">
+          <input type="text" id="existing-src-pages" placeholder="Sidhänvisning (t.ex. 110-112)...">
         </div>
 
         <label class="check-label" style="margin-top:10px;">
           <input type="radio" name="src_add_mode" value="new" id="radio-src-new" onchange="toggleSourceAddMode(this.value)">
-          <span>Or register a new source:</span>
+          <span>Eller registrera en helt ny källa:</span>
         </label>
         <div id="src-new-container" style="margin-left:24px; display:none; flex-direction:column; gap:6px;">
-          <input type="text" id="new-src-author" placeholder="Author (e.g. Vasant Lad)">
-          <input type="text" id="new-src-year" placeholder="Year (e.g. 2002)">
-          <input type="text" id="new-src-title" placeholder="Book / Article Title">
-          <input type="text" id="new-src-publisher" placeholder="Publisher">
-          <input type="text" id="new-src-link" placeholder="Hyperlink URL">
-          <input type="text" id="new-src-pages" placeholder="Pages (e.g. 42-45)">
+          <input type="text" id="new-src-author" placeholder="Författare (t.ex. Vasant Lad)">
+          <input type="text" id="new-src-year" placeholder="År (t.ex. 2002)">
+          <input type="text" id="new-src-title" placeholder="Boktitel / Artikel">
+          <input type="text" id="new-src-publisher" placeholder="Förlag / Publisher">
+          <input type="text" id="new-src-link" placeholder="Webblänk URL">
+          <input type="text" id="new-src-pages" placeholder="Sidor (t.ex. 42-45)">
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-          <button class="wiki-btn primary" onclick="submitAddSourceToItem()">Save Reference</button>
-          <button class="wiki-btn" onclick="closePopup()">Cancel</button>
+          <button class="wiki-btn primary" onclick="submitAddSourceToItem()">Spara referens</button>
+          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
         </div>
       </div>
     </div>
@@ -537,29 +570,29 @@
   <div class="popup-overlay" id="popup-add-tag-to-source">
     <div class="popup-box" style="max-width:520px;">
       <div class="popup-header">
-        <span>Add Tag Reference to Source</span>
+        <span>Koppla tagg till källa</span>
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
         <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:14px; font-weight:700;">
-          <label><input type="radio" name="source_tag_type" value="object" checked onchange="switchSourceTagType(this.value)"> Object</label>
+          <label><input type="radio" name="source_tag_type" value="object" checked onchange="switchSourceTagType(this.value)"> Objekt</label>
           <label><input type="radio" name="source_tag_type" value="system" onchange="switchSourceTagType(this.value)"> System</label>
-          <label><input type="radio" name="source_tag_type" value="category" onchange="switchSourceTagType(this.value)"> Category</label>
-          <label><input type="radio" name="source_tag_type" value="property" onchange="switchSourceTagType(this.value)"> Property</label>
-          <label><input type="radio" name="source_tag_type" value="formula" onchange="switchSourceTagType(this.value)"> Formula</label>
+          <label><input type="radio" name="source_tag_type" value="category" onchange="switchSourceTagType(this.value)"> Kategori</label>
+          <label><input type="radio" name="source_tag_type" value="property" onchange="switchSourceTagType(this.value)"> Egenskap</label>
+          <label><input type="radio" name="source_tag_type" value="formula" onchange="switchSourceTagType(this.value)"> Formel</label>
         </div>
 
-        <input type="text" id="source-tag-search-input" placeholder="🔍 Search tag in index (Press Enter to create)..." oninput="renderSourceTagsList()">
+        <input type="text" id="source-tag-search-input" placeholder="🔍 Sök tagg (Tryck Enter för att skapa)..." oninput="renderSourceTagsList()">
         
         <div class="checklist-container" id="source-tag-checklist" style="max-height:260px;"></div>
         
         <div style="font-size:12px; color:var(--text-muted); line-height: 1.4;">
-          • Click <b>[pages]</b> to enter page range (numbers, commas, hyphens only).<br>
-          • Entering pages auto-checks the item. Checked items with pages cannot be unchecked until the page field is emptied.
+          • Skriv i <b>[sidor]</b> för att ange intervall (endast siffror, kommatecken, bindestreck).<br>
+          • Skriver du sidor bockas taggen i automatiskt. Taggar med sidor kan inte avbockas förrän sidfältet raderas.
         </div>
 
         <div style="display:flex; justify-content:flex-end; margin-top:8px;">
-          <button class="wiki-btn" onclick="closePopup()">Done</button>
+          <button class="wiki-btn primary" onclick="closePopup()">Klar</button>
         </div>
       </div>
     </div>
@@ -577,7 +610,7 @@ const unitConversions = {
   "pinch": { base: 0.35, type: "volume" }
 };
 
-// ==================== SPRÅK ====================
+// ==================== SPRÅKMOTOR ====================
 let currentLang = localStorage.getItem("wiki_lang") || "sv";
 
 const i18n = {
@@ -589,6 +622,7 @@ const i18n = {
     sources: "Sources",
     btnLang: "🌐 SV",
     newHerb: "[+ Add New Herb]",
+    quickCreate: "[+ Quick Create]",
     indexIntro: "Alphabetical index of herbs, plants and preparations registered in the database.",
     propsLabel: "properties",
     deleteHerb: "[delete herb]",
@@ -607,7 +641,7 @@ const i18n = {
     sharedProps: "common properties",
     renameBtn: "✏️ [rename]",
     editPropDesc: "[edit description]",
-    propHerbsSection: "Herbs & Preparations with this Property",
+    propHerbsSection: "Herbs with this Property",
     connectHerbBtn: "[+ Connect Herb]",
     catSection: "Properties & Associated Herbs",
     newPropBtn: "[+ Create New Property]",
@@ -642,7 +676,8 @@ const i18n = {
     sourceLibIntro: "Bibliography and source documentation referenced across the database.",
     newSourceBtn: "[+ Register New Source]",
     sortByLabel: "Sort by:",
-    addTagToSourceBtn: "[+ Add Tag Reference]"
+    addTagToSourceBtn: "[+ Add Tag Reference]",
+    systemNativeObjects: "Native Objects"
   },
   sv: {
     brand: "Ört-Wiki",
@@ -652,6 +687,7 @@ const i18n = {
     sources: "Källor",
     btnLang: "🌐 EN",
     newHerb: "[+ Skapa ny ört]",
+    quickCreate: "[+ Snabbskapa]",
     indexIntro: "Alfabetisk förteckning över samtliga registrerade växter, örter och preparat.",
     propsLabel: "egenskaper",
     deleteHerb: "[radera ört]",
@@ -705,7 +741,8 @@ const i18n = {
     sourceLibIntro: "Samlad bibliografi och källor som refereras i databasen.",
     newSourceBtn: "[+ Registrera ny källa]",
     sortByLabel: "Sortera efter:",
-    addTagToSourceBtn: "[+ Lägg till tagg]"
+    addTagToSourceBtn: "[+ Lägg till tagg]",
+    systemNativeObjects: "Native Objects"
   }
 };
 
@@ -744,15 +781,19 @@ const defaultData = {
   ],
   systems: {
     "General Information": {
+      desc: "Grundläggande taxonomisk och botanisk information.",
       categories: ["English Name", "Botanical Name", "Family", "Precautions"]
     },
     "Western Herbalism": {
+      desc: "Europeisk och nordamerikansk fysiologisk och energetisk tradition.",
       categories: ["Tastes", "Six Tissue States", "Planetary Ruler", "Elemental Ruler", "Humors", "Culpepper Uses", "Actions", "Affinities"]
     },
     "Ayurveda": {
+      desc: "Klassisk indisk läkekonst baserad på doshas och gunas.",
       categories: ["Tastes (Ayurveda)", "Gunas", "Doshas", "Dhatus"]
     },
     "Traditional Chinese Medicine": {
+      desc: "Traditionell kinesisk medicin baserad på meridianer och konstitutioner.",
       categories: ["Tastes (TCM)", "Entered Channels", "Indicated Constitutions", "Actions (TCM)"]
     }
   },
@@ -779,26 +820,26 @@ const defaultData = {
     "Actions (TCM)":         { system: "Traditional Chinese Medicine", desc: "", sources: [] }
   },
   properties: {
-    "Pungent":    { category: "Tastes", desc: "Warming, circulating taste.", synonyms: ["Spicy", "Stark", "Hot"], related: ["Ushna", "Fire"], sources: [] },
-    "Excitation": { category: "Six Tissue States", desc: "Overheated, irritated tissue condition.", synonyms: ["Irritation"], related: [], sources: [] },
-    "Depression": { category: "Six Tissue States", desc: "Cold, depressed tissue state.", synonyms: ["Torpor"], related: [], sources: [] },
-    "Mars":       { category: "Planetary Ruler", desc: "Governs acute metabolic drive and circulation.", synonyms: [], related: ["Fire"], sources: [] },
-    "Fire":       { category: "Elemental Ruler", desc: "Element of transformation and heat.", synonyms: ["Eld"], related: ["Pungent", "Mars", "Ushna"], sources: [] },
-    "Carminative":{ category: "Actions", desc: "Relieves gastrointestinal cramping and dispels gas.", synonyms: ["Gas-relieving"], related: [], sources: [] },
-    "Ushna":      { category: "Gunas", desc: "Warming metabolic quality promoting Agni.", synonyms: ["Warm", "Hot", "Varm"], related: ["Pungent", "Fire"], sources: [] },
-    "Sheeta":     { category: "Gunas", desc: "Cooling metabolic quality.", synonyms: ["Cold", "Kall"], related: [], sources: [] },
-    "Vata -":     { category: "Doshas", desc: "Reduces excess Vata dosha.", synonyms: [], related: [] },
-    "Kapha -":    { category: "Doshas", desc: "Reduces cold, sluggish Kapha.", synonyms: [], related: [] },
-    "Pitta +":    { category: "Doshas", desc: "Increases Pitta heat.", synonyms: [], related: [] },
-    "Pitta -":    { category: "Doshas", desc: "Cools and pacifies agitated Pitta.", synonyms: [], related: [] },
-    "Spleen":     { category: "Entered Channels", desc: "Channels action through Spleen meridian.", synonyms: ["Mjälte"], related: ["Stomach"], sources: [] },
-    "Stomach":    { category: "Entered Channels", desc: "Channels action through Stomach meridian.", synonyms: ["Magsäck"], related: ["Spleen"], sources: [] },
-    "Release Exterior": { category: "Actions (TCM)", desc: "Induces diaphoresis to dispel exterior pathogens.", synonyms: [], related: [] }
+    "Pungent":    { category: "Tastes", desc: "Värmande, cirkulationsökande smak.", synonyms: ["Spicy", "Stark", "Hot"], related: ["Ushna", "Fire"], sources: [] },
+    "Excitation": { category: "Six Tissue States", desc: "Överhettat, irriterat vävnadstillstånd.", synonyms: ["Irritation"], related: [], sources: [] },
+    "Depression": { category: "Six Tissue States", desc: "Kallt, underaktivt vävnadstillstånd.", synonyms: ["Torpor"], related: [], sources: [] },
+    "Mars":       { category: "Planetary Ruler", desc: "Styr akut metabol drivkraft och cirkulation.", synonyms: [], related: ["Fire"], sources: [] },
+    "Fire":       { category: "Elemental Ruler", desc: "Eldelementet som transformerar och hettar upp.", synonyms: ["Eld"], related: ["Pungent", "Mars", "Ushna"], sources: [] },
+    "Carminative":{ category: "Actions", desc: "Kramplösande och gasdrivande i tarmen.", synonyms: ["Gas-relieving"], related: [], sources: [] },
+    "Ushna":      { category: "Gunas", desc: "Värmande metabol kvalitet som stimulerar Agni.", synonyms: ["Warm", "Hot", "Varm"], related: ["Pungent", "Fire"], sources: [] },
+    "Sheeta":     { category: "Gunas", desc: "Kylande metabol kvalitet.", synonyms: ["Cold", "Kall"], related: [], sources: [] },
+    "Vata -":     { category: "Doshas", desc: "Reducerar och lugnar Vata.", synonyms: [], related: [] },
+    "Kapha -":    { category: "Doshas", desc: "Reducerar kall och trög Kapha.", synonyms: [], related: [] },
+    "Pitta +":    { category: "Doshas", desc: "Ökar Pitta-eld.", synonyms: [], related: [] },
+    "Pitta -":    { category: "Doshas", desc: "Kyler och balanserar Pitta.", synonyms: [], related: [] },
+    "Spleen":     { category: "Entered Channels", desc: "Kanaliserar verkan genom Mjältens meridian.", synonyms: ["Mjälte"], related: ["Stomach"], sources: [] },
+    "Stomach":    { category: "Entered Channels", desc: "Kanaliserar verkan genom Magsäckens meridian.", synonyms: ["Magsäck"], related: ["Spleen"], sources: [] },
+    "Release Exterior": { category: "Actions (TCM)", desc: "Öppnar porer och driver ut yttre kyla.", synonyms: [], related: [] }
   },
   objects: [
     {
       id: "ginger",
-      name: "Ginger (Zingiber officinale)",
+      name: "Ingefära (Zingiber officinale)",
       botanicalName: "Zingiber officinale",
       chineseName: "Sheng Jiang",
       ayurvedicName: "Sunthi / Ardraka",
@@ -810,7 +851,7 @@ const defaultData = {
     },
     {
       id: "peppermint",
-      name: "Peppermint (Mentha piperita)",
+      name: "Pepparmynta (Mentha piperita)",
       botanicalName: "Mentha piperita",
       chineseName: "Bo He",
       ayurvedicName: "Pudina",
@@ -840,7 +881,6 @@ let indexViewMode = "alpha";
 let indexAlphaSortField = "name";
 let sourceSortMode = "author";
 
-// DJUP-SKANNING EFTER FRANKS SPARADE ÖRTER I ALLA LOCALSTORAGE-NYCKLAR
 function loadAndRecoverAllData() {
   let bestCandidate = null;
   let maxHerbCount = 0;
@@ -853,15 +893,12 @@ function loadAndRecoverAllData() {
 
       try {
         const parsed = JSON.parse(val);
-        // Fall 1: Nytt wiki-format
         if (parsed && Array.isArray(parsed.objects)) {
           if (parsed.objects.length > maxHerbCount) {
             maxHerbCount = parsed.objects.length;
             bestCandidate = parsed;
           }
-        }
-        // Fall 2: Gammalt IDE-format
-        else if (parsed && parsed.libraries && parsed.libraries.herbal && Array.isArray(parsed.libraries.herbal.objects)) {
+        } else if (parsed && parsed.libraries && parsed.libraries.herbal && Array.isArray(parsed.libraries.herbal.objects)) {
           const hObjs = parsed.libraries.herbal.objects;
           if (hObjs.length > maxHerbCount) {
             maxHerbCount = hObjs.length;
@@ -878,9 +915,7 @@ function loadAndRecoverAllData() {
         }
       } catch(e) {}
     }
-  } catch(e) {
-    console.error("Storage scan error:", e);
-  }
+  } catch(e) {}
 
   if (bestCandidate && bestCandidate.objects && bestCandidate.objects.length >= 2) {
     db = bestCandidate;
@@ -891,31 +926,16 @@ function loadAndRecoverAllData() {
 }
 loadAndRecoverAllData();
 
-// SPARA DIREKT OCH SÄKERT
 function persist() {
   try {
-    // ÖVERSKRIVNINGSSPÄRR: Om minnet har 0 objekt, skriv aldrig över med tom lista!
     if (!db.objects || db.objects.length === 0) return;
     const str = JSON.stringify(db);
     localStorage.setItem(MASTER_STORAGE_KEY, str);
     localStorage.setItem(BACKUP_STORAGE_KEY, str);
-  } catch(e) {
-    console.error("Save error:", e);
-  }
+  } catch(e) {}
 }
 window.addEventListener("beforeunload", persist);
 
-// KONTROLLERA TELEGRAM / IN-APP WEBVIEW
-function checkInAppBrowser() {
-  const ua = navigator.userAgent || navigator.vendor || window.opera;
-  const isTelegram = /Telegram/i.test(ua) || /FBAN/i.test(ua) || /FBAV/i.test(ua) || /Instagram/i.test(ua);
-  if (isTelegram) {
-    const banner = document.getElementById("telegram-warning-banner");
-    if (banner) banner.style.display = "block";
-  }
-}
-
-// EXPORT & IMPORT (FIL-BACKUP SOM FRANKS LIVFÖRSÄKRING)
 function downloadBackupFile() {
   const str = JSON.stringify(db, null, 2);
   const blob = new Blob([str], { type: "application/json" });
@@ -943,19 +963,16 @@ function importBackupFile(e) {
           db.properties = parsed.libraries.herbal.properties || db.properties;
         }
         persist();
-        alert(currentLang === 'en' ? "Backup restored successfully!" : "Biblioteket återställt från fil!");
+        alert(currentLang === 'en' ? "Database restored!" : "Biblioteket återställt!");
         handleRouting();
-      } else {
-        alert("Ogiltigt backup-format.");
       }
     } catch(err) {
-      alert("Fel vid läsning av fil.");
+      alert("Kunde inte läsa filen.");
     }
   };
   reader.readAsText(file);
 }
 
-// Hjälpfunktion för visningsnamn
 function getDisplayObjName(obj) {
   if (!obj) return "";
   if (obj.id === "ginger") return currentLang === "en" ? "Ginger (Zingiber officinale)" : "Ingefära (Zingiber officinale)";
@@ -999,7 +1016,6 @@ function navigateTo(route) {
 
 window.addEventListener("hashchange", handleRouting);
 window.addEventListener("DOMContentLoaded", () => {
-  checkInAppBrowser();
   updateUILabels();
   if (!window.location.hash) window.location.hash = "#index";
   handleRouting();
@@ -1022,6 +1038,7 @@ function handleRouting() {
     if (route === "herb" && id) renderHerbPage(id);
     else if (route === "property" && id) renderPropertyPage(decodeURIComponent(id));
     else if (route === "category" && id) renderCategoryPage(decodeURIComponent(id));
+    else if (route === "system" && id) renderSystemPage(decodeURIComponent(id));
     else if (route === "formula" && id) renderFormulaDetailPage(decodeURIComponent(id));
     else if (route === "formulas") renderFormulasIndexPage();
     else if (route === "sources") renderSourcesLibraryPage();
@@ -1031,6 +1048,60 @@ function handleRouting() {
     console.error("Routing error:", err);
     renderIndexPage();
   }
+}
+
+// ==================== SYSTEM-SIDAN (FRANKS SKISS) ====================
+function renderSystemPage(sysName) {
+  const app = document.getElementById("wiki-app");
+  const sys = db.systems[sysName];
+  if (!sys) { app.innerHTML = `<h2>Systemet hittades inte.</h2><a href="#index" class="wiki-link">Tillbaka</a>`; return; }
+
+  // 1. Kategorier & Egenskaper under systemet
+  let catRows = (sys.categories || []).map(catName => {
+    const props = Object.keys(db.properties).filter(p => db.properties[p]?.category === catName);
+    const propLinks = props.map(p => `<a href="#property/${encodeURIComponent(p)}" class="wiki-link">${p}</a>`).join(", ");
+    return `
+      <div class="wiki-data-row">
+        <a href="#category/${encodeURIComponent(catName)}" class="wiki-row-label">${catName}:</a>
+        <div class="wiki-row-content">${propLinks || '<i>inga egenskaper</i>'}</div>
+      </div>
+    `;
+  }).join("");
+
+  // 2. Native Objects efter varandra med (+) i slutet
+  const nativeHerbs = db.objects.filter(o => o.nativeSystems && o.nativeSystems.includes(sysName));
+  nativeHerbs.sort((a,b) => getDisplayObjName(a).localeCompare(getDisplayObjName(b)));
+
+  const herbLinks = nativeHerbs.map(h => `<a href="#herb/${h.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(h)}</a>`).join(", ");
+
+  const sourcesHtml = renderProfileSourcesSection("system", sysName);
+
+  app.innerHTML = `
+    <h1 class="wiki-title">
+      <span>${sysName}</span>
+      <span style="font-size:14px; color:var(--text-muted);">[System]</span>
+    </h1>
+
+    <div class="wiki-paragraph">
+      <span style="float:right;">
+        <a class="wiki-action-link" onclick="openEditor('system', '${sysName}')">[redigera beskrivning]</a>
+      </span>
+      ${sys.desc || `<i>Ingen beskrivning skriven för detta system.</i>`}
+    </div>
+
+    <h2 class="wiki-section">Kategorier och egenskaper</h2>
+    <div class="wiki-data-table">${catRows || '<i>Inga kategorier under detta system än.</i>'}</div>
+
+    <h2 class="wiki-section">
+      <span>${t("systemNativeObjects")}</span>
+    </h2>
+    <div class="wiki-paragraph" style="font-size:17px;">
+      ${herbLinks || '<i>Inga kopplade örter.</i>'}
+      <a class="btn-wiki-add" onclick="openNativeModal('${sysName}')" title="Koppla eller skapa native örter">[+]</a>
+    </div>
+
+    ${sourcesHtml}
+  `;
 }
 
 // ==================== SIDA D: OBJECT INDEX ====================
@@ -1059,8 +1130,8 @@ function renderIndexPage() {
 
       sysSectionsHtml += `
         <h2 class="wiki-section" style="margin-top:24px;">
-          <span>${sysName}</span>
-          <a class="wiki-action-link" onclick="openNativeModal('${sysName}')">[Native Herbs 💚]</a>
+          <a href="#system/${encodeURIComponent(sysName)}" class="wiki-link">${sysName}</a>
+          <a class="btn-wiki-add" onclick="openNativeModal('${sysName}')">[+]</a>
         </h2>
         <ul class="wiki-list">${herbItems || '<li><i>No native herbs assigned yet.</i></li>'}</ul>
       `;
@@ -1107,27 +1178,30 @@ function renderIndexPage() {
   app.innerHTML = `
     <h1 class="wiki-title">
       <span>${t("index")}</span>
-      <a class="wiki-action-link" onclick="promptCreateHerb()">${t("newHerb")}</a>
+      <div style="display:flex; gap:10px;">
+        <a class="wiki-action-link" onclick="openQuickCreateModal()">${t("quickCreate")}</a>
+        <a class="wiki-action-link" onclick="promptCreateHerb()">${t("newHerb")}</a>
+      </div>
     </h1>
     <div class="wiki-paragraph">${t("indexIntro")}</div>
 
     <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; background:#f8f9fa; border:1px solid var(--border-subtle); padding:8px 12px; margin-bottom:16px;">
       <div style="display:flex; align-items:center; gap:6px;">
-        <span style="font-size:13px; font-weight:700;">View:</span>
+        <span style="font-size:13px; font-weight:700;">Vy:</span>
         <select onchange="switchIndexViewMode(this.value)" style="width:auto; padding:2px 6px; font-size:13px;">
-          <option value="alpha" ${indexViewMode === 'alpha' ? 'selected' : ''}>Alphabetical (A–Z)</option>
-          <option value="native_system" ${indexViewMode === 'native_system' ? 'selected' : ''}>By Native System</option>
+          <option value="alpha" ${indexViewMode === 'alpha' ? 'selected' : ''}>Alfabetisk (A–Ö)</option>
+          <option value="native_system" ${indexViewMode === 'native_system' ? 'selected' : ''}>Efter Native System</option>
         </select>
       </div>
 
       ${indexViewMode === 'alpha' ? `
         <div style="display:flex; align-items:center; gap:6px;">
-          <span style="font-size:13px; font-weight:700;">Sort name:</span>
+          <span style="font-size:13px; font-weight:700;">Sortera efter:</span>
           <select onchange="switchIndexAlphaSortField(this.value)" style="width:auto; padding:2px 6px; font-size:13px;">
-            <option value="name" ${indexAlphaSortField === 'name' ? 'selected' : ''}>English Name</option>
-            <option value="botanicalName" ${indexAlphaSortField === 'botanicalName' ? 'selected' : ''}>Botanical Name</option>
-            <option value="chineseName" ${indexAlphaSortField === 'chineseName' ? 'selected' : ''}>Chinese Name (TCM)</option>
-            <option value="ayurvedicName" ${indexAlphaSortField === 'ayurvedicName' ? 'selected' : ''}>Ayurvedic Name</option>
+            <option value="name" ${indexAlphaSortField === 'name' ? 'selected' : ''}>Engelskt/Huvudnamn</option>
+            <option value="botanicalName" ${indexAlphaSortField === 'botanicalName' ? 'selected' : ''}>Botanisk namn</option>
+            <option value="chineseName" ${indexAlphaSortField === 'chineseName' ? 'selected' : ''}>Kinesiskt namn (TCM)</option>
+            <option value="ayurvedicName" ${indexAlphaSortField === 'ayurvedicName' ? 'selected' : ''}>Ayurvediskt namn</option>
           </select>
         </div>
       ` : ''}
@@ -1156,12 +1230,120 @@ function promptCreateHerb() {
   window.location.hash = `#herb/${id}`;
 }
 
+// ==================== SNABBSKAPA (I OBJEKTINDEX) ====================
+let quickCreateRows = [];
+let pendingNewPropsForQC = []; // { propName, herbObj }
+
+function openQuickCreateModal() {
+  quickCreateRows = [{ herb: "", props: "" }, { herb: "", props: "" }, { herb: "", props: "" }];
+  document.getElementById("qc-step-1").style.display = "flex";
+  document.getElementById("qc-step-2").style.display = "none";
+  document.getElementById("popup-quick-create").style.display = "flex";
+  renderQuickCreateRows();
+}
+
+function renderQuickCreateRows() {
+  const cont = document.getElementById("qc-rows-container");
+  cont.innerHTML = "";
+
+  quickCreateRows.forEach((row, idx) => {
+    const div = document.createElement("div");
+    div.style.cssText = "display:flex; gap:6px; align-items:center;";
+    div.innerHTML = `
+      <input type="text" placeholder="Ört / Objektnamn..." value="${row.herb}" style="flex:1;" oninput="quickCreateRows[${idx}].herb = this.value">
+      <input type="text" placeholder="Egenskaper (kommaseparerat)..." value="${row.props}" style="flex:2;" oninput="quickCreateRows[${idx}].props = this.value">
+    `;
+    cont.appendChild(div);
+  });
+}
+
+function addQuickCreateRow() {
+  quickCreateRows.push({ herb: "", props: "" });
+  renderQuickCreateRows();
+}
+
+function processQuickCreateStep1() {
+  const filled = quickCreateRows.filter(r => r.herb.trim().length > 0);
+  if (filled.length === 0) { alert("Fyll i minst en ört."); return; }
+
+  const newPropsFound = new Set();
+  const pairs = [];
+
+  filled.forEach(r => {
+    const herbName = r.herb.trim();
+    let herbObj = db.objects.find(o => o.name.toLowerCase() === herbName.toLowerCase());
+    if (!herbObj) {
+      herbObj = { id: "herb_" + Date.now() + "_" + Math.random().toString(36).substr(2,4), name: herbName, desc: "", props: {}, nativeSystems: [] };
+      db.objects.push(herbObj);
+    }
+
+    const propNames = r.props.split(",").map(p => p.trim()).filter(Boolean);
+    propNames.forEach(p => {
+      pairs.push({ herbObj, propName: p });
+      if (!db.properties[p]) {
+        newPropsFound.add(p);
+      }
+    });
+  });
+
+  if (newPropsFound.size > 0) {
+    // Steg 2: Be om kategorier för alla helt nya egenskaper
+    pendingNewPropsForQC = { pairs, newProps: Array.from(newPropsFound) };
+    document.getElementById("qc-step-1").style.display = "none";
+    document.getElementById("qc-step-2").style.display = "flex";
+    renderQuickCreateStep2List();
+  } else {
+    // Alla egenskaper fanns redan, länka direkt!
+    pairs.forEach(pair => {
+      if (!pair.herbObj.props) pair.herbObj.props = {};
+      pair.herbObj.props[pair.propName] = {};
+    });
+    persist();
+    closePopup();
+    renderIndexPage();
+  }
+}
+
+function renderQuickCreateStep2List() {
+  const cont = document.getElementById("qc-new-props-list");
+  cont.innerHTML = "";
+
+  const catOptions = Object.keys(db.categories).map(c => `<option value="${c}">${c} [${db.categories[c].system || 'General'}]</option>`).join("");
+
+  pendingNewPropsForQC.newProps.forEach((pName, idx) => {
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid #eee;";
+    row.innerHTML = `
+      <b style="color:var(--accent-gold); font-size:15px;">${pName}</b>
+      <select id="qc_cat_select_${idx}" style="width:230px; font-size:13px; padding:3px 6px;">${catOptions}</select>
+    `;
+    cont.appendChild(row);
+  });
+}
+
+function confirmQuickCreateStep2() {
+  pendingNewPropsForQC.newProps.forEach((pName, idx) => {
+    const chosenCat = document.getElementById(`qc_cat_select_${idx}`).value;
+    db.properties[pName] = { category: chosenCat, desc: "", related: [], sources: [] };
+  });
+
+  pendingNewPropsForQC.pairs.forEach(pair => {
+    if (!pair.herbObj.props) pair.herbObj.props = {};
+    pair.herbObj.props[pair.propName] = {};
+  });
+
+  persist();
+  closePopup();
+  renderIndexPage();
+}
+
 // ==================== SIDA A: ÖRTPROFIL (HERB) ====================
 function renderHerbPage(herbId) {
   const app = document.getElementById("wiki-app");
   const obj = db.objects.find(o => o.id === herbId);
-  if (!obj) { app.innerHTML = `<h2>Article not found.</h2><a href="#index" class="wiki-link">Back to Index</a>`; return; }
+  if (!obj) { app.innerHTML = `<h2>Artikeln hittades inte.</h2><a href="#index" class="wiki-link">Gå till index</a>`; return; }
 
+  // System sorteras så att NATIVE-SYSTEM hamnar högst upp med 💚
   const sysOrder = [...(db.systemOrder || Object.keys(db.systems))];
   sysOrder.sort((a, b) => {
     const isANative = (obj.nativeSystems || []).includes(a);
@@ -1198,7 +1380,7 @@ function renderHerbPage(herbId) {
         <div class="wiki-data-row">
           <a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${cat}:</a>
           <div class="wiki-row-content">
-            ${tagsList || '<i>none</i>'}
+            ${tagsList || '<i>inga</i>'}
             <a class="btn-wiki-add" onclick="openAssignPropertyPopup('${obj.id}', '${cat}')">[+]</a>
           </div>
         </div>
@@ -1208,8 +1390,7 @@ function renderHerbPage(herbId) {
     if (catRowsInSys !== "") {
       systemsHtml += `
         <div class="system-group-header">
-          <span>${sysName} ${isNative ? '💚' : ''}</span>
-          <a class="wiki-action-link" onclick="openNativeModal('${sysName}')">[Native Herbs]</a>
+          <a href="#system/${encodeURIComponent(sysName)}" class="wiki-link">${sysName} ${isNative ? '💚' : ''}</a>
         </div>
         <div class="wiki-data-table">${catRowsInSys}</div>
       `;
@@ -1262,7 +1443,6 @@ function renderHerbPage(herbId) {
       ${obj.desc || `<i>${t("noDesc")}</i>`}
     </div>
 
-    <!-- PROPERTIES SECTION -->
     <h2 class="wiki-section">
       <span>${t("propsSection")}</span>
       <div style="display:flex; gap:12px;">
@@ -1271,7 +1451,7 @@ function renderHerbPage(herbId) {
       </div>
     </h2>
 
-    <div>${systemsHtml || '<i>No properties assigned.</i>'}</div>
+    <div>${systemsHtml || '<i>Inga egenskaper tilldelade.</i>'}</div>
 
     <div style="margin: 12px 0 24px 0;">
       <a class="wiki-action-link" onclick="openNewCategoryFlow()">${t("addCategory")}</a>
@@ -1305,18 +1485,21 @@ function promptDeleteHerb(id) {
 function renderPropertyPage(propName) {
   const app = document.getElementById("wiki-app");
   const prop = db.properties[propName];
-  if (!prop) { app.innerHTML = `<h2>Property not found.</h2><a href="#index" class="wiki-link">Back to Index</a>`; return; }
+  if (!prop) { app.innerHTML = `<h2>Egenskapen hittades inte.</h2><a href="#index" class="wiki-link">Tillbaka till index</a>`; return; }
 
+  // 1. Örter med denna egenskap (Placeras OVANFÖR besläktade egenskaper)
   const herbsWith = db.objects.filter(o => o.props && o.props[propName] !== undefined);
   let herbsList = herbsWith.length === 0 
-    ? `<li><i>None currently.</i></li>` 
+    ? `<li><i>Inga örter bär denna egenskap än.</i></li>` 
     : herbsWith.map(o => `<li><a href="#herb/${o.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(o)}</a></li>`).join("");
 
+  // 2. Besläktade egenskaper (Placeras NEDANFÖR örterna)
   const relatedProps = prop.related || [];
   let relatedPropsList = relatedProps.length === 0 
     ? `<i>${t("noRelatedProps")}</i>` 
     : relatedProps.map(rp => `<a href="#property/${encodeURIComponent(rp)}" class="wiki-link">${rp}</a>`).join(", ");
 
+  // 3. Emphasized in Formulas
   const matchingFormulas = [];
   Object.entries(db.formulas).forEach(([fName, fData]) => {
     let compCount = 0;
@@ -1366,7 +1549,7 @@ function renderPropertyPage(propName) {
     <h1 class="wiki-title">
       <span>${propName}</span>
       <div style="display:flex; align-items:center; gap:8px;">
-        <a class="wiki-action-link" onclick="promptRenameProperty('${propName}')" title="Rename">${t("renameBtn")}</a>
+        <a class="wiki-action-link" onclick="promptRenameProperty('${propName}')" title="Byt namn">${t("renameBtn")}</a>
         <a href="#category/${encodeURIComponent(prop.category)}" class="wiki-action-link">[${prop.category}]</a>
       </div>
     </h1>
@@ -1378,21 +1561,21 @@ function renderPropertyPage(propName) {
       ${prop.desc || `<i>${t("noDesc")}</i>`}
     </div>
 
-    <!-- ÖRTER MED DENNA EGENSKAP -->
+    <!-- 1. ÖRTER MED DENNA EGENSKAP -->
     <h2 class="wiki-section">
       <span>${t("propHerbsSection")} (${herbsWith.length})</span>
       <a class="wiki-action-link" onclick="openConnectHerbsToPropertyPopup('${propName}')">${t("connectHerbBtn")}</a>
     </h2>
     <ul class="wiki-list">${herbsList}</ul>
 
-    <!-- BESLÄKTADE EGENSKAPER -->
+    <!-- 2. BESLÄKTADE EGENSKAPER (NEDANFÖR ÖRTERNA ENLIGT FRANK) -->
     <h2 class="wiki-section">
       <span>${t("relatedPropsSection")}</span>
       <a class="wiki-action-link" onclick="openRelatedPropertiesPopup('${propName}')">${t("addRelatedPropBtn")}</a>
     </h2>
     <div class="wiki-paragraph">${relatedPropsList}</div>
 
-    <!-- EMPHASIZED IN FORMULAS -->
+    <!-- 3. FRAMHÄVD I FORMLER -->
     <h2 class="wiki-section">
       <span>${t("emphasizedInFormulas")}</span>
     </h2>
@@ -1408,7 +1591,7 @@ function promptRenameProperty(oldName) {
   const cleanNew = newName.trim();
 
   if (db.properties[cleanNew]) {
-    alert("A property with that name already exists.");
+    alert("En egenskap med det namnet finns redan.");
     return;
   }
 
@@ -1442,12 +1625,12 @@ function promptRenameProperty(oldName) {
 function renderCategoryPage(catName) {
   const app = document.getElementById("wiki-app");
   const cat = db.categories[catName];
-  if (!cat) { app.innerHTML = `<h2>Category not found.</h2><a href="#index" class="wiki-link">Back to Index</a>`; return; }
+  if (!cat) { app.innerHTML = `<h2>Kategorin hittades inte.</h2><a href="#index" class="wiki-link">Tillbaka</a>`; return; }
 
   const propsIn = Object.keys(db.properties).filter(p => db.properties[p].category === catName);
 
   let rowsHtml = propsIn.length === 0 
-    ? `<i>No properties defined in this category.</i>` 
+    ? `<i>Inga egenskaper definierade i denna kategori.</i>` 
     : propsIn.map(p => {
       const herbs = db.objects.filter(o => o.props && o.props[p] !== undefined);
       const herbsLinks = herbs.map(h => `<a href="#herb/${h.id}" class="wiki-link">${getDisplayObjName(h)}</a>`).join(", ");
@@ -1455,7 +1638,7 @@ function renderCategoryPage(catName) {
         <div class="wiki-data-row">
           <a href="#property/${encodeURIComponent(p)}" class="wiki-row-label">${p}:</a>
           <div class="wiki-row-content">
-            ${herbsLinks || '<i>none</i>'}
+            ${herbsLinks || '<i>inga</i>'}
             <a class="btn-wiki-add" onclick="openConnectHerbsToPropertyPopup('${p}')">[+]</a>
           </div>
         </div>
@@ -1467,7 +1650,7 @@ function renderCategoryPage(catName) {
   app.innerHTML = `
     <h1 class="wiki-title">
       <span>${catName}</span>
-      <span style="font-size:14px; color:var(--text-muted);">[${cat.system || 'System'}]</span>
+      <a href="#system/${encodeURIComponent(cat.system || 'General Information')}" class="wiki-action-link">[System: ${cat.system || 'Generellt'}]</a>
     </h1>
 
     <div class="wiki-paragraph">
@@ -1511,7 +1694,7 @@ function renderFormulasIndexPage() {
       <a class="wiki-action-link" onclick="promptCreateFormula()">${t("newFormulaBtn")}</a>
     </h1>
     <div class="wiki-paragraph">${t("formulaIntro")}</div>
-    <ul class="wiki-list">${listHtml || '<li><i>No formulas created yet.</i></li>'}</ul>
+    <ul class="wiki-list">${listHtml || '<li><i>Inga formler registrerade än.</i></li>'}</ul>
   `;
 }
 
@@ -1528,7 +1711,7 @@ function promptCreateFormula() {
 function renderFormulaDetailPage(fName) {
   const app = document.getElementById("wiki-app");
   const formula = db.formulas[fName];
-  if (!formula) { app.innerHTML = `<h2>Formula not found.</h2><a href="#formulas" class="wiki-link">Back to Formulas</a>`; return; }
+  if (!formula) { app.innerHTML = `<h2>Formeln hittades inte.</h2><a href="#formulas" class="wiki-link">Tillbaka</a>`; return; }
 
   let totalNormalized = 0;
   (formula.components || []).forEach(c => {
@@ -1549,7 +1732,7 @@ function renderFormulaDetailPage(fName) {
     return `
       <li>
         <a href="#herb/${c.objId}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(herb)}</a>: 
-        <input type="text" value="${c.role || ''}" placeholder="Role..." style="width:130px; display:inline-block; padding:2px 4px; font-size:13px;" onchange="updateCompRole('${fName}', ${idx}, this.value)">, 
+        <input type="text" value="${c.role || ''}" placeholder="Roll..." style="width:130px; display:inline-block; padding:2px 4px; font-size:13px;" onchange="updateCompRole('${fName}', ${idx}, this.value)">, 
         <input type="number" step="any" value="${c.qty}" style="width:55px; display:inline-block; padding:2px 4px; font-size:13px;" onchange="updateCompQty('${fName}', ${idx}, this.value)"> 
         <select style="width:65px; display:inline-block; padding:2px 4px; font-size:13px;" onchange="updateCompUnit('${fName}', ${idx}, this.value)">
           ${unitOptions}
@@ -1619,13 +1802,13 @@ function renderFormulaDetailPage(fName) {
       <span>${t("formulaComponents")} (${totalComponentsCount})</span>
       <a class="wiki-action-link" onclick="promptAddCompToFormula('${fName}')">${t("addHerbToFormula")}</a>
     </h2>
-    <ul class="wiki-list">${compRows || '<li><i>No components added yet.</i></li>'}</ul>
+    <ul class="wiki-list">${compRows || '<li><i>Inga komponenter i receptet än.</i></li>'}</ul>
 
     <h2 class="wiki-section">
       <span>${t("theoreticalEffect")}</span>
     </h2>
     <div class="wiki-data-table">
-      ${effectCategoryRows || '<i>No component properties found to calculate effect.</i>'}
+      ${effectCategoryRows || '<i>Inga egenskaper hittades för att räkna ut effekt.</i>'}
     </div>
 
     ${sourcesHtml}
@@ -1636,16 +1819,16 @@ function updateCompRole(fName, idx, val) { db.formulas[fName].components[idx].ro
 function updateCompQty(fName, idx, val) { const num = parseFloat(val); db.formulas[fName].components[idx].qty = isNaN(num) ? 1 : num; persist(); renderFormulaDetailPage(fName); }
 function updateCompUnit(fName, idx, val) { db.formulas[fName].components[idx].unit = val; persist(); renderFormulaDetailPage(fName); }
 function removeFormulaComp(fName, idx) { db.formulas[fName].components.splice(idx, 1); persist(); renderFormulaDetailPage(fName); }
-function deleteFormula(fName) { if (!confirm(`Delete formula '${fName}'?`)) return; delete db.formulas[fName]; persist(); window.location.hash = "#formulas"; }
+function deleteFormula(fName) { if (!confirm(`Radera formeln '${fName}'?`)) return; delete db.formulas[fName]; persist(); window.location.hash = "#formulas"; }
 
 function promptAddCompToFormula(fName) {
   const herbs = db.objects;
-  if (herbs.length === 0) return alert("No herbs in database.");
-  const choice = prompt("Select herb index to add:\n" + herbs.map((h, i) => `${i+1}. ${getDisplayObjName(h)}`).join("\n"));
+  if (herbs.length === 0) return alert("Inga örter i databasen.");
+  const choice = prompt("Välj ört:\n" + herbs.map((h, i) => `${i+1}. ${getDisplayObjName(h)}`).join("\n"));
   if (!choice) return;
   const idx = parseInt(choice) - 1;
   if (herbs[idx]) {
-    const role = prompt(`Enter role for ${getDisplayObjName(herbs[idx])}:`, "Active Component") || "Active Component";
+    const role = prompt(`Ange roll för ${getDisplayObjName(herbs[idx])}:`, "Huvudkomponent") || "Huvudkomponent";
     db.formulas[fName].components.push({ objId: herbs[idx].id, role, qty: 1, unit: "g" });
     persist();
     renderFormulaDetailPage(fName);
@@ -1664,21 +1847,21 @@ function renderProfileSourcesSection(itemType, itemId) {
 
   let itemsHtml = linked.map((item) => {
     const s = item.src;
-    const pagesText = item.pages ? ` (pp. ${item.pages})` : '';
+    const pagesText = item.pages ? ` (s. ${item.pages})` : '';
     return `
       <li>
         ${s.author ? `<b>${s.author}</b> ` : ''}${s.year ? `(${s.year}). ` : ''}<i>${s.title}</i>${s.publisher ? `. ${s.publisher}` : ''}${pagesText}.
-        ${s.link ? ` [<a href="${s.link}" target="_blank" class="wiki-link">link</a>]` : ''}
+        ${s.link ? ` [<a href="${s.link}" target="_blank" class="wiki-link">länk</a>]` : ''}
       </li>
     `;
   }).join("");
 
   return `
     <h2 class="wiki-section">
-      <a href="#sources" class="wiki-link" title="Open Source Library">${t("sourcesHeading")}</a>
+      <a href="#sources" class="wiki-link" title="Öppna källbiblioteket">${t("sourcesHeading")}</a>
       <a class="wiki-action-link" onclick="openAddSourceToItemModal('${itemType}', '${itemId}')">${t("addSourceBtn")}</a>
     </h2>
-    <ol class="wiki-list">${itemsHtml || '<li><i>No sources referenced yet.</i></li>'}</ol>
+    <ol class="wiki-list">${itemsHtml || '<li><i>Inga källor refererade än.</i></li>'}</ol>
   `;
 }
 
@@ -1694,17 +1877,17 @@ function renderSourcesLibraryPage() {
   let sourcesListHtml = sortedSources.map(src => {
     let biblioText = "";
     if (sourceSortMode === "title") {
-      biblioText = `<i>${src.title}</i>. ${src.author || 'Unknown'} (${src.year || 'n.d.'})${src.publisher ? `, ${src.publisher}` : ''}.`;
+      biblioText = `<i>${src.title}</i>. ${src.author || 'Okänd'} (${src.year || 'u.å.'})${src.publisher ? `, ${src.publisher}` : ''}.`;
     } else if (sourceSortMode === "year") {
-      biblioText = `${src.year || 'n.d.'}. ${src.author || 'Unknown'}, <i>${src.title}</i>${src.publisher ? `. ${src.publisher}` : ''}.`;
+      biblioText = `${src.year || 'u.å.'}. ${src.author || 'Okänd'}, <i>${src.title}</i>${src.publisher ? `. ${src.publisher}` : ''}.`;
     } else if (sourceSortMode === "publisher") {
-      biblioText = `${src.publisher || 'Unknown Publisher'}. ${src.author || 'Unknown'} (${src.year || 'n.d.'}), <i>${src.title}</i>.`;
+      biblioText = `${src.publisher || 'Okänt förlag'}. ${src.author || 'Okänd'} (${src.year || 'u.å.'}), <i>${src.title}</i>.`;
     } else {
-      biblioText = `${src.author || 'Unknown'} (${src.year || 'n.d.'}). <i>${src.title}</i>${src.publisher ? `. ${src.publisher}` : ''}.`;
+      biblioText = `${src.author || 'Okänd'} (${src.year || 'u.å.'}). <i>${src.title}</i>${src.publisher ? `. ${src.publisher}` : ''}.`;
     }
 
     if (src.link) {
-      biblioText += ` [<a href="${src.link}" target="_blank" class="wiki-link">link</a>]`;
+      biblioText += ` [<a href="${src.link}" target="_blank" class="wiki-link">länk</a>]`;
     }
 
     const withPages = [];
@@ -1726,7 +1909,7 @@ function renderSourcesLibraryPage() {
         linkHash = `#formula/${encodeURIComponent(tg.id)}`;
       } else if (tg.type === "system") {
         displayName = `${tg.id} (System)`;
-        linkHash = `#index`;
+        linkHash = `#system/${encodeURIComponent(tg.id)}`;
       }
 
       if (tg.pages && tg.pages.trim()) {
@@ -1745,8 +1928,8 @@ function renderSourcesLibraryPage() {
     return `
       <div style="margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle);">
         <div style="font-size:16px;">${biblioText}</div>
-        ${row1 ? `<div style="font-size:14px; margin-top:4px;"><b>Pages:</b> ${row1}</div>` : ''}
-        ${row2 ? `<div style="font-size:14px; color:var(--text-muted); margin-top:2px;"><b>General:</b> ${row2}</div>` : ''}
+        ${row1 ? `<div style="font-size:14px; margin-top:4px;"><b>Sidor:</b> ${row1}</div>` : ''}
+        ${row2 ? `<div style="font-size:14px; color:var(--text-muted); margin-top:2px;"><b>Generellt:</b> ${row2}</div>` : ''}
         <div style="margin-top:6px;">
           <a class="wiki-action-link" onclick="openAddTagToSourceModal('${src.id}')">${t("addTagToSourceBtn")}</a>
         </div>
@@ -1764,14 +1947,14 @@ function renderSourcesLibraryPage() {
     <div style="display:flex; align-items:center; gap:8px; background:#f8f9fa; border:1px solid var(--border-subtle); padding:6px 12px; margin-bottom:20px;">
       <span style="font-size:13px; font-weight:700;">${t("sortByLabel")}</span>
       <select onchange="switchSourceSort(this.value)" style="width:auto; padding:2px 6px; font-size:13px;">
-        <option value="author" ${sourceSortMode === 'author' ? 'selected' : ''}>Author</option>
-        <option value="title" ${sourceSortMode === 'title' ? 'selected' : ''}>Title</option>
-        <option value="year" ${sourceSortMode === 'year' ? 'selected' : ''}>Year</option>
-        <option value="publisher" ${sourceSortMode === 'publisher' ? 'selected' : ''}>Publisher</option>
+        <option value="author" ${sourceSortMode === 'author' ? 'selected' : ''}>Författare (Author)</option>
+        <option value="title" ${sourceSortMode === 'title' ? 'selected' : ''}>Titel (Title)</option>
+        <option value="year" ${sourceSortMode === 'year' ? 'selected' : ''}>Årtal (Year)</option>
+        <option value="publisher" ${sourceSortMode === 'publisher' ? 'selected' : ''}>Förlag (Publisher)</option>
       </select>
     </div>
 
-    <div>${sourcesListHtml || '<i>No sources in library yet.</i>'}</div>
+    <div>${sourcesListHtml || '<i>Inga källor sparade än.</i>'}</div>
   `;
 }
 
@@ -1781,12 +1964,12 @@ function switchSourceSort(mode) {
 }
 
 function promptCreateNewSource() {
-  const author = prompt("Author:") || "";
-  const year = prompt("Year:") || "";
-  const title = prompt("Title / Book:") || "";
+  const author = prompt("Författare:") || "";
+  const year = prompt("Årtal:") || "";
+  const title = prompt("Titel / Boktitel:") || "";
   if (!title.trim()) return;
-  const publisher = prompt("Publisher:") || "";
-  const link = prompt("Hyperlink:") || "";
+  const publisher = prompt("Förlag / Publisher:") || "";
+  const link = prompt("Webblänk URL:") || "";
 
   db.sources.push({
     id: "src_" + Date.now(),
@@ -1801,7 +1984,7 @@ function promptCreateNewSource() {
   renderSourcesLibraryPage();
 }
 
-// ==================== LÄGG TILL KÄLLA PÅ OBJEKT ====================
+// ==================== KOPPLA KÄLLA TILL OBJEKT ====================
 let activeSourceTargetItem = { type: "", id: "" };
 
 function openAddSourceToItemModal(type, id) {
@@ -1811,7 +1994,7 @@ function openAddSourceToItemModal(type, id) {
 
   const sel = document.getElementById("select-existing-source");
   sel.innerHTML = db.sources.map(s => `
-    <option value="${s.id}">${s.author ? s.author + ': ' : ''}${s.title} (${s.year || 'n.d.'})</option>
+    <option value="${s.id}">${s.author ? s.author + ': ' : ''}${s.title} (${s.year || 'u.å.'})</option>
   `).join("");
 
   document.getElementById("existing-src-pages").value = "";
@@ -1846,7 +2029,7 @@ function submitAddSourceToItem() {
     const link = document.getElementById("new-src-link").value.trim();
     rawPages = document.getElementById("new-src-pages").value;
 
-    if (!title) { alert("Title is required."); return; }
+    if (!title) { alert("Titel krävs."); return; }
 
     sourceId = "src_" + Date.now();
     db.sources.push({
@@ -1873,7 +2056,7 @@ function submitAddSourceToItem() {
   handleRouting();
 }
 
-// ==================== LÄGG TILL TAGG TILL KÄLLA ====================
+// ==================== KOPPLA TAGG TILL KÄLLA ====================
 let activeSourceForTagging = null;
 let currentTagTypeForSource = "object";
 
@@ -1926,7 +2109,7 @@ function renderSourceTagsList() {
         <input type="checkbox" id="chk_tag_${item.id}" ${isChecked ? 'checked' : ''}>
         <span>${item.name}</span>
       </label>
-      <input type="text" id="pages_input_${item.id}" value="${pagesVal}" placeholder="pages (e.g. 110-112)" style="width:130px; font-size:12px; padding:2px 4px;">
+      <input type="text" id="pages_input_${item.id}" value="${pagesVal}" placeholder="sidor (t.ex. 110-112)" style="width:130px; font-size:12px; padding:2px 4px;">
     `;
 
     const chk = row.querySelector(`#chk_tag_${item.id}`);
@@ -1948,7 +2131,7 @@ function renderSourceTagsList() {
 
     chk.onchange = (e) => {
       if (!e.target.checked && pgInput.value.trim().length > 0) {
-        alert("En tagg med sidhänvisning kan inte avbockas. Radera sidnumret först!");
+        alert("En tagg med sidor kan inte avbockas. Töm sidfältet först!");
         e.target.checked = true;
         return;
       }
@@ -1989,7 +2172,7 @@ document.getElementById("source-tag-search-input").addEventListener("keydown", (
       updateSourceTagData(newId, true, "");
     } else if (currentTagTypeForSource === "system") {
       if (!db.systems[val]) {
-        db.systems[val] = { categories: [] };
+        db.systems[val] = { categories: [], desc: "" };
         db.systemOrder.push(val);
       }
       updateSourceTagData(val, true, "");
@@ -2005,7 +2188,7 @@ document.getElementById("source-tag-search-input").addEventListener("keydown", (
       updateSourceTagData(val, true, "");
     } else if (currentTagTypeForSource === "formula") {
       if (!db.formulas[val]) {
-        db.formulas[val] = { desc: "", components: [] };
+        db.formulas[val] = { desc: "", components: [], sources: [] };
       }
       updateSourceTagData(val, true, "");
     }
@@ -2016,7 +2199,7 @@ document.getElementById("source-tag-search-input").addEventListener("keydown", (
   }
 });
 
-// ==================== NATIVE HERBS MODAL ====================
+// ==================== NATIVE HERBS MODAL LOGIK ====================
 let activeSystemForNativeModal = "";
 
 function openNativeModal(sysName) {
@@ -2055,7 +2238,10 @@ function renderNativeHerbsList() {
         herb.nativeSystems = herb.nativeSystems.filter(s => s !== activeSystemForNativeModal);
       }
       persist();
-      if (window.location.hash.startsWith("#herb")) {
+      if (window.location.hash.startsWith("#system")) {
+        const [, s] = window.location.hash.slice(1).split("/");
+        if (s) renderSystemPage(decodeURIComponent(s));
+      } else if (window.location.hash.startsWith("#herb")) {
         const [, id] = window.location.hash.slice(1).split("/");
         if (id) renderHerbPage(id);
       } else if (window.location.hash.startsWith("#index")) {
@@ -2081,11 +2267,14 @@ document.getElementById("native-search-input").addEventListener("keydown", (e) =
     persist();
     e.target.value = "";
     renderNativeHerbsList();
-    if (window.location.hash.startsWith("#index")) renderIndexPage();
+    if (window.location.hash.startsWith("#system")) {
+      const [, s] = window.location.hash.slice(1).split("/");
+      if (s) renderSystemPage(decodeURIComponent(s));
+    }
   }
 });
 
-// ==================== SÖKSIDAN ====================
+// ==================== LIVE-SÖK & KATEGORIFILTER ====================
 let activeSearchCategories = {};
 let liveSearchQuery = "";
 
@@ -2103,9 +2292,9 @@ function renderSearchPage() {
     });
     const hitCats = Object.keys(db.categories).filter(c => c.toLowerCase().includes(q));
 
-    let herbLinks = hitHerbs.map(h => `<li><a href="#herb/${h.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(h)}</a> <span style="color:var(--text-muted); font-size:13px;">(Ört / Herb)</span></li>`).join("");
-    let propLinks = hitProps.map(p => `<li><a href="#property/${encodeURIComponent(p)}" class="wiki-link" style="font-weight:700;">${p}</a> <span style="color:var(--text-muted); font-size:13px;">(Egenskap / Property)</span></li>`).join("");
-    let catLinks = hitCats.map(c => `<li><a href="#category/${encodeURIComponent(c)}" class="wiki-link" style="font-weight:700;">${c}</a> <span style="color:var(--text-muted); font-size:13px;">(Kategori / Category)</span></li>`).join("");
+    let herbLinks = hitHerbs.map(h => `<li><a href="#herb/${h.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(h)}</a> <span style="color:var(--text-muted); font-size:13px;">(Ört)</span></li>`).join("");
+    let propLinks = hitProps.map(p => `<li><a href="#property/${encodeURIComponent(p)}" class="wiki-link" style="font-weight:700;">${p}</a> <span style="color:var(--text-muted); font-size:13px;">(Egenskap)</span></li>`).join("");
+    let catLinks = hitCats.map(c => `<li><a href="#category/${encodeURIComponent(c)}" class="wiki-link" style="font-weight:700;">${c}</a> <span style="color:var(--text-muted); font-size:13px;">(Kategori)</span></li>`).join("");
 
     const combinedHits = herbLinks + propLinks + catLinks;
     liveHitsHtml = `
@@ -2129,7 +2318,7 @@ function renderSearchPage() {
       <div class="wiki-data-row">
         <span class="wiki-row-label" style="color:#000;">${cat}:</span>
         <div class="wiki-row-content">
-          ${tags || '<i>none selected</i>'}
+          ${tags || '<i>inga valda</i>'}
           <a class="btn-wiki-add" onclick="openSearchPropPopup('${cat}')">[+]</a>
         </div>
       </div>
@@ -2157,7 +2346,7 @@ function renderSearchPage() {
       </li>
     `).join("");
   } else {
-    matchesHtml = `<li><i>Select categories and properties above to filter articles.</i></li>`;
+    matchesHtml = `<li><i>Välj kategorier och egenskaper ovan för att filtrera.</i></li>`;
   }
 
   app.innerHTML = `
@@ -2177,7 +2366,7 @@ function renderSearchPage() {
       <a class="wiki-action-link" onclick="promptAddSearchCategory()">${t("addSearchCat")}</a>
     </h2>
 
-    <div class="wiki-data-table">${catFilterRows || '<i>No category filters added yet.</i>'}</div>
+    <div class="wiki-data-table">${catFilterRows || '<i>Inga kategorifilter valda än.</i>'}</div>
 
     <h2 class="wiki-section">${t("matchedHerbs")}</h2>
     <ul class="wiki-list">${matchesHtml}</ul>
@@ -2196,7 +2385,7 @@ function handleLiveSearchInput(val) {
 
 function promptAddSearchCategory() {
   const cats = Object.keys(db.categories);
-  const choice = prompt("Select category to filter:\n" + cats.map((c, i) => `${i+1}. ${c}`).join("\n"));
+  const choice = prompt("Välj kategori att filtrera på:\n" + cats.map((c, i) => `${i+1}. ${c}`).join("\n"));
   if (!choice) return;
   const idx = parseInt(choice) - 1;
   if (cats[idx]) {
@@ -2208,7 +2397,7 @@ function promptAddSearchCategory() {
 function openSearchPropPopup(cat) {
   activePopupMode = "search_prop";
   activePopupTarget = cat;
-  document.getElementById("popup-check-title").innerText = `Filter [${cat}]`;
+  document.getElementById("popup-check-title").innerText = `Filtrera [${cat}]`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   renderPopupList();
@@ -2234,7 +2423,7 @@ function openAssignPropertyPopup(herbId, catName) {
   activePopupMode = "assign_prop";
   activePopupTarget = herbId;
   activePopupExtra = catName;
-  document.getElementById("popup-check-title").innerText = `Assign [${catName}]`;
+  document.getElementById("popup-check-title").innerText = `Tilldela [${catName}]`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   document.getElementById("popup-filter-input").focus();
@@ -2244,7 +2433,7 @@ function openAssignPropertyPopup(herbId, catName) {
 function openConnectHerbsToPropertyPopup(propName) {
   activePopupMode = "connect_herb";
   activePopupTarget = propName;
-  document.getElementById("popup-check-title").innerText = `Connect herbs to [${propName}]`;
+  document.getElementById("popup-check-title").innerText = `Koppla örter till [${propName}]`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   document.getElementById("popup-filter-input").focus();
@@ -2254,7 +2443,7 @@ function openConnectHerbsToPropertyPopup(propName) {
 function openRelatedPropertiesPopup(propName) {
   activePopupMode = "related_prop";
   activePopupTarget = propName;
-  document.getElementById("popup-check-title").innerText = `Related Properties for [${propName}]`;
+  document.getElementById("popup-check-title").innerText = `Besläktade egenskaper för [${propName}]`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   document.getElementById("popup-filter-input").focus();
@@ -2367,7 +2556,7 @@ document.getElementById("popup-filter-input").addEventListener("keydown", (e) =>
       const currentPropName = activePopupTarget;
       const prop = db.properties[currentPropName];
       if (!db.properties[val]) {
-        const cat = prompt("Category for new property:", prop.category) || prop.category;
+        const cat = prompt("Kategori för ny egenskap:", prop.category) || prop.category;
         db.properties[val] = { category: cat, desc: "", related: [currentPropName], sources: [] };
       }
       if (!prop.related) prop.related = [];
@@ -2420,13 +2609,14 @@ function closePopup() {
   document.getElementById("popup-editor").style.display = "none";
   document.getElementById("popup-layout").style.display = "none";
   document.getElementById("popup-prop-sorter").style.display = "none";
+  document.getElementById("popup-quick-create").style.display = "none";
   document.getElementById("popup-new-category").style.display = "none";
   document.getElementById("popup-native-herbs").style.display = "none";
   document.getElementById("popup-add-source-to-item").style.display = "none";
   document.getElementById("popup-add-tag-to-source").style.display = "none";
 }
 
-// ==================== REDIGERA BESKRIVNING & NAMN ====================
+// ==================== REDIGERA BESKRIVNING ====================
 let editorMode = "";
 let editorTargetId = "";
 
@@ -2442,15 +2632,17 @@ function openEditor(type, id) {
     input.value = o ? o.desc || "" : "";
     extraCont.innerHTML = `
       <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
-        <input type="text" id="edit-herb-botanical" value="${o.botanicalName || ''}" placeholder="Botanical Name (Scientific)">
-        <input type="text" id="edit-herb-chinese" value="${o.chineseName || ''}" placeholder="Chinese Name (TCM / Pinyin)">
-        <input type="text" id="edit-herb-ayurvedic" value="${o.ayurvedicName || ''}" placeholder="Ayurvedic Name (Sanskrit)">
+        <input type="text" id="edit-herb-botanical" value="${o.botanicalName || ''}" placeholder="Botanisk namn (Scientific)">
+        <input type="text" id="edit-herb-chinese" value="${o.chineseName || ''}" placeholder="Kinesiskt namn (TCM / Pinyin)">
+        <input type="text" id="edit-herb-ayurvedic" value="${o.ayurvedicName || ''}" placeholder="Ayurvediskt namn (Sanskrit)">
       </div>
     `;
   } else if (type === "prop") {
     input.value = db.properties[id] ? db.properties[id].desc || "" : "";
   } else if (type === "cat") {
     input.value = db.categories[id] ? db.categories[id].desc || "" : "";
+  } else if (type === "system") {
+    input.value = db.systems[id] ? db.systems[id].desc || "" : "";
   } else if (type === "formula") {
     input.value = db.formulas[id] ? db.formulas[id].desc || "" : "";
   }
@@ -2483,6 +2675,10 @@ function saveDescription() {
     if (db.categories[editorTargetId]) db.categories[editorTargetId].desc = val;
     persist();
     renderCategoryPage(editorTargetId);
+  } else if (editorMode === "system") {
+    if (db.systems[editorTargetId]) db.systems[editorTargetId].desc = val;
+    persist();
+    renderSystemPage(editorTargetId);
   } else if (editorMode === "formula") {
     if (db.formulas[editorTargetId]) db.formulas[editorTargetId].desc = val;
     persist();
@@ -2492,7 +2688,7 @@ function saveDescription() {
   closePopup();
 }
 
-// ==================== LAYOUT-FÖNSTER ====================
+// ==================== LAYOUTFÖNSTER (STÄDAT UTAN CIRKLAR) ====================
 let selectedLayoutNode = null;
 let activeHerbIdForLayout = null;
 
@@ -2546,11 +2742,12 @@ function renderLayoutModalItems() {
 
       catLabel.innerHTML = `
         <input type="checkbox" ${isCatChecked ? 'checked' : ''}>
-        <span>${catName} ${activePropsCount > 0 ? `(${activePropsCount} active)` : ''}</span>
+        <span>${catName} ${activePropsCount > 0 ? `(${activePropsCount} aktiva)` : ''}</span>
       `;
       catLabel.querySelector("input").onchange = (e) => {
         if (e.target.checked) {
           selectedLayoutNode = { type: 'category', name: catName, parentSystem: sysName, activePropsCount };
+          // Knappen visas ENDAST om det finns aktiva egenskaper i kategorin för denna ört!
           document.getElementById("btn-open-prop-sorter").style.display = activePropsCount > 0 ? "inline-block" : "none";
         } else {
           selectedLayoutNode = null;
@@ -2598,7 +2795,7 @@ function saveLayoutOrder() {
   if (activeHerbIdForLayout) renderHerbPage(activeHerbIdForLayout);
 }
 
-// ==================== MIKROFÖNSTER: EGENSKAPSSORTERING ====================
+// ==================== MIKROFÖNSTER: EGENSKAPSSORTERING FÖR ÖRTEN ====================
 let microActivePropsArray = [];
 let selectedMicroProp = null;
 
@@ -2631,7 +2828,7 @@ function renderPropSorterItems() {
   cont.innerHTML = "";
 
   if (microActivePropsArray.length === 0) {
-    cont.innerHTML = `<i>No active properties in this category for this herb.</i>`;
+    cont.innerHTML = `<i>Inga aktiva egenskaper i denna kategori för denna ört.</i>`;
     return;
   }
 
@@ -2679,7 +2876,7 @@ function closePropSorter() {
   document.getElementById("popup-prop-sorter").style.display = "none";
 }
 
-// ==================== 2-STEGS FLÖDE: NY KATEGORI ====================
+// ==================== 2-STEGS NY KATEGORI ====================
 let pendingNewCatName = "";
 
 function openNewCategoryFlow() {
@@ -2781,7 +2978,7 @@ function submitCatFlowStep2() {
   if (!chosenSystem) { alert(currentLang === 'en' ? "Please choose a system." : "Välj ett system."); return; }
 
   if (!db.systems[chosenSystem]) {
-    db.systems[chosenSystem] = { categories: [] };
+    db.systems[chosenSystem] = { categories: [], desc: "" };
     if (!db.systemOrder.includes(chosenSystem)) db.systemOrder.push(chosenSystem);
   }
 
