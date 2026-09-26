@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ört-Wiki (Herbal Taxonomy)</title>
+  
+  <!-- GOOGLE FIREBASE SDK (COMPAT) -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --bg: #ffffff;
@@ -69,6 +74,18 @@
       color: var(--text);
       font-weight: 800;
       border-bottom: 2px solid var(--text);
+    }
+
+    .cloud-status-badge {
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .lang-toggle {
@@ -298,7 +315,6 @@
     button.wiki-btn.primary { background: #36c; border-color: #36c; color: #fff; font-weight: 700; }
     button.wiki-btn.primary:hover { background: #447ff5; }
 
-    /* FOOTER */
     footer.wiki-footer {
       border-top: 1px solid var(--border-subtle);
       padding: 16px;
@@ -311,12 +327,13 @@
 </head>
 <body>
 
-  <!-- TOPP-NAVIGERING (HELT REN UTAN BACKUP-KNAPPAR) -->
+  <!-- TOPP-NAVIGERING -->
   <header class="wiki-header">
     <a href="#index" class="header-logo" onclick="navigateTo('index')">
       <span>🌿</span> <span id="brand-title">Ört-Wiki</span>
     </a>
     <nav class="header-nav">
+      <div class="cloud-status-badge" id="cloud-status">☁️ Ansluter...</div>
       <a class="nav-link" id="nav-index" onclick="navigateTo('index')">Index</a>
       <a class="nav-link" id="nav-search" onclick="navigateTo('search')">Sök</a>
       <a class="nav-link" id="nav-formulas" onclick="navigateTo('formulas')">Formler</a>
@@ -328,9 +345,9 @@
   <!-- HUVUDDOKUMENT -->
   <main class="wiki-container" id="wiki-app"></main>
 
-  <!-- DISKRET FOTNOT MED BACKUP/ÅTERSTÄLLNING -->
+  <!-- FOTNOT MED RESERV-BACKUP -->
   <footer class="wiki-footer">
-    <span>Ört-Wiki Databas</span> • 
+    <span>Ört-Wiki Molndatabas (Google Firestore)</span> • 
     <a class="wiki-action-link" onclick="downloadBackupFile()">Exportera JSON</a> • 
     <a class="wiki-action-link" onclick="document.getElementById('import-file-input').click()">Importera JSON</a>
     <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importBackupFile(event)">
@@ -372,7 +389,7 @@
     </div>
   </div>
 
-  <!-- POPUP: LAYOUTFÖNSTER (REN UTAN CIRKLAR) -->
+  <!-- POPUP: LAYOUTFÖNSTER -->
   <div class="popup-overlay" id="popup-layout">
     <div class="popup-box" style="max-width:520px;">
       <div class="popup-header">
@@ -399,7 +416,7 @@
     </div>
   </div>
 
-  <!-- POPUP: MIKROFÖNSTER FÖR ATT SORTERA ÖRTENS AKTIVA EGENSKAPER -->
+  <!-- POPUP: MIKROFÖNSTER FÖR EGENSKAPSSORTERING -->
   <div class="popup-overlay" id="popup-prop-sorter">
     <div class="popup-box" style="max-width:480px;">
       <div class="popup-header">
@@ -421,7 +438,7 @@
     </div>
   </div>
 
-  <!-- POPUP: SNABBSKAPA (I OBJEKTINDEX) -->
+  <!-- POPUP: SNABBSKAPA -->
   <div class="popup-overlay" id="popup-quick-create">
     <div class="popup-box" style="max-width:560px;">
       <div class="popup-header">
@@ -429,7 +446,6 @@
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       
-      <!-- STEG 1: RADER MED OBJEKT OCH EGENSKAPER -->
       <div class="popup-body" id="qc-step-1">
         <div style="font-size:13px; color:var(--text-muted);">
           Skriv objektnamn och dess egenskaper (kommaseparerat per rad):
@@ -444,7 +460,6 @@
         </div>
       </div>
 
-      <!-- STEG 2: VÄLJ KATEGORIER FÖR HELT NYA EGENSKAPER -->
       <div class="popup-body" id="qc-step-2" style="display:none;">
         <div style="font-size:13px; color:var(--text-muted);">
           Följande egenskaper är helt nya. Välj kategori för var och en:
@@ -466,7 +481,7 @@
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body">
-        <input type="text" id="native-search-input" placeholder="🔍 Search or create new (Press Enter)..." oninput="renderNativeHerbsList()">
+        <input type="text" id="native-search-input" placeholder="🔍 Sök eller skapa ny (Tryck Enter)..." oninput="renderNativeHerbsList()">
         <div class="checklist-container" id="native-herbs-list" style="max-height:280px;"></div>
         <div style="font-size:12px; color:var(--text-muted);">
           * Bocka i/av för att koppla native-status.<br>
@@ -599,6 +614,38 @@
   </div>
 
 <script>
+// ==================== FIREBASE FIRESTORE MOLNKOPPLING ====================
+// Dina autentiseringsnycklar direkt från ditt Firebase-projekt
+const firebaseConfig = {
+  apiKey: "AIzaSyDX3KFiW_nScowsEyNoveIC7u-u2WY2NCc",
+  authDomain: "ort-wiki.firebaseapp.com",
+  projectId: "ort-wiki",
+  storageBucket: "ort-wiki.firebasestorage.app",
+  messagingSenderId: "517699154864",
+  appId: "1:517699154864:web:bdfd53a4c6e7c520029c75"
+};
+
+let firestoreDb = null;
+let isCloudReady = false;
+let cloudSaveTimeout = null;
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  firestoreDb = firebase.firestore();
+} catch(e) {
+  console.warn("Kunde inte initialisera Firebase:", e);
+}
+
+function updateCloudStatus(status, isOk = true) {
+  const badge = document.getElementById("cloud-status");
+  if (badge) {
+    badge.innerText = status;
+    badge.style.background = isOk ? "#f0fdf4" : "#fef2f2";
+    badge.style.color = isOk ? "#166534" : "#991b1b";
+    badge.style.borderColor = isOk ? "#bbf7d0" : "#fecaca";
+  }
+}
+
 // ==================== ENHETER ====================
 const unitConversions = {
   "g":     { base: 1,    type: "weight" },
@@ -768,9 +815,8 @@ function updateUILabels() {
   document.getElementById("popup-help-text").innerHTML = t("checkHelp");
 }
 
-// ==================== DATABAS & DJUP-SKANNING ====================
+// ==================== DATABASSTRUKTUR ====================
 const MASTER_STORAGE_KEY = "taxonomy_ide_master_db";
-const BACKUP_STORAGE_KEY = "taxonomy_ide_master_db_bak";
 
 const defaultData = {
   systemOrder: [
@@ -881,61 +927,72 @@ let indexViewMode = "alpha";
 let indexAlphaSortField = "name";
 let sourceSortMode = "author";
 
-function loadAndRecoverAllData() {
-  let bestCandidate = null;
-  let maxHerbCount = 0;
-
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      const val = localStorage.getItem(key);
-      if (!val) continue;
-
-      try {
-        const parsed = JSON.parse(val);
-        if (parsed && Array.isArray(parsed.objects)) {
-          if (parsed.objects.length > maxHerbCount) {
-            maxHerbCount = parsed.objects.length;
-            bestCandidate = parsed;
-          }
-        } else if (parsed && parsed.libraries && parsed.libraries.herbal && Array.isArray(parsed.libraries.herbal.objects)) {
-          const hObjs = parsed.libraries.herbal.objects;
-          if (hObjs.length > maxHerbCount) {
-            maxHerbCount = hObjs.length;
-            bestCandidate = {
-              objects: hObjs,
-              categories: parsed.libraries.herbal.categories || defaultData.categories,
-              properties: parsed.libraries.herbal.properties || defaultData.properties,
-              systems: parsed.libraries.herbal.systems || defaultData.systems,
-              systemOrder: defaultData.systemOrder,
-              formulas: defaultData.formulas,
-              sources: defaultData.sources
-            };
-          }
-        }
-      } catch(e) {}
-    }
-  } catch(e) {}
-
-  if (bestCandidate && bestCandidate.objects && bestCandidate.objects.length >= 2) {
-    db = bestCandidate;
-    if (!db.systemOrder) db.systemOrder = defaultData.systemOrder;
-    if (!db.systems) db.systems = defaultData.systems;
-    if (!db.sources) db.sources = defaultData.sources;
+// HÄMTA LOKAL DATA FÖRST
+function loadLocalFallback() {
+  const raw = localStorage.getItem(MASTER_STORAGE_KEY);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.objects) && parsed.objects.length > 0) {
+        db = parsed;
+      }
+    } catch(e) {}
   }
 }
-loadAndRecoverAllData();
+loadLocalFallback();
 
+// INITIERA FIRESTORE MOLN-SYNC I REALTID
+function initFirestoreSync() {
+  if (!firestoreDb) {
+    updateCloudStatus("⚠️ Endast lokalt", false);
+    return;
+  }
+
+  const docRef = firestoreDb.collection("wiki_database").doc("master_library");
+
+  docRef.onSnapshot((doc) => {
+    isCloudReady = true;
+    if (doc.exists) {
+      const cloudData = doc.data();
+      if (cloudData && Array.isArray(cloudData.objects)) {
+        db = cloudData;
+        try { localStorage.setItem(MASTER_STORAGE_KEY, JSON.stringify(db)); } catch(e) {}
+        updateCloudStatus("☁️ Synkad");
+        handleRouting();
+      }
+    } else {
+      // Första uppstarten: Skapa master-dokumentet i molnet
+      docRef.set(db).then(() => {
+        updateCloudStatus("☁️ Moln skapat");
+      });
+    }
+  }, (err) => {
+    console.error("Firestore sync error:", err);
+    updateCloudStatus("⚠️ Molnfel (Offline)", false);
+  });
+}
+
+// SPARA (SPARAR LOKALT DIREKT OCH PUSHAS TILL FIRESTORE)
 function persist() {
   try {
-    if (!db.objects || db.objects.length === 0) return;
-    const str = JSON.stringify(db);
-    localStorage.setItem(MASTER_STORAGE_KEY, str);
-    localStorage.setItem(BACKUP_STORAGE_KEY, str);
+    localStorage.setItem(MASTER_STORAGE_KEY, JSON.stringify(db));
   } catch(e) {}
-}
-window.addEventListener("beforeunload", persist);
 
+  if (firestoreDb && isCloudReady) {
+    updateCloudStatus("☁️ Sparar...");
+    clearTimeout(cloudSaveTimeout);
+    cloudSaveTimeout = setTimeout(() => {
+      firestoreDb.collection("wiki_database").doc("master_library").set(db)
+        .then(() => { updateCloudStatus("☁️ Synkad"); })
+        .catch((err) => {
+          console.error("Cloud push failed:", err);
+          updateCloudStatus("⚠️ Ej sparad i moln", false);
+        });
+    }, 400);
+  }
+}
+
+// EXPORT/IMPORT
 function downloadBackupFile() {
   const str = JSON.stringify(db, null, 2);
   const blob = new Blob([str], { type: "application/json" });
@@ -954,20 +1011,14 @@ function importBackupFile(e) {
   reader.onload = (event) => {
     try {
       const parsed = JSON.parse(event.target.result);
-      if (parsed && (parsed.objects || (parsed.libraries && parsed.libraries.herbal))) {
-        if (parsed.objects) {
-          db = parsed;
-        } else {
-          db.objects = parsed.libraries.herbal.objects || db.objects;
-          db.categories = parsed.libraries.herbal.categories || db.categories;
-          db.properties = parsed.libraries.herbal.properties || db.properties;
-        }
+      if (parsed && Array.isArray(parsed.objects)) {
+        db = parsed;
         persist();
-        alert(currentLang === 'en' ? "Database restored!" : "Biblioteket återställt!");
+        alert(currentLang === 'en' ? "Database imported and saved to cloud!" : "Biblioteket importerat och sparat till molnet!");
         handleRouting();
       }
     } catch(err) {
-      alert("Kunde inte läsa filen.");
+      alert("Fel vid läsning av fil.");
     }
   };
   reader.readAsText(file);
@@ -1008,7 +1059,7 @@ function cleanAndSortPages(str) {
   return intervals.map(i => i.text).join(", ");
 }
 
-// ==================== NAVIGERING & ROUTING ====================
+// ==================== ROUTING ====================
 function navigateTo(route) {
   window.location.hash = `#${route}`;
   handleRouting();
@@ -1017,6 +1068,7 @@ function navigateTo(route) {
 window.addEventListener("hashchange", handleRouting);
 window.addEventListener("DOMContentLoaded", () => {
   updateUILabels();
+  initFirestoreSync();
   if (!window.location.hash) window.location.hash = "#index";
   handleRouting();
 });
@@ -1050,13 +1102,12 @@ function handleRouting() {
   }
 }
 
-// ==================== SYSTEM-SIDAN (FRANKS SKISS) ====================
+// ==================== SYSTEM-SIDAN ====================
 function renderSystemPage(sysName) {
   const app = document.getElementById("wiki-app");
   const sys = db.systems[sysName];
   if (!sys) { app.innerHTML = `<h2>Systemet hittades inte.</h2><a href="#index" class="wiki-link">Tillbaka</a>`; return; }
 
-  // 1. Kategorier & Egenskaper under systemet
   let catRows = (sys.categories || []).map(catName => {
     const props = Object.keys(db.properties).filter(p => db.properties[p]?.category === catName);
     const propLinks = props.map(p => `<a href="#property/${encodeURIComponent(p)}" class="wiki-link">${p}</a>`).join(", ");
@@ -1068,7 +1119,6 @@ function renderSystemPage(sysName) {
     `;
   }).join("");
 
-  // 2. Native Objects efter varandra med (+) i slutet
   const nativeHerbs = db.objects.filter(o => o.nativeSystems && o.nativeSystems.includes(sysName));
   nativeHerbs.sort((a,b) => getDisplayObjName(a).localeCompare(getDisplayObjName(b)));
 
@@ -1107,7 +1157,6 @@ function renderSystemPage(sysName) {
 // ==================== SIDA D: OBJECT INDEX ====================
 function renderIndexPage() {
   const app = document.getElementById("wiki-app");
-
   let contentHtml = "";
 
   if (indexViewMode === "native_system") {
@@ -1133,7 +1182,7 @@ function renderIndexPage() {
           <a href="#system/${encodeURIComponent(sysName)}" class="wiki-link">${sysName}</a>
           <a class="btn-wiki-add" onclick="openNativeModal('${sysName}')">[+]</a>
         </h2>
-        <ul class="wiki-list">${herbItems || '<li><i>No native herbs assigned yet.</i></li>'}</ul>
+        <ul class="wiki-list">${herbItems || '<li><i>Inga native örter kopplade.</i></li>'}</ul>
       `;
     });
     contentHtml = sysSectionsHtml;
@@ -1198,7 +1247,7 @@ function renderIndexPage() {
         <div style="display:flex; align-items:center; gap:6px;">
           <span style="font-size:13px; font-weight:700;">Sortera efter:</span>
           <select onchange="switchIndexAlphaSortField(this.value)" style="width:auto; padding:2px 6px; font-size:13px;">
-            <option value="name" ${indexAlphaSortField === 'name' ? 'selected' : ''}>Engelskt/Huvudnamn</option>
+            <option value="name" ${indexAlphaSortField === 'name' ? 'selected' : ''}>Huvudnamn</option>
             <option value="botanicalName" ${indexAlphaSortField === 'botanicalName' ? 'selected' : ''}>Botanisk namn</option>
             <option value="chineseName" ${indexAlphaSortField === 'chineseName' ? 'selected' : ''}>Kinesiskt namn (TCM)</option>
             <option value="ayurvedicName" ${indexAlphaSortField === 'ayurvedicName' ? 'selected' : ''}>Ayurvediskt namn</option>
@@ -1211,15 +1260,8 @@ function renderIndexPage() {
   `;
 }
 
-function switchIndexViewMode(mode) {
-  indexViewMode = mode;
-  renderIndexPage();
-}
-
-function switchIndexAlphaSortField(field) {
-  indexAlphaSortField = field;
-  renderIndexPage();
-}
+function switchIndexViewMode(mode) { indexViewMode = mode; renderIndexPage(); }
+function switchIndexAlphaSortField(field) { indexAlphaSortField = field; renderIndexPage(); }
 
 function promptCreateHerb() {
   const name = prompt(currentLang === 'en' ? "Enter herb name:" : "Ange örtens namn:");
@@ -1230,9 +1272,9 @@ function promptCreateHerb() {
   window.location.hash = `#herb/${id}`;
 }
 
-// ==================== SNABBSKAPA (I OBJEKTINDEX) ====================
+// ==================== SNABBSKAPA ====================
 let quickCreateRows = [];
-let pendingNewPropsForQC = []; // { propName, herbObj }
+let pendingNewPropsForQC = [];
 
 function openQuickCreateModal() {
   quickCreateRows = [{ herb: "", props: "" }, { herb: "", props: "" }, { herb: "", props: "" }];
@@ -1245,7 +1287,6 @@ function openQuickCreateModal() {
 function renderQuickCreateRows() {
   const cont = document.getElementById("qc-rows-container");
   cont.innerHTML = "";
-
   quickCreateRows.forEach((row, idx) => {
     const div = document.createElement("div");
     div.style.cssText = "display:flex; gap:6px; align-items:center;";
@@ -1280,20 +1321,16 @@ function processQuickCreateStep1() {
     const propNames = r.props.split(",").map(p => p.trim()).filter(Boolean);
     propNames.forEach(p => {
       pairs.push({ herbObj, propName: p });
-      if (!db.properties[p]) {
-        newPropsFound.add(p);
-      }
+      if (!db.properties[p]) newPropsFound.add(p);
     });
   });
 
   if (newPropsFound.size > 0) {
-    // Steg 2: Be om kategorier för alla helt nya egenskaper
     pendingNewPropsForQC = { pairs, newProps: Array.from(newPropsFound) };
     document.getElementById("qc-step-1").style.display = "none";
     document.getElementById("qc-step-2").style.display = "flex";
     renderQuickCreateStep2List();
   } else {
-    // Alla egenskaper fanns redan, länka direkt!
     pairs.forEach(pair => {
       if (!pair.herbObj.props) pair.herbObj.props = {};
       pair.herbObj.props[pair.propName] = {};
@@ -1307,7 +1344,6 @@ function processQuickCreateStep1() {
 function renderQuickCreateStep2List() {
   const cont = document.getElementById("qc-new-props-list");
   cont.innerHTML = "";
-
   const catOptions = Object.keys(db.categories).map(c => `<option value="${c}">${c} [${db.categories[c].system || 'General'}]</option>`).join("");
 
   pendingNewPropsForQC.newProps.forEach((pName, idx) => {
@@ -1343,7 +1379,6 @@ function renderHerbPage(herbId) {
   const obj = db.objects.find(o => o.id === herbId);
   if (!obj) { app.innerHTML = `<h2>Artikeln hittades inte.</h2><a href="#index" class="wiki-link">Gå till index</a>`; return; }
 
-  // System sorteras så att NATIVE-SYSTEM hamnar högst upp med 💚
   const sysOrder = [...(db.systemOrder || Object.keys(db.systems))];
   sysOrder.sort((a, b) => {
     const isANative = (obj.nativeSystems || []).includes(a);
@@ -1354,13 +1389,11 @@ function renderHerbPage(herbId) {
   });
 
   let systemsHtml = "";
-
   sysOrder.forEach(sysName => {
     const sysData = db.systems[sysName];
     if (!sysData || !sysData.categories) return;
 
     const isNative = (obj.nativeSystems || []).includes(sysName);
-
     let catRowsInSys = "";
     sysData.categories.forEach(cat => {
       let assigned = Object.keys(obj.props || {}).filter(p => db.properties[p]?.category === cat);
@@ -1375,7 +1408,6 @@ function renderHerbPage(herbId) {
       if (hideUntaggedInHerbView && assigned.length === 0) return;
 
       let tagsList = assigned.map(p => `<a href="#property/${encodeURIComponent(p)}" class="wiki-link">${p}</a>`).join(", ");
-
       catRowsInSys += `
         <div class="wiki-data-row">
           <a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${cat}:</a>
@@ -1475,31 +1507,28 @@ function toggleHideUntaggedView() {
 }
 
 function promptDeleteHerb(id) {
-  if (!confirm(currentLang === 'en' ? "Delete this herb?" : "Vill du radera denna ört?")) return;
+  if (!confirm("Vill du radera denna ört?")) return;
   db.objects = db.objects.filter(o => o.id !== id);
   persist();
   window.location.hash = "#index";
 }
 
-// ==================== SIDA B: EGENSKAP (PROPERTY) ====================
+// ==================== SIDA B: EGENSKAP ====================
 function renderPropertyPage(propName) {
   const app = document.getElementById("wiki-app");
   const prop = db.properties[propName];
   if (!prop) { app.innerHTML = `<h2>Egenskapen hittades inte.</h2><a href="#index" class="wiki-link">Tillbaka till index</a>`; return; }
 
-  // 1. Örter med denna egenskap (Placeras OVANFÖR besläktade egenskaper)
   const herbsWith = db.objects.filter(o => o.props && o.props[propName] !== undefined);
   let herbsList = herbsWith.length === 0 
     ? `<li><i>Inga örter bär denna egenskap än.</i></li>` 
     : herbsWith.map(o => `<li><a href="#herb/${o.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(o)}</a></li>`).join("");
 
-  // 2. Besläktade egenskaper (Placeras NEDANFÖR örterna)
   const relatedProps = prop.related || [];
   let relatedPropsList = relatedProps.length === 0 
     ? `<i>${t("noRelatedProps")}</i>` 
     : relatedProps.map(rp => `<a href="#property/${encodeURIComponent(rp)}" class="wiki-link">${rp}</a>`).join(", ");
 
-  // 3. Emphasized in Formulas
   const matchingFormulas = [];
   Object.entries(db.formulas).forEach(([fName, fData]) => {
     let compCount = 0;
@@ -1522,13 +1551,7 @@ function renderPropertyPage(propName) {
       const totalComps = (fData.components || []).length;
       const synergy = totalComps > 0 ? (compCount / totalComps) : 0;
       const effect = totalNorm > 0 ? Math.round((propAmount / totalNorm) * 100) : 0;
-      matchingFormulas.push({
-        name: fName,
-        compCount,
-        totalComps,
-        synergy,
-        effect
-      });
+      matchingFormulas.push({ name: fName, compCount, totalComps, synergy, effect });
     }
   });
 
@@ -1561,21 +1584,18 @@ function renderPropertyPage(propName) {
       ${prop.desc || `<i>${t("noDesc")}</i>`}
     </div>
 
-    <!-- 1. ÖRTER MED DENNA EGENSKAP -->
     <h2 class="wiki-section">
       <span>${t("propHerbsSection")} (${herbsWith.length})</span>
       <a class="wiki-action-link" onclick="openConnectHerbsToPropertyPopup('${propName}')">${t("connectHerbBtn")}</a>
     </h2>
     <ul class="wiki-list">${herbsList}</ul>
 
-    <!-- 2. BESLÄKTADE EGENSKAPER (NEDANFÖR ÖRTERNA ENLIGT FRANK) -->
     <h2 class="wiki-section">
       <span>${t("relatedPropsSection")}</span>
       <a class="wiki-action-link" onclick="openRelatedPropertiesPopup('${propName}')">${t("addRelatedPropBtn")}</a>
     </h2>
     <div class="wiki-paragraph">${relatedPropsList}</div>
 
-    <!-- 3. FRAMHÄVD I FORMLER -->
     <h2 class="wiki-section">
       <span>${t("emphasizedInFormulas")}</span>
     </h2>
@@ -1590,10 +1610,7 @@ function promptRenameProperty(oldName) {
   if (!newName || !newName.trim() || newName.trim() === oldName) return;
   const cleanNew = newName.trim();
 
-  if (db.properties[cleanNew]) {
-    alert("En egenskap med det namnet finns redan.");
-    return;
-  }
+  if (db.properties[cleanNew]) { alert("En egenskap med det namnet finns redan."); return; }
 
   db.properties[cleanNew] = db.properties[oldName];
   delete db.properties[oldName];
@@ -1621,7 +1638,7 @@ function promptRenameProperty(oldName) {
   window.location.hash = `#property/${encodeURIComponent(cleanNew)}`;
 }
 
-// ==================== SIDA C: KATEGORI (CATEGORY) ====================
+// ==================== SIDA C: KATEGORI ====================
 function renderCategoryPage(catName) {
   const app = document.getElementById("wiki-app");
   const cat = db.categories[catName];
@@ -1694,7 +1711,7 @@ function renderFormulasIndexPage() {
       <a class="wiki-action-link" onclick="promptCreateFormula()">${t("newFormulaBtn")}</a>
     </h1>
     <div class="wiki-paragraph">${t("formulaIntro")}</div>
-    <ul class="wiki-list">${listHtml || '<li><i>Inga formler registrerade än.</i></li>'}</ul>
+    <ul class="wiki-list">${listHtml || '<i>Inga formler registrerade än.</i>'}</ul>
   `;
 }
 
@@ -1758,9 +1775,7 @@ function renderFormulaDetailPage(fName) {
       const cat = pData.category || "General Information";
 
       if (!propStats[cat]) propStats[cat] = {};
-      if (!propStats[cat][pName]) {
-        propStats[cat][pName] = { count: 0, amount: 0 };
-      }
+      if (!propStats[cat][pName]) propStats[cat][pName] = { count: 0, amount: 0 };
       propStats[cat][pName].count += 1;
       propStats[cat][pName].amount += compAmount;
     });
@@ -1840,9 +1855,7 @@ function renderProfileSourcesSection(itemType, itemId) {
   const linked = [];
   db.sources.forEach(src => {
     const match = (src.tags || []).find(tg => tg.type === itemType && tg.id === itemId);
-    if (match) {
-      linked.push({ src, pages: match.pages || "" });
-    }
+    if (match) linked.push({ src, pages: match.pages || "" });
   });
 
   let itemsHtml = linked.map((item) => {
@@ -1886,9 +1899,7 @@ function renderSourcesLibraryPage() {
       biblioText = `${src.author || 'Okänd'} (${src.year || 'u.å.'}). <i>${src.title}</i>${src.publisher ? `. ${src.publisher}` : ''}.`;
     }
 
-    if (src.link) {
-      biblioText += ` [<a href="${src.link}" target="_blank" class="wiki-link">länk</a>]`;
-    }
+    if (src.link) biblioText += ` [<a href="${src.link}" target="_blank" class="wiki-link">länk</a>]`;
 
     const withPages = [];
     const withoutPages = [];
@@ -1958,10 +1969,7 @@ function renderSourcesLibraryPage() {
   `;
 }
 
-function switchSourceSort(mode) {
-  sourceSortMode = mode;
-  renderSourcesLibraryPage();
-}
+function switchSourceSort(mode) { sourceSortMode = mode; renderSourcesLibraryPage(); }
 
 function promptCreateNewSource() {
   const author = prompt("Författare:") || "";
@@ -1984,7 +1992,7 @@ function promptCreateNewSource() {
   renderSourcesLibraryPage();
 }
 
-// ==================== KOPPLA KÄLLA TILL OBJEKT ====================
+// ==================== KÄLLOR MODALER ====================
 let activeSourceTargetItem = { type: "", id: "" };
 
 function openAddSourceToItemModal(type, id) {
@@ -2032,11 +2040,7 @@ function submitAddSourceToItem() {
     if (!title) { alert("Titel krävs."); return; }
 
     sourceId = "src_" + Date.now();
-    db.sources.push({
-      id: sourceId,
-      author, year, title, publisher, link,
-      tags: []
-    });
+    db.sources.push({ id: sourceId, author, year, title, publisher, link, tags: [] });
   }
 
   const cleanPages = cleanAndSortPages(rawPages);
@@ -2056,7 +2060,6 @@ function submitAddSourceToItem() {
   handleRouting();
 }
 
-// ==================== KOPPLA TAGG TILL KÄLLA ====================
 let activeSourceForTagging = null;
 let currentTagTypeForSource = "object";
 
@@ -2082,17 +2085,11 @@ function renderSourceTagsList() {
   cont.innerHTML = "";
 
   let candidates = [];
-  if (currentTagTypeForSource === "object") {
-    candidates = db.objects.map(o => ({ id: o.id, name: getDisplayObjName(o) }));
-  } else if (currentTagTypeForSource === "system") {
-    candidates = Object.keys(db.systems).map(s => ({ id: s, name: s }));
-  } else if (currentTagTypeForSource === "category") {
-    candidates = Object.keys(db.categories).map(c => ({ id: c, name: c }));
-  } else if (currentTagTypeForSource === "property") {
-    candidates = Object.keys(db.properties).map(p => ({ id: p, name: p }));
-  } else if (currentTagTypeForSource === "formula") {
-    candidates = Object.keys(db.formulas).map(f => ({ id: f, name: getDisplayFormulaName(f) }));
-  }
+  if (currentTagTypeForSource === "object") candidates = db.objects.map(o => ({ id: o.id, name: getDisplayObjName(o) }));
+  else if (currentTagTypeForSource === "system") candidates = Object.keys(db.systems).map(s => ({ id: s, name: s }));
+  else if (currentTagTypeForSource === "category") candidates = Object.keys(db.categories).map(c => ({ id: c, name: c }));
+  else if (currentTagTypeForSource === "property") candidates = Object.keys(db.properties).map(p => ({ id: p, name: p }));
+  else if (currentTagTypeForSource === "formula") candidates = Object.keys(db.formulas).map(f => ({ id: f, name: getDisplayFormulaName(f) }));
 
   const filtered = candidates.filter(c => c.name.toLowerCase().includes(query));
 
@@ -2103,7 +2100,6 @@ function renderSourceTagsList() {
 
     const row = document.createElement("div");
     row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:3px 6px; border-bottom:1px solid #eee;";
-
     row.innerHTML = `
       <label class="check-label" style="flex-grow:1;">
         <input type="checkbox" id="chk_tag_${item.id}" ${isChecked ? 'checked' : ''}>
@@ -2118,9 +2114,7 @@ function renderSourceTagsList() {
     pgInput.oninput = (e) => {
       let cleaned = e.target.value.replace(/[^0-9,\-]/g, "");
       e.target.value = cleaned;
-      if (cleaned.length > 0) {
-        chk.checked = true;
-      }
+      if (cleaned.length > 0) chk.checked = true;
     };
 
     pgInput.onblur = (e) => {
@@ -2147,15 +2141,10 @@ function updateSourceTagData(itemId, isChecked, pagesVal) {
   const idx = activeSourceForTagging.tags.findIndex(tg => tg.type === currentTagTypeForSource && tg.id === itemId);
 
   if (isChecked) {
-    if (idx !== -1) {
-      activeSourceForTagging.tags[idx].pages = pagesVal;
-    } else {
-      activeSourceForTagging.tags.push({ type: currentTagTypeForSource, id: itemId, pages: pagesVal });
-    }
+    if (idx !== -1) activeSourceForTagging.tags[idx].pages = pagesVal;
+    else activeSourceForTagging.tags.push({ type: currentTagTypeForSource, id: itemId, pages: pagesVal });
   } else {
-    if (idx !== -1) {
-      activeSourceForTagging.tags.splice(idx, 1);
-    }
+    if (idx !== -1) activeSourceForTagging.tags.splice(idx, 1);
   }
   persist();
   renderSourcesLibraryPage();
@@ -2171,25 +2160,16 @@ document.getElementById("source-tag-search-input").addEventListener("keydown", (
       db.objects.push({ id: newId, name: val, desc: "", props: {}, nativeSystems: [] });
       updateSourceTagData(newId, true, "");
     } else if (currentTagTypeForSource === "system") {
-      if (!db.systems[val]) {
-        db.systems[val] = { categories: [], desc: "" };
-        db.systemOrder.push(val);
-      }
+      if (!db.systems[val]) { db.systems[val] = { categories: [], desc: "" }; db.systemOrder.push(val); }
       updateSourceTagData(val, true, "");
     } else if (currentTagTypeForSource === "category") {
-      if (!db.categories[val]) {
-        db.categories[val] = { system: "General Information", desc: "", sources: [] };
-      }
+      if (!db.categories[val]) db.categories[val] = { system: "General Information", desc: "", sources: [] };
       updateSourceTagData(val, true, "");
     } else if (currentTagTypeForSource === "property") {
-      if (!db.properties[val]) {
-        db.properties[val] = { category: "General Information", desc: "", related: [], sources: [] };
-      }
+      if (!db.properties[val]) db.properties[val] = { category: "General Information", desc: "", related: [], sources: [] };
       updateSourceTagData(val, true, "");
     } else if (currentTagTypeForSource === "formula") {
-      if (!db.formulas[val]) {
-        db.formulas[val] = { desc: "", components: [], sources: [] };
-      }
+      if (!db.formulas[val]) db.formulas[val] = { desc: "", components: [], sources: [] };
       updateSourceTagData(val, true, "");
     }
 
@@ -2199,7 +2179,7 @@ document.getElementById("source-tag-search-input").addEventListener("keydown", (
   }
 });
 
-// ==================== NATIVE HERBS MODAL LOGIK ====================
+// ==================== NATIVE HERBS MODAL ====================
 let activeSystemForNativeModal = "";
 
 function openNativeModal(sysName) {
@@ -2378,11 +2358,7 @@ function renderSearchPage() {
   }
 }
 
-function handleLiveSearchInput(val) {
-  liveSearchQuery = val;
-  renderSearchPage();
-}
-
+function handleLiveSearchInput(val) { liveSearchQuery = val; renderSearchPage(); }
 function promptAddSearchCategory() {
   const cats = Object.keys(db.categories);
   const choice = prompt("Välj kategori att filtrera på:\n" + cats.map((c, i) => `${i+1}. ${c}`).join("\n"));
@@ -2533,9 +2509,7 @@ document.getElementById("popup-filter-input").addEventListener("keydown", (e) =>
     if (activePopupMode === "assign_prop") {
       const cat = activePopupExtra;
       const herb = db.objects.find(o => o.id === activePopupTarget);
-      if (!db.properties[val]) {
-        db.properties[val] = { category: cat, desc: "", related: [], sources: [] };
-      }
+      if (!db.properties[val]) db.properties[val] = { category: cat, desc: "", related: [], sources: [] };
       if (!herb.props) herb.props = {};
       herb.props[val] = {};
       persist();
@@ -2584,7 +2558,6 @@ function toggleHerbProperty(herbId, propName, isChecked) {
 function toggleRelatedProperty(propName, targetPropName, isChecked) {
   const prop = db.properties[propName];
   if (!prop.related) prop.related = [];
-
   if (isChecked) {
     if (!prop.related.includes(targetPropName)) prop.related.push(targetPropName);
   } else {
@@ -2637,15 +2610,10 @@ function openEditor(type, id) {
         <input type="text" id="edit-herb-ayurvedic" value="${o.ayurvedicName || ''}" placeholder="Ayurvediskt namn (Sanskrit)">
       </div>
     `;
-  } else if (type === "prop") {
-    input.value = db.properties[id] ? db.properties[id].desc || "" : "";
-  } else if (type === "cat") {
-    input.value = db.categories[id] ? db.categories[id].desc || "" : "";
-  } else if (type === "system") {
-    input.value = db.systems[id] ? db.systems[id].desc || "" : "";
-  } else if (type === "formula") {
-    input.value = db.formulas[id] ? db.formulas[id].desc || "" : "";
-  }
+  } else if (type === "prop") input.value = db.properties[id] ? db.properties[id].desc || "" : "";
+  else if (type === "cat") input.value = db.categories[id] ? db.categories[id].desc || "" : "";
+  else if (type === "system") input.value = db.systems[id] ? db.systems[id].desc || "" : "";
+  else if (type === "formula") input.value = db.formulas[id] ? db.formulas[id].desc || "" : "";
 
   document.getElementById("popup-editor").style.display = "flex";
   input.focus();
@@ -2688,7 +2656,7 @@ function saveDescription() {
   closePopup();
 }
 
-// ==================== LAYOUTFÖNSTER (STÄDAT UTAN CIRKLAR) ====================
+// ==================== LAYOUTFÖNSTER ====================
 let selectedLayoutNode = null;
 let activeHerbIdForLayout = null;
 
@@ -2747,7 +2715,6 @@ function renderLayoutModalItems() {
       catLabel.querySelector("input").onchange = (e) => {
         if (e.target.checked) {
           selectedLayoutNode = { type: 'category', name: catName, parentSystem: sysName, activePropsCount };
-          // Knappen visas ENDAST om det finns aktiva egenskaper i kategorin för denna ört!
           document.getElementById("btn-open-prop-sorter").style.display = activePropsCount > 0 ? "inline-block" : "none";
         } else {
           selectedLayoutNode = null;
@@ -2795,7 +2762,7 @@ function saveLayoutOrder() {
   if (activeHerbIdForLayout) renderHerbPage(activeHerbIdForLayout);
 }
 
-// ==================== MIKROFÖNSTER: EGENSKAPSSORTERING FÖR ÖRTEN ====================
+// ==================== MIKROFÖNSTER: EGENSKAPSSORTERING ====================
 let microActivePropsArray = [];
 let selectedMicroProp = null;
 
@@ -2842,9 +2809,7 @@ function renderPropSorterItems() {
       <input type="radio" name="micro_prop_radio" ${selectedMicroProp === pName ? 'checked' : ''}>
       <span>${pName}</span>
     `;
-    lbl.querySelector("input").onchange = () => {
-      selectedMicroProp = pName;
-    };
+    lbl.querySelector("input").onchange = () => { selectedMicroProp = pName; };
     cont.appendChild(lbl);
   });
 }
@@ -2942,13 +2907,10 @@ function renderLibraryScrollList(filter) {
 
 function submitCatFlowStep1() {
   const mode = document.querySelector('input[name="cat_choice_mode"]:checked').value;
-  if (mode === "browse") {
-    closePopup();
-    return;
-  }
+  if (mode === "browse") { closePopup(); return; }
 
   const nameVal = document.getElementById("new-cat-name-input").value.trim();
-  if (!nameVal) { alert(currentLang === 'en' ? "Please enter category name." : "Vänligen ange ett kategorinamn."); return; }
+  if (!nameVal) { alert("Ange kategorinamn."); return; }
   pendingNewCatName = nameVal;
 
   document.getElementById("cat-flow-step-1").style.display = "none";
@@ -2975,7 +2937,7 @@ function submitCatFlowStep2() {
   const newSysCustom = document.getElementById("new-system-input").value.trim();
   if (newSysCustom) chosenSystem = newSysCustom;
 
-  if (!chosenSystem) { alert(currentLang === 'en' ? "Please choose a system." : "Välj ett system."); return; }
+  if (!chosenSystem) { alert("Välj eller ange ett system."); return; }
 
   if (!db.systems[chosenSystem]) {
     db.systems[chosenSystem] = { categories: [], desc: "" };
