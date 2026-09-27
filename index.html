@@ -44,7 +44,7 @@
       flex-direction: column;
     }
 
-    /* TOPPVERKTYG */
+    /* TOPPVERKTYG: ENSAM RAD MED TITEL, SÖK & MENY */
     header.wiki-header {
       background: #ffffff;
       border-bottom: 1px solid var(--border-wiki);
@@ -95,7 +95,7 @@
       font-weight: 400;
       border-bottom: 1px solid var(--border-wiki);
       padding-bottom: 6px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: flex;
       align-items: baseline;
       justify-content: space-between;
@@ -108,25 +108,10 @@
       font-weight: 400;
       border-bottom: 1px solid var(--border-wiki);
       padding-bottom: 4px;
-      margin: 26px 0 12px 0;
+      margin: 24px 0 10px 0;
       display: flex;
       align-items: baseline;
       justify-content: space-between;
-    }
-
-    .system-group-header {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin: 20px 0 6px 0;
-      padding-bottom: 4px;
-      border-bottom: 1px dashed var(--border-subtle);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
 
     .wiki-action-link {
@@ -140,7 +125,7 @@
     .wiki-action-link:hover { text-decoration: underline; }
 
     .wiki-paragraph {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       color: #000000;
       white-space: pre-wrap;
     }
@@ -212,7 +197,7 @@
     .wiki-alpha-bar a { color: var(--link); text-decoration: none; padding: 2px 4px; }
     .wiki-alpha-bar a:hover { text-decoration: underline; }
 
-    /* MODALER */
+    /* ALLA MODALER PLACERAS HÖGST UPP (FIX MOT MOBILTANGENTBORD) */
     .popup-overlay {
       position: fixed;
       inset: 0;
@@ -230,7 +215,7 @@
       border-radius: 4px;
       max-width: 520px;
       width: 100%;
-      max-height: 82vh;
+      max-height: 84vh;
       display: flex;
       flex-direction: column;
       box-shadow: 0 4px 20px rgba(0,0,0,0.25);
@@ -300,6 +285,7 @@
     button.wiki-btn.primary { background: #36c; border-color: #36c; color: #fff; font-weight: 700; }
     button.wiki-btn.primary:hover { background: #447ff5; }
 
+    /* AUTO-SUGGEST DROPDOWN */
     .suggest-box {
       position: relative;
       width: 100%;
@@ -358,7 +344,7 @@
     <!-- GLOBALT SÖKFÄLT -->
     <div id="header-search-bar" style="display:none; flex-grow:1; position:relative; margin-right:8px;">
       <div style="display:flex; align-items:center; gap:4px;">
-        <input type="text" id="global-search-input" placeholder="Sök..." autocomplete="off" oninput="handleGlobalSearch(this.value)">
+        <input type="text" id="global-search-input" placeholder="Sök ört, egenskap, studieobjekt, formel..." autocomplete="off" oninput="handleGlobalSearch(this.value)">
         <button class="wiki-btn" style="padding:4px 8px;" onclick="closeHeaderSearch()">✕</button>
       </div>
       <div class="suggest-dropdown" id="global-search-dropdown"></div>
@@ -373,7 +359,7 @@
   <!-- HUVUDDOKUMENT -->
   <main class="wiki-container" id="wiki-app"></main>
 
-  <!-- FOTNOT MED BACKUP -->
+  <!-- DISKRET FOTNOT MED BACKUP -->
   <footer class="wiki-footer">
     <span>Ört-Wiki Molndatabas (Google Firestore)</span> • 
     <a class="wiki-action-link" onclick="downloadBackupFile()">Exportera JSON</a> • 
@@ -400,7 +386,7 @@
     </div>
   </div>
 
-  <!-- POPUP: CHECKLISTA -->
+  <!-- POPUP: CHECKLISTA (TILLDELA EGENSKAP TILL ÖRT/STUDIEOBJEKT) -->
   <div class="popup-overlay" id="popup-checklist" onclick="closeOnOverlayClick(event, 'popup-checklist')">
     <div class="popup-box">
       <div class="popup-header">
@@ -429,6 +415,48 @@
         <textarea id="popup-editor-input" rows="8" placeholder="Skriv beskrivning här..."></textarea>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
           <button class="wiki-btn primary" onclick="saveDescription()">Spara</button>
+          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: KOPPLA / SKAPA STUDIEOBJEKT TILL EGENSKAP -->
+  <div class="popup-overlay" id="popup-study-connect" onclick="closeOnOverlayClick(event, 'popup-study-connect')">
+    <div class="popup-box">
+      <div class="popup-header">
+        <span>Koppla studieobjekt till <b id="study-connect-prop-title"></b></span>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
+      </div>
+      <div class="popup-body">
+        <input type="text" id="study-filter-input" placeholder="🔍 Sök studieobjekt..." oninput="renderStudyConnectList()">
+        <div class="checklist-container" id="study-connect-checklist"></div>
+        
+        <hr style="border:none; border-top:1px solid var(--border-subtle); margin:4px 0;">
+        <div style="font-size:13px; font-weight:700;">Eller registrera nytt studieobjekt:</div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="new-study-name-input" placeholder="Namn (t.ex. Selenit)..." style="flex:2;">
+          <input type="text" id="new-study-type-input" placeholder="Typ (t.ex. Kristall)..." style="flex:1;">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+          <button class="wiki-btn primary" onclick="submitCreateStudyObject()">➕ Skapa och koppla</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: LÄGG TILL EXTERN LÄNK TILL STUDIEOBJEKT -->
+  <div class="popup-overlay" id="popup-add-study-link" onclick="closeOnOverlayClick(event, 'popup-add-study-link')">
+    <div class="popup-box" style="max-width:440px;">
+      <div class="popup-header">
+        <span>Lägg till extern länk</span>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
+      </div>
+      <div class="popup-body">
+        <input type="text" id="study-link-text-input" placeholder="Beskrivande text (t.ex. Andekvarts)...">
+        <input type="text" id="study-link-url-input" placeholder="URL (https://...)...">
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+          <button class="wiki-btn primary" onclick="submitAddStudyLink()">Spara länk</button>
           <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
         </div>
       </div>
@@ -580,7 +608,7 @@
         </div>
         <div class="checklist-container" id="cat-system-radio-list"></div>
         <div style="margin-top:6px;">
-          <input type="text" id="new-system-input" placeholder="Eller skriv ett nytt systemnamn...">
+          <input type="text" id="new-system-input" placeholder="Eller skriv ett nytt systemnamn (lämna tomt för Ospecifierade)...">
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
           <button class="wiki-btn primary" onclick="submitCatFlowStep2()">Spara</button>
@@ -708,11 +736,6 @@ const i18n = {
     viewLabel: "View:",
     viewAlpha: "Alphabetical (A–Z)",
     viewNative: "By Native System",
-    sortLabel: "Sort:",
-    sortName: "Primary Name",
-    sortBotanical: "Botanical Name",
-    sortChinese: "Chinese Name (TCM)",
-    sortAyurvedic: "Ayurvedic Name",
     propsCountLabel: "properties",
     emptyLetterAlert: "The library has no herbs starting with letter {L}. Create a new one?\nEnter herb name:",
     namePrompt: "Enter herb name:",
@@ -732,28 +755,22 @@ const i18n = {
     sourcesHeading: "Sources",
     addSourceBtn: "[+ Add Source]",
     herbsWithProp: "Herbs with this Property",
-    connectHerbBtn: "[+ Connect Herb]",
+    addHerbBtn: "+ Add Herb",
     relatedProps: "Related Properties",
     addRelatedProp: "[+ Add]",
-    emphasizedInFormulas: "Emphasized in Formulas",
-    synergy: "Synergy",
-    effect: "Effect",
+    relatedStudyObjects: "Related Items of Study",
+    addStudyObjectBtn: "➕ Add Object",
     catSection: "Properties and Associated Herbs",
     newPropBtn: "[+ Create New Property]",
     formulaArchive: "Formula Archive",
     formulaIntro: "Compounded herbal formulas and preparations.",
     newFormulaBtn: "[+ New Formula]",
     deleteFormula: "[delete formula]",
-    editFormulaDesc: "[edit indications]",
     formulaComponents: "Included Components",
     addHerbToFormula: "[+ Add Herb Component]",
-    theoreticalEffect: "Theoretical Effect",
     componentsLabel: "components",
     sourceLibTitle: "Source Library",
-    sourceLibIntro: "Bibliography and source documentation referenced across the database.",
     newSourceBtn: "[+ Register New Source]",
-    sortByLabel: "Sort by:",
-    addTagToSourceBtn: "[+ Add Tag Reference]",
     searchTitle: "Filter Search",
     resetFilter: "[reset filters]",
     propSearchPrompt: "Search property (added directly to filter upon selection):",
@@ -780,11 +797,6 @@ const i18n = {
     viewLabel: "Vy:",
     viewAlpha: "Alfabetisk (A–Ö)",
     viewNative: "Efter Native System",
-    sortLabel: "Sortera:",
-    sortName: "Huvudnamn",
-    sortBotanical: "Botaniskt namn",
-    sortChinese: "Kinesiskt namn (TCM)",
-    sortAyurvedic: "Ayurvediskt namn",
     propsCountLabel: "egenskaper",
     emptyLetterAlert: "Biblioteket har inga örter som börjar på bokstaven {L}. Skapa en ny?\nAnge namn på ny ört:",
     namePrompt: "Ange örtens namn:",
@@ -803,29 +815,23 @@ const i18n = {
     common: "gemensamma",
     sourcesHeading: "Källor",
     addSourceBtn: "[+ Lägg till källa]",
-    herbsWithProp: "Örter med denna egenskap",
-    connectHerbBtn: "[+ Koppla ört]",
-    relatedProps: "Besläktade egenskaper",
+    herbsWithProp: "Örter kopplade till",
+    addHerbBtn: "+ Lägg till ört",
+    relatedProps: "Relaterade egenskaper",
     addRelatedProp: "[+ Lägg till]",
-    emphasizedInFormulas: "Framhävd i formler",
-    synergy: "Synergi",
-    effect: "Effekt",
+    relatedStudyObjects: "Relaterade studieobjekt",
+    addStudyObjectBtn: "➕ Lägg till objekt",
     catSection: "Egenskaper och ingående örter",
     newPropBtn: "[+ Skapa ny egenskap]",
     formulaArchive: "Formelarkiv",
     formulaIntro: "Sammansatta örtrecept och beredningar.",
     newFormulaBtn: "[+ Ny formel]",
     deleteFormula: "[radera formel]",
-    editFormulaDesc: "[redigera indikationer]",
     formulaComponents: "Ingående komponenter",
     addHerbToFormula: "[+ Lägg till ört]",
-    theoreticalEffect: "Teoretisk effekt",
     componentsLabel: "komponenter",
     sourceLibTitle: "Källbibliotek",
-    sourceLibIntro: "Samlad bibliografi och källor som refereras i databasen.",
     newSourceBtn: "[+ Registrera ny källa]",
-    sortByLabel: "Sortera efter:",
-    addTagToSourceBtn: "[+ Lägg till tagg]",
     searchTitle: "Filtersök ört",
     resetFilter: "[återställ filter]",
     propSearchPrompt: "Sök egenskap (läggs direkt till i filter vid val):",
@@ -864,7 +870,7 @@ function toggleLanguage() {
   handleRouting();
 }
 
-// ==================== DATABAS & STANDARDSTRUKTUR ====================
+// ==================== STANDARDMALL & DATA ====================
 const MASTER_STORAGE_KEY = "taxonomy_ide_master_db";
 
 const defaultData = {
@@ -872,13 +878,15 @@ const defaultData = {
     "General Information",
     "Western Herbalism",
     "Ayurveda",
-    "Traditional Chinese Medicine"
+    "Traditional Chinese Medicine",
+    "Ospecifierade kategorier"
   ],
   systems: {
     "General Information": { desc: "Grundläggande taxonomisk och botanisk information.", categories: ["English Name", "Botanical Name", "Family", "Precautions"] },
     "Western Herbalism": { desc: "Europeisk och nordamerikansk fysiologisk och energetisk tradition.", categories: ["Tastes", "Six Tissue States", "Planetary Ruler", "Elemental Ruler", "Humors", "Culpepper Uses", "Actions", "Affinities"] },
     "Ayurveda": { desc: "Klassisk indisk läkekonst baserad på doshas och gunas.", categories: ["Tastes (Ayurveda)", "Gunas", "Doshas", "Dhatus"] },
-    "Traditional Chinese Medicine": { desc: "Traditionell kinesisk medicin baserad på meridianer och konstitutioner.", categories: ["Tastes (TCM)", "Entered Channels", "Indicated Constitutions", "Actions (TCM)"] }
+    "Traditional Chinese Medicine": { desc: "Traditionell kinesisk medicin baserad på meridianer och konstitutioner.", categories: ["Tastes (TCM)", "Entered Channels", "Indicated Constitutions", "Actions (TCM)"] },
+    "Ospecifierade kategorier": { desc: "System för kategorier som ännu inte placerats i en specifik skola.", categories: [] }
   },
   categories: {
     "English Name": { system: "General Information", desc: "", sources: [] },
@@ -903,58 +911,70 @@ const defaultData = {
     "Actions (TCM)": { system: "Traditional Chinese Medicine", desc: "", sources: [] }
   },
   properties: {
-    "Pungent": { category: "Tastes", desc: "Värmande, cirkulationsökande smak.", synonyms: ["Spicy", "Stark", "Hot"], related: ["Ushna", "Fire"], sources: [] },
-    "Excitation": { category: "Six Tissue States", desc: "Överhettat, irriterat vävnadstillstånd.", synonyms: ["Irritation"], related: [], sources: [] },
-    "Depression": { category: "Six Tissue States", desc: "Kallt, underaktivt vävnadstillstånd.", synonyms: ["Torpor"], related: [], sources: [] },
-    "Mars": { category: "Planetary Ruler", desc: "Styr akut metabol drivkraft och cirkulation.", synonyms: [], related: ["Fire"], sources: [] },
-    "Fire": { category: "Elemental Ruler", desc: "Eldelementet som transformerar och hettar upp.", synonyms: ["Eld"], related: ["Pungent", "Mars", "Ushna"], sources: [] },
-    "Carminative": { category: "Actions", desc: "Kramplösande och gasdrivande i tarmen.", synonyms: ["Gas-relieving"], related: [], sources: [] },
-    "Ushna": { category: "Gunas", desc: "Värmande metabol kvalitet som stimulerar Agni.", synonyms: ["Warm", "Hot", "Varm"], related: ["Pungent", "Fire"], sources: [] },
-    "Sheeta": { category: "Gunas", desc: "Kylande metabol kvalitet.", synonyms: ["Cold", "Kall"], related: [], sources: [] },
-    "Vata -": { category: "Doshas", desc: "Reducerar och lugnar Vata.", synonyms: [], related: [] },
-    "Kapha -": { category: "Doshas", desc: "Reducerar kall och trög Kapha.", synonyms: [], related: [] },
-    "Pitta +": { category: "Doshas", desc: "Ökar Pitta-eld.", synonyms: [], related: [] },
-    "Pitta -": { category: "Doshas", desc: "Kyler och balanserar Pitta.", synonyms: [], related: [] },
-    "Spleen": { category: "Entered Channels", desc: "Kanaliserar verkan genom Mjältens meridian.", synonyms: ["Mjälte"], related: ["Stomach"], sources: [] },
-    "Stomach": { category: "Entered Channels", desc: "Kanaliserar verkan genom Magsäckens meridian.", synonyms: ["Magsäck"], related: ["Spleen"], sources: [] },
-    "Release Exterior": { category: "Actions (TCM)", desc: "Öppnar porer och driver ut yttre kyla.", synonyms: [], related: [] }
+    "Pungent": { category: "Tastes", desc: "Värmande, cirkulationsökande smak.", summary: "Warming, circulating metabolic taste.", synonyms: ["Spicy", "Stark", "Hot"], related: ["Ushna", "Fire"], sources: [] },
+    "Moon": { category: "Planetary Ruler", desc: "Månen styr fukt, kyla, vätskereserver och rytmiska cykler.", summary: "Governs moisture, mucosal fluids, and subconscious rhythms.", synonyms: ["Månen"], related: ["Water"], sources: [] },
+    "Water": { category: "Elemental Ruler", desc: "Vattenelementet som svalkar och ger näring åt vävnader.", summary: "Cooling, nourishing fluid element.", synonyms: ["Vatten"], related: ["Moon"], sources: [] },
+    "Mars": { category: "Planetary Ruler", desc: "Styr akut metabol drivkraft och cirkulation.", summary: "Acute metabolic drive and heat.", synonyms: [], related: ["Fire"], sources: [] },
+    "Fire": { category: "Elemental Ruler", desc: "Eldelementet som transformerar och hettar upp.", summary: "Transformative metabolic fire.", synonyms: ["Eld"], related: ["Pungent", "Mars", "Ushna"], sources: [] },
+    "Carminative": { category: "Actions", desc: "Kramplösande och gasdrivande i tarmen.", summary: "Relieves gastrointestinal spasm and dispels flatulence.", synonyms: ["Gas-relieving"], related: [], sources: [] },
+    "Ushna": { category: "Gunas", desc: "Värmande metabol kvalitet som stimulerar Agni.", summary: "Hot metabolic potency.", synonyms: ["Warm", "Hot", "Varm"], related: ["Pungent", "Fire"], sources: [] },
+    "Sheeta": { category: "Gunas", desc: "Kylande metabol kvalitet.", summary: "Cooling metabolic potency.", synonyms: ["Cold", "Kall"], related: [], sources: [] },
+    "Vata -": { category: "Doshas", desc: "Reducerar och lugnar Vata.", summary: "Pacifies erratic, dry Vata dosha.", synonyms: [], related: [] },
+    "Kapha -": { category: "Doshas", desc: "Reducerar kall och trög Kapha.", summary: "Reduces heavy, congested Kapha.", synonyms: [], related: [] },
+    "Pitta +": { category: "Doshas", desc: "Ökar Pitta-eld.", summary: "Increases metabolic Pitta heat.", synonyms: [], related: [] },
+    "Pitta -": { category: "Doshas", desc: "Kyler och balanserar Pitta.", summary: "Soothes and cools inflamed Pitta.", synonyms: [], related: [] }
   },
   objects: [
     {
-      id: "ginger",
-      name: "Ingefära (Zingiber officinale)",
-      botanicalName: "Zingiber officinale",
-      chineseName: "Sheng Jiang",
-      ayurvedicName: "Sunthi / Ardraka",
-      desc: "Zingiber officinale är en flerårig värmande rot med bred användning vid kyla, illamående och matsmältningssvaghet.",
-      nativeSystems: ["Western Herbalism", "Ayurveda", "Traditional Chinese Medicine"],
-      props: { "Pungent": true, "Mars": true, "Fire": true, "Carminative": true, "Ushna": true, "Vata -": true, "Kapha -": true, "Pitta +": true, "Spleen": true, "Stomach": true, "Release Exterior": true },
+      id: "marshmallow",
+      name: "Läkemalva (Marshmallow Root)",
+      botanicalName: "Althaea officinalis",
+      desc: "Althaea officinalis är en klassisk slemrik och fuktgivande ört som dämpar torrhet och hetta.",
+      nativeSystems: ["Western Herbalism"],
+      props: { "Moon": true, "Water": true, "Sheeta": true },
       propOrder: {},
       sources: []
     },
     {
-      id: "peppermint",
-      name: "Pepparmynta (Mentha piperita)",
-      botanicalName: "Mentha piperita",
-      chineseName: "Bo He",
-      ayurvedicName: "Pudina",
-      desc: "Mentha piperita är en klassisk kylande och aromatisk ört för att dämpa hetta, lindra kramper och lugna sinnet.",
-      nativeSystems: ["Western Herbalism"],
-      props: { "Sheeta": true, "Carminative": true, "Pitta -": true, "Stomach": true },
+      id: "ginger",
+      name: "Ingefära (Zingiber officinale)",
+      botanicalName: "Zingiber officinale",
+      desc: "Zingiber officinale är en flerårig värmande rot med bred användning vid kyla och matsmältningssvaghet.",
+      nativeSystems: ["Western Herbalism", "Ayurveda", "Traditional Chinese Medicine"],
+      props: { "Pungent": true, "Mars": true, "Fire": true, "Carminative": true, "Ushna": true, "Vata -": true, "Kapha -": true, "Pitta +": true },
       propOrder: {},
       sources: []
     }
   ],
-  formulas: {
-    "Digestive Balance": {
-      desc: "Sammansatt teblandning mellan skarp värme och svalkande kramplösning.",
-      components: [
-        { objId: "ginger", role: "Active Driver", qty: 2, unit: "g" },
-        { objId: "peppermint", role: "Cooling Balance", qty: 3, unit: "g" }
-      ],
-      sources: []
+  studyObjects: [
+    {
+      id: "study_selenite",
+      name: "Selenit (Selenite)",
+      type: "Kristall",
+      desc: "En vit och mjuk kristall med ett fibriskt skimmer som associeras med intuition och månenergi.",
+      props: { "Moon": true },
+      links: [
+        { text: "Andekvarts: Selenite Crystal", url: "https://www.andekvarts.se/en/crystals/crystals-a-o/selenite/" }
+      ]
+    },
+    {
+      id: "study_high_priestess",
+      name: "Översteprästinnan (The High Priestess)",
+      type: "Tarotkort",
+      desc: "Stora arkanans andra kort som representerar det undermedvetna, intuition och månens mystik.",
+      props: { "Moon": true },
+      links: []
+    },
+    {
+      id: "study_taygeta",
+      name: "Taygeta",
+      type: "Stjärna",
+      desc: "En stjärna i Plejaderna kopplad till esoteriska nattsfärer.",
+      props: { "Moon": true },
+      links: []
     }
-  },
+  ],
+  formulas: {},
   sources: [],
   trash: []
 };
@@ -962,7 +982,6 @@ const defaultData = {
 let db = JSON.parse(JSON.stringify(defaultData));
 let hideUntaggedInHerbView = false;
 let indexViewMode = "alpha";
-let indexAlphaSortField = "name";
 let sourceSortMode = "author";
 let propertySortRankMode = "alpha";
 
@@ -997,6 +1016,7 @@ function ensureDbStructure() {
   if (!db.formulas) db.formulas = defaultData.formulas;
   if (!db.sources) db.sources = defaultData.sources;
   if (!db.objects) db.objects = defaultData.objects;
+  if (!db.studyObjects) db.studyObjects = defaultData.studyObjects;
   if (!db.trash) db.trash = [];
 }
 
@@ -1080,9 +1100,6 @@ function getDisplayObjName(obj) {
 }
 
 function getDisplayFormulaName(name) {
-  if (name === "Magbalans & Skärpa" || name === "Digestive Balance") {
-    return currentLang === "en" ? "Digestive Balance" : "Magbalans & Skärpa";
-  }
   return name;
 }
 
@@ -1127,7 +1144,7 @@ function importBackupFile(e) {
         db = parsed;
         ensureDbStructure();
         persist();
-        alert(currentLang === 'en' ? "Database imported and saved to cloud!" : "Biblioteket importerat och sparat till molnet!");
+        alert(currentLang === 'en' ? "Database imported!" : "Biblioteket importerat!");
         handleRouting();
       }
     } catch(err) {
@@ -1163,9 +1180,14 @@ function handleGlobalSearch(query) {
       results.push({ type: "Ört", title: o.name, link: `#herb/${o.id}`, desc: o.desc });
     }
   });
+  (db.studyObjects || []).forEach(so => {
+    if (so.name.toLowerCase().includes(q) || (so.type && so.type.toLowerCase().includes(q))) {
+      results.push({ type: `Studieobjekt: ${so.type || 'Referens'}`, title: so.name, link: `#study/${so.id}`, desc: so.desc });
+    }
+  });
   Object.keys(db.properties).forEach(p => {
     if (p.toLowerCase().includes(q)) {
-      results.push({ type: "Egenskap", title: p, link: `#property/${encodeURIComponent(p)}`, desc: db.properties[p]?.desc });
+      results.push({ type: "Egenskap", title: p, link: `#property/${encodeURIComponent(p)}`, desc: db.properties[p]?.desc || db.properties[p]?.summary });
     }
   });
   Object.keys(db.categories).forEach(c => {
@@ -1176,11 +1198,6 @@ function handleGlobalSearch(query) {
   Object.keys(db.systems).forEach(s => {
     if (s.toLowerCase().includes(q)) {
       results.push({ type: "System", title: s, link: `#system/${encodeURIComponent(s)}`, desc: db.systems[s]?.desc });
-    }
-  });
-  Object.keys(db.formulas).forEach(f => {
-    if (f.toLowerCase().includes(q)) {
-      results.push({ type: "Formel", title: f, link: `#formula/${encodeURIComponent(f)}`, desc: db.formulas[f]?.desc });
     }
   });
 
@@ -1230,6 +1247,7 @@ function handleRouting() {
     else if (route === "property" && id) renderPropertyPage(decodeURIComponent(id));
     else if (route === "category" && id) renderCategoryPage(decodeURIComponent(id));
     else if (route === "system" && id) renderSystemPage(decodeURIComponent(id));
+    else if (route === "study" && id) renderStudyObjectPage(id);
     else if (route === "formula" && id) renderFormulaDetailPage(decodeURIComponent(id));
     else if (route === "formulas") renderFormulasIndexPage();
     else if (route === "sources") renderSourcesLibraryPage();
@@ -1265,7 +1283,7 @@ function renderSystemPage(sysName) {
             <a class="wiki-action-link" style="color:var(--danger);" onclick="promptDeleteCategory('${catName}', '${sysName}')">[🗑]</a>
           </div>
         </div>
-        <div class="wiki-row-content" style="padding-left:10px;">${propLinks || '<i>none</i>'}</div>
+        <div class="wiki-row-content" style="padding-left:10px;">${propLinks || '<i>inga egenskaper</i>'}</div>
       </div>
     `;
   }).join("");
@@ -1339,7 +1357,7 @@ function openMoveCategoryModal(catName, currentSys) {
 
 function submitMoveCategory() {
   const chosen = document.querySelector('input[name="move_sys_target"]:checked')?.value;
-  if (!chosen) { alert("Choose destination."); return; }
+  if (!chosen) return;
 
   const catName = categoryToMoveTarget;
   Object.keys(db.systems).forEach(sys => {
@@ -1368,7 +1386,7 @@ function promptDeleteCategory(catName, sysName) {
   handleRouting();
 }
 
-// ==================== INDEX-SIDAN (HELT DYNAMISK ÖVERSÄTTNING) ====================
+// ==================== INDEX-SIDAN ====================
 function renderIndexPage() {
   const app = document.getElementById("wiki-app");
   let contentHtml = "";
@@ -1607,13 +1625,18 @@ function toggleHideUntaggedView() {
   if (id) renderHerbPage(id);
 }
 
-// ==================== SIDA B: EGENSKAP & ASTERISK-RANG ====================
+// ==================== SIDA B: EGENSKAP, RANG & RELATERADE STUDIEOBJEKT ====================
+let activePropertyForStudyConnect = "";
+
 function renderPropertyPage(propName) {
   const app = document.getElementById("wiki-app");
   const prop = db.properties[propName];
   if (!prop) { app.innerHTML = `<h2>${t("noDesc")}</h2><a href="#index" class="wiki-link">Tillbaka</a>`; return; }
 
   const cat = prop.category;
+  const sys = db.categories[cat]?.system || "Western Herbalism";
+
+  // Örter med rang
   let herbsWith = db.objects.filter(o => hasProp(o, propName)).map(o => {
     let assigned = getPropKeys(o).filter(p => db.properties[p]?.category === cat);
     if (o.propOrder && o.propOrder[cat]) {
@@ -1635,7 +1658,7 @@ function renderPropertyPage(propName) {
   }
 
   let herbsList = herbsWith.length === 0 
-    ? `<li><i>none</i></li>` 
+    ? `<li><i>Inga örter kopplade än.</i></li>` 
     : herbsWith.map(item => `
       <li>
         <a href="#herb/${item.obj.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(item.obj)}${item.stars}</a>
@@ -1643,23 +1666,48 @@ function renderPropertyPage(propName) {
       </li>
     `).join("");
 
+  // Relaterade egenskaper
   const relatedProps = prop.related || [];
   let relatedPropsList = relatedProps.length === 0 
-    ? `<i>none</i>` 
+    ? `<i>Inga relaterade egenskaper än.</i>` 
     : relatedProps.map(rp => `<a href="#property/${encodeURIComponent(rp)}" class="wiki-link">${rp}</a>`).join(", ");
+
+  // Relaterade studieobjekt (Kristaller, stjärnor, tarot etc.)
+  const linkedStudy = (db.studyObjects || []).filter(so => hasProp(so, propName));
+  let studyObjectsHtml = linkedStudy.length === 0
+    ? `<li><i>Inga relaterade studieobjekt kopplade än.</i></li>`
+    : linkedStudy.map(so => `
+      <li>
+        <a href="#study/${so.id}" class="wiki-link" style="font-weight:700;">${so.name}</a> 
+        <span style="color:var(--text-muted); font-size:14px;">(${so.type || 'Referens'})</span>
+      </li>
+    `).join("");
 
   const sourcesHtml = renderProfileSourcesSection("property", propName);
 
   app.innerHTML = `
+    <!-- TITEL MED PENNA OCH RADERA -->
     <h1 class="wiki-title">
       <span>${propName}</span>
       <div style="display:flex; align-items:center; gap:8px;">
         <a class="wiki-action-link" onclick="promptRenameProperty('${propName}')" title="Rename">🖋</a>
         <a class="wiki-action-link" style="color:var(--danger);" onclick="deleteTagWithWarning('property', '${propName}')">${t("delete")}</a>
-        <a href="#category/${encodeURIComponent(prop.category)}" class="wiki-action-link">[${prop.category}]</a>
       </div>
     </h1>
 
+    <!-- KORT SAMMANFATTNING DIREKT UNDER TITELN -->
+    <div style="font-size:13px; color:var(--text-muted); margin-top:-8px; margin-bottom:8px;">
+      ${prop.summary || `<i>Kort sammanfattning saknas.</i>`}
+      <a class="wiki-action-link" onclick="promptEditPropertySummary('${propName}')">🖋</a>
+    </div>
+
+    <!-- KATEGORI / SYSTEM I DISKRET TEXTRAD -->
+    <div style="font-size:13px; font-weight:700; border-top:1px solid var(--border-subtle); border-bottom:1px solid var(--border-subtle); padding:4px 0; margin-bottom:14px;">
+      <a href="#category/${encodeURIComponent(cat)}" class="wiki-link">${cat}</a> / 
+      <a href="#system/${encodeURIComponent(sys)}" class="wiki-link">${sys}</a>
+    </div>
+
+    <!-- HUVUDBESKRIVNING -->
     <div class="wiki-paragraph">
       <span style="float:right;">
         <a class="wiki-action-link" onclick="openEditor('prop', '${propName}')">🖋</a>
@@ -1667,24 +1715,47 @@ function renderPropertyPage(propName) {
       ${prop.desc || `<i>${t("noDesc")}</i>`}
     </div>
 
+    <!-- ÖRTER KOPPLADE TILL DENNA EGENSKAP -->
     <h2 class="wiki-section">
-      <span>${t("herbsWithProp")} (${herbsWith.length})</span>
-      <div style="font-size:12px; display:flex; gap:6px;">
-        <a class="wiki-action-link" onclick="switchPropRankSort('alpha')">[bokstav]</a>
-        <a class="wiki-action-link" onclick="switchPropRankSort('rank')">[rang 0➔]</a>
-        <a class="wiki-action-link" onclick="openConnectHerbsToPropertyPopup('${propName}')">[+ koppla]</a>
+      <span>${t("herbsWithProp")} ${propName} (${herbsWith.length}):</span>
+      <div style="font-size:12px; display:flex; gap:10px; align-items:center;">
+        <span>Sortering:</span>
+        <label style="cursor:pointer;"><input type="radio" name="prop_rank_sort" ${propertySortRankMode==='alpha'?'checked':''} onchange="switchPropRankSort('alpha')"> Bokstav</label>
+        <label style="cursor:pointer;"><input type="radio" name="prop_rank_sort" ${propertySortRankMode==='rank'?'checked':''} onchange="switchPropRankSort('rank')"> Rang</label>
       </div>
     </h2>
     <ul class="wiki-list">${herbsList}</ul>
+    <div style="margin-top:-6px; margin-bottom:16px;">
+      <a class="wiki-action-link" onclick="openConnectHerbsToPropertyPopup('${propName}')">${t("addHerbBtn")}</a>
+    </div>
 
+    <!-- RELATERADE EGENSKAPER -->
     <h2 class="wiki-section">
-      <span>${t("relatedProps")}</span>
+      <span>${t("relatedProps")}:</span>
       <a class="wiki-action-link" onclick="openRelatedPropertiesPopup('${propName}')">${t("addRelatedProp")}</a>
     </h2>
     <div class="wiki-paragraph">${relatedPropsList}</div>
 
+    <!-- RELATERADE STUDIEOBJEKT (FRANKS NYA STRUKTUR) -->
+    <h2 class="wiki-section">
+      <span>${t("relatedStudyObjects")}:</span>
+      <a class="wiki-action-link" onclick="openConnectStudyObjectModal('${propName}')">${t("addStudyObjectBtn")}</a>
+    </h2>
+    <ul class="wiki-list">${studyObjectsHtml}</ul>
+
     ${sourcesHtml}
   `;
+}
+
+function promptEditPropertySummary(propName) {
+  const p = db.properties[propName];
+  if (!p) return;
+  const val = prompt("Ange kort sammanfattning över egenskapen:", p.summary || "");
+  if (val !== null) {
+    p.summary = val.trim();
+    persist();
+    renderPropertyPage(propName);
+  }
 }
 
 function switchPropRankSort(mode) {
@@ -1710,6 +1781,13 @@ function promptRenameProperty(oldName) {
     }
   });
 
+  (db.studyObjects || []).forEach(so => {
+    if (hasProp(so, oldName)) {
+      setProp(so, oldName, false);
+      setProp(so, cleanNew, true);
+    }
+  });
+
   Object.values(db.properties).forEach(p => {
     if (p.related && p.related.includes(oldName)) {
       p.related = p.related.map(r => r === oldName ? cleanNew : r);
@@ -1718,6 +1796,189 @@ function promptRenameProperty(oldName) {
 
   persist();
   window.location.hash = `#property/${encodeURIComponent(cleanNew)}`;
+}
+
+// ==================== KOPPLA / SKAPA STUDIEOBJEKT TILL EGENSKAP ====================
+function openConnectStudyObjectModal(propName) {
+  activePropertyForStudyConnect = propName;
+  document.getElementById("study-connect-prop-title").innerText = propName;
+  document.getElementById("study-filter-input").value = "";
+  document.getElementById("new-study-name-input").value = "";
+  document.getElementById("new-study-type-input").value = "";
+  document.getElementById("popup-study-connect").style.display = "flex";
+  renderStudyConnectList();
+}
+
+function renderStudyConnectList() {
+  const q = document.getElementById("study-filter-input").value.trim().toLowerCase();
+  const cont = document.getElementById("study-connect-checklist");
+  cont.innerHTML = "";
+
+  const filtered = (db.studyObjects || []).filter(so => {
+    return so.name.toLowerCase().includes(q) || (so.type && so.type.toLowerCase().includes(q));
+  });
+
+  if (filtered.length === 0) {
+    cont.innerHTML = `<i>Inga matchande studieobjekt i biblioteket. Registrera nytt nedan.</i>`;
+    return;
+  }
+
+  filtered.forEach(so => {
+    const isChecked = hasProp(so, activePropertyForStudyConnect);
+    const lbl = document.createElement("label");
+    lbl.className = "check-label";
+    lbl.innerHTML = `
+      <input type="checkbox" ${isChecked ? 'checked' : ''}>
+      <span><b>${so.name}</b> <span style="color:var(--text-muted); font-size:12px;">(${so.type || 'Referens'})</span></span>
+    `;
+    lbl.querySelector("input").onchange = (e) => {
+      setProp(so, activePropertyForStudyConnect, e.target.checked);
+      persist();
+      renderPropertyPage(activePropertyForStudyConnect);
+    };
+    cont.appendChild(lbl);
+  });
+}
+
+function submitCreateStudyObject() {
+  const name = document.getElementById("new-study-name-input").value.trim();
+  const type = document.getElementById("new-study-type-input").value.trim() || "Referens";
+  if (!name) { alert("Ange namn på studieobjektet."); return; }
+
+  const id = "study_" + Date.now();
+  const newSO = {
+    id,
+    name,
+    type,
+    desc: "",
+    props: { [activePropertyForStudyConnect]: true },
+    links: []
+  };
+
+  if (!db.studyObjects) db.studyObjects = [];
+  db.studyObjects.push(newSO);
+  persist();
+  closePopup();
+  renderPropertyPage(activePropertyForStudyConnect);
+}
+
+// ==================== FRISTÅENDE STUDIEOBJEKT-PROFIL (#study/:id) ====================
+let activeStudyObjectId = "";
+
+function renderStudyObjectPage(studyId) {
+  const app = document.getElementById("wiki-app");
+  const so = (db.studyObjects || []).find(x => x.id === studyId);
+  if (!so) { app.innerHTML = `<h2>Studieobjektet hittades inte.</h2><a href="#index" class="wiki-link">Tillbaka</a>`; return; }
+
+  activeStudyObjectId = studyId;
+
+  // Kopplade egenskaper
+  const propKeys = getPropKeys(so);
+  let propsListHtml = propKeys.length === 0
+    ? `<li><i>Inga egenskaper kopplade än.</i></li>`
+    : propKeys.map(p => `<li><a href="#property/${encodeURIComponent(p)}" class="wiki-link" style="font-weight:700;">${p}</a></li>`).join("");
+
+  // Externa länkar
+  const links = so.links || [];
+  let linksListHtml = links.length === 0
+    ? `<li><i>Inga externa länkar registrerade.</i></li>`
+    : links.map((l, idx) => `
+      <li>
+        <a href="${l.url}" target="_blank" class="wiki-link" style="font-weight:700;">${l.text || l.url}</a>
+        <span style="font-size:12px; color:var(--text-muted); margin-left:4px;">(${l.url})</span>
+        <a class="wiki-action-link" style="color:var(--danger); margin-left:8px;" onclick="deleteStudyLink(${idx})">[✕]</a>
+      </li>
+    `).join("");
+
+  app.innerHTML = `
+    <h1 class="wiki-title">
+      <span>${so.name}</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <a class="wiki-action-link" onclick="promptRenameStudyObject('${so.id}')" title="Ändra namn">🖋</a>
+        <a class="wiki-action-link" style="color:var(--danger);" onclick="deleteTagWithWarning('study_object', '${so.id}')">${t("delete")}</a>
+      </div>
+    </h1>
+
+    <!-- OBJEKTTYP -->
+    <div style="font-size:14px; margin-top:-6px; margin-bottom:12px;">
+      <b>Objekttyp:</b> <span>${so.type || 'Referens'}</span>
+      <a class="wiki-action-link" onclick="promptEditStudyObjectType('${so.id}')" style="margin-left:6px;">🖋</a>
+    </div>
+
+    <!-- BESKRIVNING -->
+    <div class="wiki-paragraph">
+      <span style="float:right;">
+        <a class="wiki-action-link" onclick="openEditor('study', '${so.id}')">🖋</a>
+      </span>
+      ${so.desc || `<i>Ingen beskrivning skriven än.</i>`}
+    </div>
+
+    <!-- KOPPLADE EGENSKAPER -->
+    <h2 class="wiki-section">
+      <span>Kopplade egenskaper:</span>
+      <a class="wiki-action-link" onclick="openAssignPropertyPopup('${so.id}', 'study_object_mode')">➕ Lägg till egenskap</a>
+    </h2>
+    <ul class="wiki-list">${propsListHtml}</ul>
+
+    <!-- EXTERNA LÄNKAR -->
+    <h2 class="wiki-section">
+      <span>Externa länkar:</span>
+      <a class="wiki-action-link" onclick="openAddStudyLinkModal('${so.id}')">➕ Lägg till länk</a>
+    </h2>
+    <ul class="wiki-list">${linksListHtml}</ul>
+  `;
+}
+
+function promptRenameStudyObject(id) {
+  const so = (db.studyObjects || []).find(x => x.id === id);
+  if (!so) return;
+  const newName = prompt("Ange nytt namn på studieobjektet:", so.name);
+  if (newName && newName.trim() && newName.trim() !== so.name) {
+    so.name = newName.trim();
+    persist();
+    renderStudyObjectPage(id);
+  }
+}
+
+function promptEditStudyObjectType(id) {
+  const so = (db.studyObjects || []).find(x => x.id === id);
+  if (!so) return;
+  const newType = prompt("Ange objekttyp (t.ex. Kristall, Stjärna, Tarotkort):", so.type || "");
+  if (newType !== null) {
+    so.type = newType.trim();
+    persist();
+    renderStudyObjectPage(id);
+  }
+}
+
+function openAddStudyLinkModal(id) {
+  activeStudyObjectId = id;
+  document.getElementById("study-link-text-input").value = "";
+  document.getElementById("study-link-url-input").value = "";
+  document.getElementById("popup-add-study-link").style.display = "flex";
+}
+
+function submitAddStudyLink() {
+  const so = (db.studyObjects || []).find(x => x.id === activeStudyObjectId);
+  if (!so) return;
+
+  const text = document.getElementById("study-link-text-input").value.trim();
+  const url = document.getElementById("study-link-url-input").value.trim();
+  if (!url) { alert("Ange en webbadress (URL)."); return; }
+
+  if (!so.links) so.links = [];
+  so.links.push({ text: text || url, url });
+  persist();
+  closePopup();
+  renderStudyObjectPage(activeStudyObjectId);
+}
+
+function deleteStudyLink(idx) {
+  const so = (db.studyObjects || []).find(x => x.id === activeStudyObjectId);
+  if (!so || !so.links) return;
+  so.links.splice(idx, 1);
+  persist();
+  renderStudyObjectPage(activeStudyObjectId);
 }
 
 // ==================== SIDA C: KATEGORI & BATCH-FLYTTA ====================
@@ -1741,7 +2002,7 @@ function renderCategoryPage(catName) {
         <div class="wiki-data-row">
           <a href="#property/${encodeURIComponent(p)}" class="wiki-row-label">${p}:</a>
           <div class="wiki-row-content">
-            ${herbsLinks || '<i>none</i>'}
+            ${herbsLinks || '<i>inga</i>'}
             <a class="btn-wiki-add" onclick="openConnectHerbsToPropertyPopup('${p}')">[+]</a>
           </div>
         </div>
@@ -1782,7 +2043,7 @@ function renderCategoryPage(catName) {
 function promptCreateProperty(catName) {
   const name = prompt(t("newPropBtn") + `:`);
   if (!name || !name.trim()) return;
-  db.properties[name.trim()] = { category: catName, desc: "", related: [], sources: [] };
+  db.properties[name.trim()] = { category: catName, desc: "", summary: "", related: [], sources: [] };
   persist();
   renderCategoryPage(catName);
 }
@@ -1851,6 +2112,7 @@ function trashSelectedProps() {
     moveToTrash("property", p, p, db.properties[p]);
     delete db.properties[p];
     db.objects.forEach(o => setProp(o, p, false));
+    (db.studyObjects || []).forEach(so => setProp(so, p, false));
   });
 
   persist();
@@ -1867,6 +2129,10 @@ function deleteTagWithWarning(type, id) {
     const o = db.objects.find(x => x.id === id);
     name = o ? o.name : id;
     count = getPropKeys(o).length;
+  } else if (type === "study_object") {
+    const so = (db.studyObjects || []).find(x => x.id === id);
+    name = so ? so.name : id;
+    count = getPropKeys(so).length;
   } else if (type === "property") {
     count = db.objects.filter(o => hasProp(o, id)).length;
   } else if (type === "category") {
@@ -1889,10 +2155,19 @@ function deleteTagWithWarning(type, id) {
     }
     persist();
     window.location.hash = "#index";
+  } else if (type === "study_object") {
+    const idx = (db.studyObjects || []).findIndex(x => x.id === id);
+    if (idx !== -1) {
+      moveToTrash("study_object", id, name, db.studyObjects[idx]);
+      db.studyObjects.splice(idx, 1);
+    }
+    persist();
+    window.location.hash = "#index";
   } else if (type === "property") {
     moveToTrash("property", id, name, db.properties[id]);
     delete db.properties[id];
     db.objects.forEach(o => setProp(o, id, false));
+    (db.studyObjects || []).forEach(so => setProp(so, id, false));
     persist();
     window.location.hash = "#index";
   } else if (type === "category") {
@@ -1947,6 +2222,7 @@ function restoreFromTrash(idx) {
   const item = db.trash[idx];
   if (!item) return;
   if (item.type === "object") db.objects.push(item.data);
+  else if (item.type === "study_object") { if (!db.studyObjects) db.studyObjects = []; db.studyObjects.push(item.data); }
   else if (item.type === "property") db.properties[item.id] = item.data;
   else if (item.type === "category") db.categories[item.id] = item.data;
   else if (item.type === "system") { db.systems[item.id] = item.data; db.systemOrder.push(item.id); }
@@ -1983,7 +2259,7 @@ function renderFormulasIndexPage() {
   app.innerHTML = `
     <h1 class="wiki-title">
       <span>${t("formulaArchive")}</span>
-      <a class="wiki-action-link" onclick="promptCreateFormula()">${t("newFormulaBtn")}</a>
+      <a class="wiki-action-link" onclick="promptCreateFormula()">[+ Ny formel]</a>
     </h1>
     <div class="wiki-paragraph">${t("formulaIntro")}</div>
     <ul class="wiki-list">${listHtml || '<i>none</i>'}</ul>
@@ -2068,7 +2344,7 @@ function promptAddCompToFormula(fName) {
   if (!choice) return;
   const idx = parseInt(choice) - 1;
   if (herbs[idx]) {
-    const role = prompt(`Role for ${getDisplayObjName(herbs[idx])}:`, "Active Component") || "Active Component";
+    const role = prompt(`Role for ${getDisplayObjName(herbs[idx])}:`, "Huvudkomponent") || "Huvudkomponent";
     db.formulas[fName].components.push({ objId: herbs[idx].id, role, qty: 1, unit: "g" });
     persist();
     renderFormulaDetailPage(fName);
@@ -2128,7 +2404,6 @@ function renderSourcesLibraryPage() {
   `;
 }
 
-function switchSourceSort(mode) { sourceSortMode = mode; renderSourcesLibraryPage(); }
 function promptCreateNewSource() {
   const author = prompt("Författare:") || "";
   const year = prompt("År:") || "";
@@ -2293,21 +2568,6 @@ function updateSourceTagData(itemId, isChecked, pagesVal) {
   renderSourcesLibraryPage();
 }
 
-document.getElementById("source-tag-search-input").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    const val = e.target.value.trim();
-    if (!val) return;
-    if (currentTagTypeForSource === "object") {
-      const newId = "herb_" + Date.now();
-      db.objects.push({ id: newId, name: val, desc: "", props: {}, nativeSystems: [] });
-      updateSourceTagData(newId, true, "");
-    }
-    persist();
-    e.target.value = "";
-    renderSourceTagsList();
-  }
-});
-
 // ==================== SÖK OCH FILTER ====================
 let activeSearchCategories = {};
 
@@ -2448,11 +2708,11 @@ let activePopupMode = "";
 let activePopupTarget = "";
 let activePopupExtra = "";
 
-function openAssignPropertyPopup(herbId, catName) {
+function openAssignPropertyPopup(targetId, modeOrCat) {
   activePopupMode = "assign_prop";
-  activePopupTarget = herbId;
-  activePopupExtra = catName;
-  document.getElementById("popup-check-title").innerText = `[${catName}]`;
+  activePopupTarget = targetId;
+  activePopupExtra = modeOrCat;
+  document.getElementById("popup-check-title").innerText = `Koppla egenskaper`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   renderPopupList();
@@ -2461,7 +2721,7 @@ function openAssignPropertyPopup(herbId, catName) {
 function openConnectHerbsToPropertyPopup(propName) {
   activePopupMode = "connect_herb";
   activePopupTarget = propName;
-  document.getElementById("popup-check-title").innerText = `[${propName}]`;
+  document.getElementById("popup-check-title").innerText = `Koppla örter till [${propName}]`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   renderPopupList();
@@ -2470,7 +2730,7 @@ function openConnectHerbsToPropertyPopup(propName) {
 function openRelatedPropertiesPopup(propName) {
   activePopupMode = "related_prop";
   activePopupTarget = propName;
-  document.getElementById("popup-check-title").innerText = `[${propName}]`;
+  document.getElementById("popup-check-title").innerText = `Relaterade egenskaper till [${propName}]`;
   document.getElementById("popup-filter-input").value = "";
   document.getElementById("popup-checklist").style.display = "flex";
   renderPopupList();
@@ -2482,16 +2742,28 @@ function renderPopupList() {
   listCont.innerHTML = "";
 
   if (activePopupMode === "assign_prop") {
+    // Kan gälla ört eller studieobjekt
     const herb = db.objects.find(o => o.id === activePopupTarget);
-    const cat = activePopupExtra;
-    const allPropsInCat = Object.keys(db.properties).filter(p => db.properties[p].category === cat);
-    const filtered = allPropsInCat.filter(p => p.toLowerCase().includes(query));
+    const so = (db.studyObjects || []).find(x => x.id === activePopupTarget);
+    const currentEntity = herb || so;
+
+    let propsAvailable = Object.keys(db.properties);
+    if (activePopupExtra !== "study_object_mode") {
+      propsAvailable = propsAvailable.filter(p => db.properties[p].category === activePopupExtra);
+    }
+    const filtered = propsAvailable.filter(p => p.toLowerCase().includes(query));
 
     filtered.forEach(p => {
-      const isChecked = hasProp(herb, p);
+      const isChecked = hasProp(currentEntity, p);
       const lbl = document.createElement("label");
       lbl.className = "check-label";
-      lbl.innerHTML = `<input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleHerbProperty('${herb.id}', '${p}', this.checked)"> <span>${p}</span>`;
+      lbl.innerHTML = `<input type="checkbox" ${isChecked ? 'checked' : ''}> <span>${p} <small style="color:var(--text-muted);">[${db.properties[p]?.category}]</small></span>`;
+      lbl.querySelector("input").onchange = (e) => {
+        setProp(currentEntity, p, e.target.checked);
+        persist();
+        if (herb && window.location.hash.startsWith("#herb")) renderHerbPage(herb.id);
+        if (so && window.location.hash.startsWith("#study")) renderStudyObjectPage(so.id);
+      };
       listCont.appendChild(lbl);
     });
 
@@ -2544,14 +2816,17 @@ document.getElementById("popup-filter-input").addEventListener("keydown", (e) =>
     if (!val) return;
 
     if (activePopupMode === "assign_prop") {
-      const cat = activePopupExtra;
       const herb = db.objects.find(o => o.id === activePopupTarget);
-      if (!db.properties[val]) db.properties[val] = { category: cat, desc: "", related: [], sources: [] };
-      setProp(herb, val, true);
+      const so = (db.studyObjects || []).find(x => x.id === activePopupTarget);
+      const currentEntity = herb || so;
+      const cat = activePopupExtra === "study_object_mode" ? "General Information" : activePopupExtra;
+      if (!db.properties[val]) db.properties[val] = { category: cat, desc: "", summary: "", related: [], sources: [] };
+      setProp(currentEntity, val, true);
       persist();
       e.target.value = "";
       renderPopupList();
-      renderHerbPage(herb.id);
+      if (herb) renderHerbPage(herb.id);
+      if (so) renderStudyObjectPage(so.id);
 
     } else if (activePopupMode === "connect_herb") {
       const propName = activePopupTarget;
@@ -2569,7 +2844,7 @@ document.getElementById("popup-filter-input").addEventListener("keydown", (e) =>
       const prop = db.properties[currentPropName];
       if (!db.properties[val]) {
         const cat = prompt("Category:", prop.category) || prop.category;
-        db.properties[val] = { category: cat, desc: "", related: [currentPropName], sources: [] };
+        db.properties[val] = { category: cat, desc: "", summary: "", related: [currentPropName], sources: [] };
       }
       if (!prop.related) prop.related = [];
       if (!prop.related.includes(val)) prop.related.push(val);
@@ -2626,6 +2901,9 @@ function openEditor(type, id) {
   if (type === "herb") {
     const o = db.objects.find(x => x.id === id);
     input.value = o ? o.desc || "" : "";
+  } else if (type === "study") {
+    const so = (db.studyObjects || []).find(x => x.id === id);
+    input.value = so ? so.desc || "" : "";
   } else if (type === "prop") input.value = db.properties[id] ? db.properties[id].desc || "" : "";
   else if (type === "cat") input.value = db.categories[id] ? db.categories[id].desc || "" : "";
   else if (type === "system") input.value = db.systems[id] ? db.systems[id].desc || "" : "";
@@ -2643,6 +2921,11 @@ function saveDescription() {
     if (o) o.desc = val;
     persist();
     renderHerbPage(editorTargetId);
+  } else if (editorMode === "study") {
+    const so = (db.studyObjects || []).find(x => x.id === editorTargetId);
+    if (so) so.desc = val;
+    persist();
+    renderStudyObjectPage(editorTargetId);
   } else if (editorMode === "prop") {
     if (db.properties[editorTargetId]) db.properties[editorTargetId].desc = val;
     persist();
@@ -2750,10 +3033,9 @@ function submitCatFlowStep1() {
 }
 
 function submitCatFlowStep2() {
-  let chosenSystem = document.querySelector('input[name="apply_to_sys"]:checked')?.value;
+  let chosenSystem = document.querySelector('input[name="apply_to_sys"]:checked')?.value || "Ospecifierade kategorier";
   const newSysCustom = document.getElementById("new-system-input").value.trim();
   if (newSysCustom) chosenSystem = newSysCustom;
-  if (!chosenSystem) return;
 
   if (!db.systems[chosenSystem]) {
     db.systems[chosenSystem] = { categories: [], desc: "" };
