@@ -124,21 +124,6 @@
       margin: 6px 0 10px 0;
     }
 
-    .system-group-header {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin: 16px 0 4px 0;
-      padding-bottom: 2px;
-      border-bottom: 1px dashed var(--border-subtle);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
     .wiki-action-link {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 13px;
@@ -154,7 +139,6 @@
       color: #000000;
       white-space: pre-wrap;
     }
-    .wiki-paragraph i { color: var(--text-muted); }
 
     .wiki-data-table {
       width: 100%;
@@ -338,7 +322,6 @@
       border: 1px solid var(--link);
     }
 
-    .suggest-box { position: relative; width: 100%; }
     .suggest-dropdown {
       position: absolute;
       top: 100%;
@@ -385,7 +368,7 @@
     <!-- GLOBALT SÖKFÄLT -->
     <div id="header-search-bar" style="display:none; flex-grow:1; position:relative; margin-right:8px;">
       <div style="display:flex; align-items:center; gap:4px;">
-        <input type="text" id="global-search-input" placeholder="Sök tagg eller tryck Enter för ny..." autocomplete="off" oninput="handleGlobalSearch(this.value)" onkeydown="handleGlobalSearchKeydown(event)">
+        <input type="text" id="global-search-input" placeholder="Sök i biblioteket..." autocomplete="off" oninput="handleGlobalSearch(this.value)">
         <button class="wiki-btn" style="padding:4px 8px;" onclick="closeHeaderSearch()">✕</button>
       </div>
       <div class="suggest-dropdown" id="global-search-dropdown"></div>
@@ -416,14 +399,12 @@
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body" style="gap:6px;">
-        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('index')" id="menu-link-index">📖 Index A–Ö</a>
+        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('index')">📖 Index A–Ö</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('glossary')">📋 Glossary (Botanisk lista)</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('search')">🔍 Filtersök ört</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('formulas')">⚗ Formler</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('sources')">📚 Källor</a>
         <a class="check-label" style="font-weight:700; color:var(--danger); text-decoration:none;" onclick="menuNavigate('trash')">🗑 Papperskorg</a>
-        <hr style="border:none; border-top:1px solid var(--border-subtle); margin:6px 0;">
-        <a class="check-label" style="font-size:14px; color:var(--text-muted); cursor:pointer;" onclick="toggleLanguage()">🌐 <span id="menu-lang-prompt">Språk:</span> <b id="menu-lang-label">Svenska</b></a>
       </div>
     </div>
   </div>
@@ -490,121 +471,6 @@
     </div>
   </div>
 
-  <!-- POPUP: UNDERKATEGORI-HANTERARE I KATEGORIPROFIL -->
-  <div class="popup-overlay" id="popup-subcat-manager" onclick="closeOnOverlayClick(event, 'popup-subcat-manager')">
-    <div class="popup-box">
-      <div class="popup-header">
-        <span>Hantera underkategorier: <b id="subcat-mgr-cat-name"></b></span>
-        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
-      </div>
-      <div class="popup-body">
-        <div style="font-size:13px; font-weight:700;">Skapa ny underkategori:</div>
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="new-subcat-name-input" placeholder="Namn (t.ex. Beläggning, Färg)...">
-          <button class="wiki-btn primary" onclick="submitCreateSubcategory()">Skapa</button>
-        </div>
-        <hr style="border:none; border-top:1px solid var(--border-subtle); margin:4px 0;">
-        <div style="font-size:13px; font-weight:700;">Tilldela egenskaper till underkategori:</div>
-        <div class="checklist-container" id="subcat-props-assignment-list"></div>
-        <div style="display:flex; justify-content:flex-end; margin-top:6px;">
-          <button class="wiki-btn primary" onclick="closePopup()">Klar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- POPUP: SKAPA TAGG ON-THE-FLY VID SÖKNING UTAN TRÄFF -->
-  <div class="popup-overlay" id="popup-create-on-search" onclick="closeOnOverlayClick(event, 'popup-create-on-search')">
-    <div class="popup-box" style="max-width:520px;">
-      <div class="popup-header">
-        <span>Skapa ny tagg</span>
-        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
-      </div>
-      <div class="popup-body">
-        <div style="font-size:14px;">
-          Taggen <b id="onthefly-tag-name" style="color:var(--link);"></b> existerar inte i biblioteket. Vill du skapa denna tagg?
-        </div>
-        
-        <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
-          <label class="check-label" style="align-items:flex-start;">
-            <input type="radio" name="onthefly_type" value="object" checked onchange="switchOnTheFlyType(this.value)">
-            <div>
-              <b>Örtobjekt</b>
-              <div style="font-size:12px; color:var(--text-muted);">Huvudväxt, mineral eller preparat som bär egenskaper.</div>
-              <div style="font-size:11px; color:var(--text-muted);" id="onthefly-ex-object">Exempel: Ginger, Cinnamon, Elecampane...</div>
-            </div>
-          </label>
-
-          <label class="check-label" style="align-items:flex-start;">
-            <input type="radio" name="onthefly_type" value="property" onchange="switchOnTheFlyType(this.value)">
-            <div style="width:100%;">
-              <b>Egenskap</b>
-              <div style="font-size:12px; color:var(--text-muted);">Kvalitet, smak, vävnadstillstånd, verkan eller styrsfär.</div>
-              <div style="font-size:11px; color:var(--text-muted);" id="onthefly-ex-property">Exempel: Pungent (Taste), Moon (Planets)...</div>
-              <div id="onthefly-prop-cat-select-box" style="display:none; margin-top:6px;">
-                <label style="font-size:12px; font-weight:700;">Välj befintlig kategori:</label>
-                <select id="onthefly-select-category"></select>
-              </div>
-            </div>
-          </label>
-
-          <label class="check-label" style="align-items:flex-start;">
-            <input type="radio" name="onthefly_type" value="category" onchange="switchOnTheFlyType(this.value)">
-            <div style="width:100%;">
-              <b>Kategori</b>
-              <div style="font-size:12px; color:var(--text-muted);">Gruppering av egenskaper inom ett system.</div>
-              <div style="font-size:11px; color:var(--text-muted);" id="onthefly-ex-category">Exempel: Taste, Tissue States, Organ Affinities...</div>
-              <div id="onthefly-cat-sys-select-box" style="display:none; margin-top:6px;">
-                <label style="font-size:12px; font-weight:700;">Välj befintligt system:</label>
-                <select id="onthefly-select-system"></select>
-              </div>
-            </div>
-          </label>
-
-          <label class="check-label" style="align-items:flex-start;">
-            <input type="radio" name="onthefly_type" value="system" onchange="switchOnTheFlyType(this.value)">
-            <div>
-              <b>System</b>
-              <div style="font-size:12px; color:var(--text-muted);">Övergripande medicinsk tradition eller holistisk modell.</div>
-              <div style="font-size:11px; color:var(--text-muted);" id="onthefly-ex-system">Exempel: Western Herbalism, Ayurveda, Universal...</div>
-              <div style="font-size:12px; color:var(--danger); margin-top:4px;">
-                ⚠️ <i>Varning: Ett system innefattar tiotals kategorier och hundratals egenskaper. Tänk igenom noga om taggen verkligen är ett system!</i>
-              </div>
-            </div>
-          </label>
-        </div>
-
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
-          <button class="wiki-btn primary" onclick="submitOnTheFlyCreation()">Ok, skapa tagg</button>
-          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- POPUP: KOPPLA STUDIEOBJEKT TILL EGENSKAP -->
-  <div class="popup-overlay" id="popup-study-connect" onclick="closeOnOverlayClick(event, 'popup-study-connect')">
-    <div class="popup-box">
-      <div class="popup-header">
-        <span>Koppla studieobjekt till <b id="study-connect-prop-title"></b></span>
-        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
-      </div>
-      <div class="popup-body">
-        <input type="text" id="study-filter-input" placeholder="🔍 Sök studieobjekt..." oninput="renderStudyConnectList()">
-        <div class="checklist-container" id="study-connect-checklist"></div>
-        <hr style="border:none; border-top:1px solid var(--border-subtle); margin:4px 0;">
-        <div style="font-size:13px; font-weight:700;">Eller registrera nytt studieobjekt:</div>
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="new-study-name-input" placeholder="Namn (t.ex. Selenit)..." style="flex:2;">
-          <input type="text" id="new-study-type-input" placeholder="Typ (t.ex. Kristall)..." style="flex:1;">
-        </div>
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
-          <button class="wiki-btn primary" onclick="submitCreateStudyObject()">➕ Skapa och koppla</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
 <script>
 // ==================== FIRESTORE & KONSTANTER ====================
 const firebaseConfig = {
@@ -662,12 +528,12 @@ const unitConversions = {
 
 let currentLang = localStorage.getItem("wiki_lang") || "sv";
 let indexNameDisplayMode = localStorage.getItem("wiki_name_mode") || "auto";
+let indexViewMode = "alpha"; // Åtgärdar den vita skärmen (ReferenceError)
 
 const i18n = {
   en: {
     brand: "Herbal Wiki",
     menuBtn: "☰ Menu",
-    menuTitle: "Menu",
     indexTitle: "Herb & Object Index",
     indexIntro: "Alphabetical index of herbs, plants, and natural substances.",
     newHerb: "[+ New Herb]",
@@ -685,7 +551,6 @@ const i18n = {
   sv: {
     brand: "Ört-Wiki",
     menuBtn: "☰ Meny",
-    menuTitle: "Meny",
     indexTitle: "Ört- och objektindex",
     indexIntro: "Alfabetisk förteckning över samtliga registrerade växter, örter och mineraler.",
     newHerb: "[+ Ny Ört]",
@@ -807,7 +672,6 @@ const defaultData = {
 const MASTER_STORAGE_KEY = "taxonomy_ide_master_db";
 let db = JSON.parse(JSON.stringify(defaultData));
 
-// Deduplicering: slår ihop objekt med identiska namn
 function deduplicateAndSanitizeDB(data) {
   if (!data) return data;
   if (Array.isArray(data.objects)) {
@@ -910,7 +774,6 @@ function persist() {
 }
 window.addEventListener("beforeunload", persist);
 
-// Dynamiskt visningsnamn
 function getDisplayObjName(obj) {
   if (!obj) return "";
   const raw = (obj.name || "").trim();
@@ -957,9 +820,7 @@ function setProp(obj, propName, isChecked) {
   else delete obj.props[propName];
 }
 
-// ==================== GLOBALT SÖKFÄLT MED ENTER-SKAPA ====================
-let pendingOnTheFlyQuery = "";
-
+// ==================== GLOBALT SÖKFÄLT (UTAN SKAPA-FUNKTION) ====================
 function openHeaderSearch() {
   document.getElementById("header-brand-box").style.display = "none";
   document.getElementById("header-search-bar").style.display = "block";
@@ -977,7 +838,6 @@ function closeHeaderSearch() {
 function handleGlobalSearch(query) {
   const dd = document.getElementById("global-search-dropdown");
   const q = query.trim().toLowerCase();
-  pendingOnTheFlyQuery = query.trim();
 
   if (!q) { dd.style.display = "none"; dd.innerHTML = ""; return; }
 
@@ -1004,6 +864,12 @@ function handleGlobalSearch(query) {
     }
   });
 
+  if (results.length === 0) {
+    dd.innerHTML = `<div class="suggest-item" style="color:var(--text-muted);"><i>Inga träffar hittades.</i></div>`;
+    dd.style.display = "block";
+    return;
+  }
+
   let html = results.slice(0, 8).map(r => `
     <div class="suggest-item" onclick="selectGlobalSearchResult('${r.link}')">
       <div><b>${r.title}</b> <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">[${r.type}]</span></div>
@@ -1011,85 +877,13 @@ function handleGlobalSearch(query) {
     </div>
   `).join("");
 
-  html += `
-    <div class="suggest-item" style="background:#f0fdf4; border-top:1px dashed var(--border-wiki);" onclick="openOnTheFlyModal('${query.trim()}')">
-      <b>➕ Inga träffar / Ny tagg:</b> <i>"${query.trim()}"</i> (Tryck Enter)
-    </div>
-  `;
-
   dd.innerHTML = html;
   dd.style.display = "block";
-}
-
-function handleGlobalSearchKeydown(e) {
-  if (e.key === "Enter" && pendingOnTheFlyQuery) {
-    openOnTheFlyModal(pendingOnTheFlyQuery);
-  }
 }
 
 function selectGlobalSearchResult(link) {
   closeHeaderSearch();
   window.location.hash = link;
-}
-
-function openOnTheFlyModal(tagName) {
-  closeHeaderSearch();
-  if (!tagName) return;
-  pendingOnTheFlyQuery = tagName;
-  document.getElementById("onthefly-tag-name").innerText = tagName;
-
-  const catSel = document.getElementById("onthefly-select-category");
-  catSel.innerHTML = Object.keys(db.categories).map(c => `<option value="${c}">${c}</option>`).join("");
-
-  const sysSel = document.getElementById("onthefly-select-system");
-  sysSel.innerHTML = (db.systemOrder || Object.keys(db.systems)).map(s => `<option value="${s}">${s}</option>`).join("");
-
-  document.querySelector('input[name="onthefly_type"][value="object"]').checked = true;
-  switchOnTheFlyType("object");
-  document.getElementById("popup-create-on-search").style.display = "flex";
-}
-
-function switchOnTheFlyType(type) {
-  document.getElementById("onthefly-prop-cat-select-box").style.display = type === "property" ? "block" : "none";
-  document.getElementById("onthefly-cat-sys-select-box").style.display = type === "category" ? "block" : "none";
-}
-
-function submitOnTheFlyCreation() {
-  const type = document.querySelector('input[name="onthefly_type"]:checked').value;
-  const name = pendingOnTheFlyQuery;
-
-  if (type === "object") {
-    if (db.objects.some(o => o.name.toLowerCase() === name.toLowerCase())) {
-      alert("En ört med det namnet existerar redan."); return;
-    }
-    const id = "herb_" + Date.now();
-    db.objects.push({ id, name, desc: "", props: {}, taxonomies: {} });
-    persist();
-    closePopup();
-    window.location.hash = `#herb/${id}`;
-  } else if (type === "property") {
-    if (db.properties[name]) { alert("Egenskapen existerar redan."); return; }
-    const cat = document.getElementById("onthefly-select-category").value || "Taste";
-    db.properties[name] = { category: cat, desc: "", summary: "", related: [] };
-    persist();
-    closePopup();
-    window.location.hash = `#property/${encodeURIComponent(name)}`;
-  } else if (type === "category") {
-    if (db.categories[name]) { alert("Kategorin existerar redan."); return; }
-    const sys = document.getElementById("onthefly-select-system").value || "Western Herbalism";
-    db.categories[name] = { system: sys, desc: "", subcategories: [] };
-    if (!db.systems[sys].categories.includes(name)) db.systems[sys].categories.push(name);
-    persist();
-    closePopup();
-    window.location.hash = `#category/${encodeURIComponent(name)}`;
-  } else if (type === "system") {
-    if (db.systems[name]) { alert("Systemet existerar redan."); return; }
-    db.systems[name] = { desc: "", categories: [] };
-    db.systemOrder.push(name);
-    persist();
-    closePopup();
-    window.location.hash = `#system/${encodeURIComponent(name)}`;
-  }
 }
 
 // ==================== ROUTING ====================
@@ -1099,7 +893,6 @@ function navigateTo(route) { window.location.hash = `#${route}`; handleRouting()
 
 window.addEventListener("hashchange", handleRouting);
 window.addEventListener("DOMContentLoaded", () => {
-  updateUILabels();
   initFirestoreSync();
   if (!window.location.hash) window.location.hash = "#index";
   handleRouting();
@@ -1376,7 +1169,7 @@ function promptCreateHerbFromGlossary() {
   renderGlossaryPage();
 }
 
-// ==================== ÖRTPROFIL (ELECAMPANE MALL) ====================
+// ==================== ÖRTPROFIL ====================
 function renderHerbPage(herbId) {
   const app = document.getElementById("wiki-app");
   const obj = db.objects.find(o => o.id === herbId);
@@ -1384,7 +1177,6 @@ function renderHerbPage(herbId) {
 
   const botName = (obj.taxonomies && obj.taxonomies["Botanical Name"]) ? obj.taxonomies["Botanical Name"] : "";
 
-  // 1. Egenskaper grupperade per system
   const sysOrder = [...(db.systemOrder || Object.keys(db.systems))];
   let systemsHtml = "";
   sysOrder.forEach(sysName => {
@@ -1421,7 +1213,6 @@ function renderHerbPage(herbId) {
     }
   });
 
-  // 2. Taxonomier
   const taxEntries = Object.entries(obj.taxonomies || {}).filter(([k, v]) => Boolean(v));
   let taxRows = taxEntries.map(([k, v]) => `
     <div class="wiki-data-row">
@@ -1437,20 +1228,6 @@ function renderHerbPage(herbId) {
       sameTaxHtml = same.map(h => `<li><a href="#herb/${h.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(h)}</a></li>`).join("");
     }
   }
-
-  // 3. Besläktade örter
-  const myProps = new Set(getPropKeys(obj));
-  const related = [];
-  db.objects.forEach(other => {
-    if (other.id === obj.id) return;
-    const otherProps = getPropKeys(other);
-    const common = otherProps.filter(p => myProps.has(p)).length;
-    if (common > 0) {
-      related.push({ id: other.id, name: getDisplayObjName(other), common });
-    }
-  });
-  related.sort((a,b) => b.common - a.common);
-  let relatedHtml = related.slice(0, 6).map(r => `<li><a href="#herb/${r.id}" class="wiki-link">${r.name}</a> (${r.common} gemensamma)</li>`).join("");
 
   app.innerHTML = `
     <h1 class="wiki-title">
@@ -1517,7 +1294,7 @@ let activeAssignCategory = "";
 let pendingSelectedProps = new Set();
 
 function openAssignPropsModal(entityId, categoryName) {
-  activeAssignEntity = db.objects.find(o => o.id === entityId) || (db.studyObjects || []).find(s => s.id === entityId);
+  activeAssignEntity = db.objects.find(o => o.id === entityId);
   activeAssignCategory = categoryName;
   pendingSelectedProps = new Set(getPropKeys(activeAssignEntity));
 
