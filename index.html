@@ -1681,13 +1681,11 @@ function renderSystemPage(sysName) {
     `;
   }).join("");
 
-  // Relaterade studieobjekt på systemet
   const linkedStudy = (db.studyObjects || []).filter(so => so.system === sysName || (so.systems && so.systems.includes(sysName)));
   let studyHtml = linkedStudy.length === 0
     ? `<li><i>Inga studieobjekt kopplade.</i></li>`
     : linkedStudy.map(so => `<li><b>${so.name}</b> (${so.type || 'Ref'})</li>`).join("");
 
-  // Källor på systemet
   const linkedSources = (db.sources || []).filter(src => (src.tags || []).some(tg => tg.type === "system" && tg.id === sysName));
   let sourcesHtml = linkedSources.length === 0
     ? `<li><i>Inga källor kopplade.</i></li>`
@@ -1730,7 +1728,6 @@ function toggleSysCategory(idx) {
   }
 }
 
-// Hantering av studieobjekt på systemprofil
 function openSysStudyModal(sysName) {
   document.getElementById("sys-study-filter").value = "";
   document.getElementById("new-sys-study-name").value = "";
@@ -1778,7 +1775,6 @@ function submitCreateSysStudy() {
   renderSystemPage(activeSystemForAdd);
 }
 
-// Hantering av källor på systemprofil
 function openSysSourceModal(sysName) {
   document.getElementById("sys-source-filter").value = "";
   document.getElementById("new-sys-src-title").value = "";
