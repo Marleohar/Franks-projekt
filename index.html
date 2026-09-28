@@ -139,6 +139,7 @@
       color: #000000;
       white-space: pre-wrap;
     }
+    .wiki-paragraph i { color: var(--text-muted); }
 
     .wiki-data-table {
       width: 100%;
@@ -208,7 +209,7 @@
     .wiki-alpha-bar a { color: var(--link); text-decoration: none; padding: 2px 4px; }
     .wiki-alpha-bar a:hover { text-decoration: underline; }
 
-    /* POPUP MODALER - ALLTID PLACERADE HÖGST UPP MOT MOBILTANGENTBORD */
+    /* MODALER */
     .popup-overlay {
       position: fixed;
       inset: 0;
@@ -365,7 +366,7 @@
       <button class="btn-icon-trigger" onclick="openHeaderSearch()" title="Sök i hela biblioteket">🔍</button>
     </div>
 
-    <!-- GLOBALT SÖKFÄLT -->
+    <!-- GLOBALT SÖKFÄLT (ENBART MATCHNINGAR) -->
     <div id="header-search-bar" style="display:none; flex-grow:1; position:relative; margin-right:8px;">
       <div style="display:flex; align-items:center; gap:4px;">
         <input type="text" id="global-search-input" placeholder="Sök i biblioteket..." autocomplete="off" oninput="handleGlobalSearch(this.value)">
@@ -383,7 +384,7 @@
   <!-- HUVUDCONTAINER -->
   <main class="wiki-container" id="wiki-app"></main>
 
-  <!-- FOTNOT MED BACKUP -->
+  <!-- FOTNOT -->
   <footer class="wiki-footer">
     <span>Ört-Wiki Molndatabas (Google Firestore)</span> • 
     <a class="wiki-action-link" onclick="downloadBackupFile()">Exportera JSON</a> • 
@@ -399,12 +400,14 @@
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
       </div>
       <div class="popup-body" style="gap:6px;">
-        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('index')">📖 Index A–Ö</a>
+        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('index')" id="menu-link-index">📖 Index A–Ö</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('glossary')">📋 Glossary (Botanisk lista)</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('search')">🔍 Filtersök ört</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('formulas')">⚗ Formler</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('sources')">📚 Källor</a>
         <a class="check-label" style="font-weight:700; color:var(--danger); text-decoration:none;" onclick="menuNavigate('trash')">🗑 Papperskorg</a>
+        <hr style="border:none; border-top:1px solid var(--border-subtle); margin:6px 0;">
+        <a class="check-label" style="font-size:14px; color:var(--text-muted); cursor:pointer;" onclick="toggleLanguage()">🌐 <span id="menu-lang-prompt">Språk:</span> <b id="menu-lang-label">Svenska</b></a>
       </div>
     </div>
   </div>
@@ -447,7 +450,7 @@
     </div>
   </div>
 
-  <!-- POPUP: REDIGERA KÄLLA PÅ EGENSKAP MED SVG-PENNA -->
+  <!-- POPUP: REDIGERA KÄLLA PÅ EGENSKAP -->
   <div class="popup-overlay" id="popup-edit-prop-source" onclick="closeOnOverlayClick(event, 'popup-edit-prop-source')">
     <div class="popup-box" style="max-width:460px;">
       <div class="popup-header">
@@ -466,6 +469,29 @@
             <button class="wiki-btn primary" onclick="saveSourcePagesOnProperty()">Spara</button>
             <button class="wiki-btn" onclick="closePopup()">Stäng</button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: UNDERKATEGORI-HANTERARE -->
+  <div class="popup-overlay" id="popup-subcat-manager" onclick="closeOnOverlayClick(event, 'popup-subcat-manager')">
+    <div class="popup-box">
+      <div class="popup-header">
+        <span>Hantera underkategorier: <b id="subcat-mgr-cat-name"></b></span>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
+      </div>
+      <div class="popup-body">
+        <div style="font-size:13px; font-weight:700;">Skapa ny underkategori:</div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="new-subcat-name-input" placeholder="Namn (t.ex. Beläggning, Färg)...">
+          <button class="wiki-btn primary" onclick="submitCreateSubcategory()">Skapa</button>
+        </div>
+        <hr style="border:none; border-top:1px solid var(--border-subtle); margin:4px 0;">
+        <div style="font-size:13px; font-weight:700;">Tilldela egenskaper till underkategori:</div>
+        <div class="checklist-container" id="subcat-props-assignment-list"></div>
+        <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+          <button class="wiki-btn primary" onclick="closePopup()">Klar</button>
         </div>
       </div>
     </div>
@@ -528,12 +554,13 @@ const unitConversions = {
 
 let currentLang = localStorage.getItem("wiki_lang") || "sv";
 let indexNameDisplayMode = localStorage.getItem("wiki_name_mode") || "auto";
-let indexViewMode = "alpha"; // Åtgärdar den vita skärmen (ReferenceError)
+let indexViewMode = "alpha";
 
 const i18n = {
   en: {
     brand: "Herbal Wiki",
     menuBtn: "☰ Menu",
+    menuTitle: "Menu",
     indexTitle: "Herb & Object Index",
     indexIntro: "Alphabetical index of herbs, plants, and natural substances.",
     newHerb: "[+ New Herb]",
@@ -551,6 +578,7 @@ const i18n = {
   sv: {
     brand: "Ört-Wiki",
     menuBtn: "☰ Meny",
+    menuTitle: "Meny",
     indexTitle: "Ört- och objektindex",
     indexIntro: "Alfabetisk förteckning över samtliga registrerade växter, örter och mineraler.",
     newHerb: "[+ Ny Ört]",
@@ -571,106 +599,39 @@ function t(key) {
   return (i18n[currentLang] && i18n[currentLang][key]) ? i18n[currentLang][key] : (i18n["sv"][key] || key);
 }
 
-// ==================== DATABASEN (FRANKS FULLA BACKUP) ====================
-const defaultData = {
-  objects: [
-    { id: "ginger", name: "Ginger (Fresh)", desc: "", props: { "Pungent": true, "Tea": true, "Ushna (Hot)": true, "Roots": true }, taxonomies: { "Botanical Name": "Zingiber officinale", "Swedish Name": "Ingefära" } },
-    { id: "peppermint", name: "Peppermint (Mentha piperita)", desc: "", props: { "Tea": true, "Cooling": true, "Sheeta (Cold)": true, "Digestion": true }, taxonomies: { "Botanical Name": "Mentha piperita", "Swedish Name": "Pepparmynta" } },
-    { id: "herb_1790416025687_917v", name: "Fennel", desc: "", props: {}, taxonomies: { "Botanical Name": "Foeniculum vulgare", "Swedish Name": "Fänkål" } },
-    { id: "herb_1790416025688_tf4r", name: "Cinnamon", desc: "", props: { "Sweet": true, "Bitter": true }, taxonomies: { "Botanical Name": "Cinnamomum verum", "Swedish Name": "Kanel" } },
-    { id: "herb_1790416025688_mf3m", name: "Rose", desc: "", props: { "Astringent": true }, taxonomies: { "Botanical Name": "Rosa", "Swedish Name": "Ros" } },
-    { id: "herb_1790432002986", name: "Linden Flower", desc: "", props: { "Sweet": true }, taxonomies: { "Botanical Name": "Tilia cordata", "Swedish Name": "Lindblomma" } },
-    { id: "herb_1790438816294", name: "Elecampane", desc: "", props: { "Ålandsrot": true }, taxonomies: { "Botanical Name": "Inula Helenium", "Swedish Name": "Ålandsrot" } },
-    { id: "herb_1790439208575", name: "Osha", desc: "", props: {}, taxonomies: { "Botanical Name": "Ligusticum porteri", "Swedish Name": "Osharot" } },
-    { id: "herb_1790442789803", name: "Anise", desc: "", props: {}, taxonomies: { "Botanical Name": "Pimpinella anisum", "Swedish Name": "Anis" } },
-    { id: "herb_1790444984799", name: "Lemon Balm", desc: "", props: { "Sour": true, "Jupiter": true }, taxonomies: { "Botanical Name": "Melissa officinalis", "Swedish Name": "Citronmeliss" } },
-    { id: "herb_1790446050521", name: "Licorice Root", desc: "", props: { "Sweet": true, "Dry / Atrophy": true }, taxonomies: { "Botanical Name": "Glycyrrhiza glabra", "Swedish Name": "Lakritsrot" } },
-    { id: "herb_1790498566657", name: "Maca Root (yellow)", desc: "", props: {}, taxonomies: { "Botanical Name": "Lepidium meyenii", "Swedish Name": "Macarot" } },
-    { id: "herb_1790498630165", name: "Valerian", desc: "", props: { "Warming": true }, taxonomies: { "Botanical Name": "Valeriana officinalis", "Swedish Name": "Vänderot" } },
-    { id: "herb_1790516087104", name: "Marshmallow Root", desc: "", props: { "Water": true, "Moon": true, "Yin Tonics": true }, taxonomies: { "Botanical Name": "Althaea officinalis", "Family": "Malvaceae", "Swedish Name": "Läkemalva" } },
-    { id: "herb_1790516494793", name: "Slippery Elm", desc: "", props: { "Yin Tonics": true, "Moon": true }, taxonomies: { "Botanical Name": "Ulmus rubra" } },
-    { id: "herb_1790544156256", name: "Dandelion Leaf", desc: "", props: { "Jupiter": true, "Diuretic": true }, taxonomies: { "Botanical Name": "Taraxacum officinale" } },
-    { id: "herb_1790577433116", name: "Asparagus Root", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790577583643", name: "Tiger Lily", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790577598735", name: "Solomon's Seal", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790577632578", name: "Iceland Moss", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790581193285", name: "Irish Moss", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790581219171", name: "Comfrey Root", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790581275711", name: "Provet", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790581290180", name: "Black Sesame Seeds", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790581298724", name: "Eclipta", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790581329313", name: "Pyrola", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790581356412", name: "Ophiopogon", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790581377466", name: "Devils Club", desc: "", props: { "Yin Tonics": true }, taxonomies: {} },
-    { id: "herb_1790584070856", name: "Peach", desc: "", props: { "Sweet": true, "Sour": true, "Bitter": true, "Reproductive": true, "Gastrointestinal": true, "Skin and mucosa": true, "Nervous System": true, "Urinary": true, "Respiratory": true, "Irritation with tendencies to atrophy": true }, taxonomies: {} },
-    { id: "herb_1790587634544", name: "Self-heal", desc: "", props: { "Red (Excess Heat)": true }, taxonomies: {} },
-    { id: "herb_1790587639357", name: "Yarrow", desc: "", props: { "Red (Excess Heat)": true }, taxonomies: {} },
-    { id: "herb_1790587649025", name: "Baikal skylla", desc: "", props: { "Red (Excess Heat)": true }, taxonomies: {} },
-    { id: "herb_1790587659482", name: "Dan Shen", desc: "", props: { "Red (Excess Heat)": true }, taxonomies: {} },
-    { id: "herb_1790587664713", name: "Turmeric", desc: "", props: { "Red (Excess Heat)": true }, taxonomies: {} },
-    { id: "herb_1790587686646", name: "Raw Rehmannia", desc: "", props: { "Red (Excess Heat)": true }, taxonomies: {} }
-  ],
-  categories: {
-    "Taste": { system: "Western Herbalism", desc: "Smakprofiler.", subcategories: [] },
-    "Tissue States": { system: "Western Herbalism", desc: "", subcategories: [] },
-    "Planets": { system: "Western Herbalism", desc: "", subcategories: [] },
-    "Element": { system: "Western Herbalism", desc: "", subcategories: [] },
-    "Organ Affinities": { system: "Western Herbalism", desc: "", subcategories: [] },
-    "Tierra Glass.": { system: "Universal", desc: "", subcategories: [] },
-    "Tounge": { system: "Universal", desc: "Tungdiagnostik.", subcategories: ["Färg", "Form", "Beläggning"] },
-    "Western Actions": { system: "Fysiologi", desc: "Verkningsmekanismer", subcategories: [] },
-    "Part Used": { system: "Fysiologi", subcategories: ["Roots", "Leaves", "Flowers"] },
-    "Western Energetics": { system: "Energetik", subcategories: ["Temperature", "Moisture"] },
-    "Ayurveda Gunas": { system: "Energetik", subcategories: ["Gunas"] }
-  },
-  properties: {
-    "Pungent": { category: "Taste", desc: "Hot, stimulating", summary: "Värmande metabol stimulans", related: [] },
-    "Moon": { category: "Planets", desc: "Månen styr fukt och rytmiska cykler", summary: "Styr vätskereserver och fukt", related: ["Water"] },
-    "Water": { category: "Element", desc: "Kylande, närande vätskeelement", summary: "Närande vätskeelement", related: ["Moon", "Pisces", "Cancer", "Scorpio"] },
-    "Sweet": { category: "Taste", desc: "", summary: "", related: [] },
-    "Bitter": { category: "Taste", desc: "Herbs with bitter taste", summary: "", related: [] },
-    "Sour": { category: "Taste", desc: "", summary: "", related: [] },
-    "Astringent": { category: "Taste", desc: "", summary: "", related: [] },
-    "Cooling": { category: "Western Energetics", subcategory: "Temperature", desc: "Dämpar irritation och hetta", related: [] },
-    "Warming": { category: "Western Energetics", subcategory: "Temperature", desc: "Ökar cirkulation och vitalitet", related: [] },
-    "Dry / Atrophy": { category: "Tissue States", desc: "", related: ["Air"] },
-    "Irritation": { category: "Tissue States", desc: "", related: [] },
-    "Irritation with tendencies to atrophy": { category: "Tissue States", desc: "", related: ["Irritation", "Dry / Atrophy"] },
-    "Yin Tonics": { category: "Tierra Glass.", desc: "", summary: "herbs that tonify vital fluids", related: [] },
-    "Diuretic": { category: "Western Actions", desc: "", summary: "", related: [] },
-    "Demulcent": { category: "Western Actions", desc: "", summary: "", related: [] },
-    "Red (Excess Heat)": { category: "Tounge", subcategory: "Färg", desc: "", summary: "", related: ["Bitter"] }
-  },
-  systems: {
-    "Western Herbalism": { desc: "Matthew Wood tradition", categories: ["Taste", "Tissue States", "Planets", "Element", "Organ Affinities"] },
-    "Universal": { desc: "Allmänna modeller", categories: ["Tierra Glass.", "Tounge"] },
-    "Fysiologi": { desc: "Fysiologiska funktioner", categories: ["Part Used", "Western Actions"] },
-    "Energetik": { desc: "Energetiska system", categories: ["Western Energetics", "Ayurveda Gunas"] },
-    "Ospecifierade kategorier": { desc: "Kategorier som saknar skola.", categories: [] }
-  },
-  systemOrder: ["Western Herbalism", "Universal", "Fysiologi", "Energetik", "Ospecifierade kategorier"],
-  studyObjects: [
-    { id: "study_selenite", name: "Selenit (Selenite)", type: "Kristall", desc: "En vit och mjuk kristall med ett fibriskt skimmer.", props: { "Moon": true }, links: [] },
-    { id: "study_high_priestess", name: "Översteprästinnan (The High Priestess)", type: "Tarotkort", desc: "Intuition och månens mystik.", props: { "Moon": true }, links: [] }
-  ],
-  sources: [
-    { id: "src_1", author: "Vasant Lad", year: "2002", title: "Ayurveda Textbook", tags: [{ type: "category", id: "Tissue States" }] },
-    { id: "src_2", author: "Michael Tierra", year: "1988", title: "Planetary Herbology", tags: [{ type: "property", id: "Yin Tonics", pages: "319-330" }] }
-  ],
-  formulas: {
-    "Digestive Balance": {
-      desc: "Sammansatt teblandning mellan skarp värme och svalkande kramplösning.",
-      components: [
-        { objId: "ginger", role: "Active Driver", qty: 2, unit: "g" },
-        { objId: "peppermint", role: "Cooling Balance", qty: 3, unit: "g" }
-      ]
-    }
-  },
+function updateUILabels() {
+  document.documentElement.lang = currentLang;
+  const brandEl = document.getElementById("brand-title");
+  if (brandEl) brandEl.innerText = t("brand");
+  const menuBtnEl = document.getElementById("btn-menu-text");
+  if (menuBtnEl) menuBtnEl.innerText = t("menuBtn");
+  const menuHeadingEl = document.getElementById("menu-heading-title");
+  if (menuHeadingEl) menuHeadingEl.innerText = t("menuTitle");
+  const langLabelEl = document.getElementById("menu-lang-label");
+  if (langLabelEl) langLabelEl.innerText = currentLang === 'sv' ? "Svenska" : "English";
+}
+
+function toggleLanguage() {
+  currentLang = (currentLang === "en") ? "sv" : "en";
+  localStorage.setItem("wiki_lang", currentLang);
+  updateUILabels();
+  closePopup();
+  handleRouting();
+}
+
+// ==================== DATABAS & DUBBLETTSLAGNING ====================
+const MASTER_STORAGE_KEY = "taxonomy_ide_master_db";
+let db = {
+  objects: [],
+  categories: {},
+  properties: {},
+  systems: {},
+  systemOrder: [],
+  studyObjects: [],
+  sources: [],
+  formulas: {},
   trash: []
 };
-
-const MASTER_STORAGE_KEY = "taxonomy_ide_master_db";
-let db = JSON.parse(JSON.stringify(defaultData));
 
 function deduplicateAndSanitizeDB(data) {
   if (!data) return data;
@@ -714,14 +675,14 @@ function loadAndRecoverAllData() {
 loadAndRecoverAllData();
 
 function ensureDbStructure() {
-  if (!db.objects || db.objects.length === 0) db.objects = defaultData.objects;
-  if (!db.categories) db.categories = defaultData.categories;
-  if (!db.properties) db.properties = defaultData.properties;
-  if (!db.systems) db.systems = defaultData.systems;
-  if (!db.systemOrder) db.systemOrder = defaultData.systemOrder;
-  if (!db.studyObjects) db.studyObjects = defaultData.studyObjects;
-  if (!db.sources) db.sources = defaultData.sources;
-  if (!db.formulas) db.formulas = defaultData.formulas;
+  if (!db.objects) db.objects = [];
+  if (!db.categories) db.categories = {};
+  if (!db.properties) db.properties = {};
+  if (!db.systems) db.systems = {};
+  if (!db.systemOrder) db.systemOrder = [];
+  if (!db.studyObjects) db.studyObjects = [];
+  if (!db.sources) db.sources = [];
+  if (!db.formulas) db.formulas = {};
   if (!db.trash) db.trash = [];
 
   if (!db.systems["Ospecifierade kategorier"]) {
@@ -820,7 +781,7 @@ function setProp(obj, propName, isChecked) {
   else delete obj.props[propName];
 }
 
-// ==================== GLOBALT SÖKFÄLT (UTAN SKAPA-FUNKTION) ====================
+// ==================== GLOBALT SÖKFÄLT (ENBART MATCHNINGAR) ====================
 function openHeaderSearch() {
   document.getElementById("header-brand-box").style.display = "none";
   document.getElementById("header-search-bar").style.display = "block";
@@ -893,6 +854,7 @@ function navigateTo(route) { window.location.hash = `#${route}`; handleRouting()
 
 window.addEventListener("hashchange", handleRouting);
 window.addEventListener("DOMContentLoaded", () => {
+  updateUILabels();
   initFirestoreSync();
   if (!window.location.hash) window.location.hash = "#index";
   handleRouting();
