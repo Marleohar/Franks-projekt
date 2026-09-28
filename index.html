@@ -402,7 +402,7 @@
       <div class="popup-body" style="gap:6px;">
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('index')">📖 Index A–Ö</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('glossary')">📋 Synonymer / Glossary</a>
-        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('search')">🔍 Filtersök ört</a>
+        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('search')">🔍 Filtersök profil</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('formulas')">⚗ Formler</a>
         <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('sources')">📚 Källor</a>
         <a class="check-label" style="font-weight:700; color:var(--danger); text-decoration:none;" onclick="menuNavigate('trash')">🗑 Papperskorg</a>
@@ -995,7 +995,7 @@ function promptCreateHerb() {
   window.location.hash = `#herb/${id}`;
 }
 
-// ==================== GLOSSARY / SYNONYMER ====================
+// ==================== GLOSSARY ====================
 let glossaryFilterMode = "all";
 
 function renderGlossaryPage() {
@@ -1653,7 +1653,7 @@ function promptCreatePropertyWithSubcat(catName) {
   renderCategoryPage(catName);
 }
 
-// ==================== SYSTEM-SIDAN (UTFÄLLBARA KATEGORIER + LÄGG TILL) ====================
+// ==================== SYSTEM-SIDAN (UTFÄLLBARA KATEGORIER MED 《 / 》) ====================
 let activeSystemForAdd = "";
 
 function renderSystemPage(sysName) {
@@ -1662,8 +1662,7 @@ function renderSystemPage(sysName) {
   const sys = db.systems[sysName];
   if (!sys) { app.innerHTML = `<h2>Systemet hittades inte.</h2><a href="#index" class="wiki-link">Tillbaka</a>`; return; }
 
-  // Wikipedia-stil: UTFÄLLBARA/INFÄLLBARA KATEGORIER med <details>
-  let catSectionsHtml = (sys.categories || []).map(catName => {
+  let catSectionsHtml = (sys.categories || []).map((catName, idx) => {
     const props = Object.keys(db.properties).filter(p => db.properties[p]?.category === catName);
     const propListItems = props.map(p => {
       const count = db.objects.filter(o => hasProp(o, p)).length;
@@ -1671,12 +1670,14 @@ function renderSystemPage(sysName) {
     }).join("");
 
     return `
-      <details style="margin-bottom: 12px; border: 1px solid var(--border-subtle); border-radius: 3px; padding: 6px 10px; background: #fafafa;" open>
-        <summary style="cursor: pointer; font-weight: 700; font-size: 16px; outline: none; display: flex; justify-content: space-between; align-items: center;">
-          <span><a href="#category/${encodeURIComponent(catName)}" class="wiki-link" onclick="event.stopPropagation()">${catName}</a> <span style="font-size:13px; color:var(--text-muted); font-weight:400;">(${props.length} egenskaper)</span></span>
-        </summary>
-        <ul class="wiki-list" style="margin-top: 8px; margin-bottom: 4px;">${propListItems || '<li><i>inga egenskaper</i></li>'}</ul>
-      </details>
+      <div style="margin-bottom: 10px; border: 1px solid var(--border-subtle); border-radius: 3px; background: #fafafa;">
+        <div onclick="toggleSysCategory(${idx})" style="cursor: pointer; font-weight: 700; font-size: 15px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; user-select: none;">
+          <span id="cat-icon-${idx}" style="font-family: monospace; font-weight: bold;">《</span>
+          <a href="#category/${encodeURIComponent(catName)}" class="wiki-link" onclick="event.stopPropagation()">${catName}</a>
+          <span style="font-size:13px; color:var(--text-muted); font-weight:400; margin-left: auto;">(${props.length})</span>
+        </div>
+        <ul class="wiki-list" id="cat-list-${idx}" style="padding: 0 10px 8px 30px; margin: 0; display: block;">${propListItems || '<li><i>inga egenskaper</i></li>'}</ul>
+      </div>
     `;
   }).join("");
 
@@ -1698,7 +1699,7 @@ function renderSystemPage(sysName) {
     <div class="wiki-paragraph">${sys.desc || `<i>Ingen beskrivning skriven.</i>`}</div>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">Kategorier och egenskaper (Utfällbara)</h2>
+    <h2 class="wiki-section">Kategorier och egenskaper</h2>
     <div style="margin-top:8px;">${catSectionsHtml || '<i>Inga kategorier i systemet.</i>'}</div>
     <hr class="wiki-divider">
 
@@ -1715,6 +1716,18 @@ function renderSystemPage(sysName) {
       <a class="wiki-action-link" onclick="openSysSourceModal('${sysName}')">+ Lägg till källa</a>
     </div>
   `;
+}
+
+function toggleSysCategory(idx) {
+  const list = document.getElementById(`cat-list-${idx}`);
+  const icon = document.getElementById(`cat-icon-${idx}`);
+  if (list.style.display === "none") {
+    list.style.display = "block";
+    icon.innerText = "《";
+  } else {
+    list.style.display = "none";
+    icon.innerText = "》";
+  }
 }
 
 // Hantering av studieobjekt på systemprofil
@@ -1818,106 +1831,129 @@ function submitCreateSysSource() {
   renderSystemPage(activeSystemForAdd);
 }
 
-// ==================== SÖK & FILTER ====================
-let activeSearchCategories = {};
+// ==================== SÖK & FILTER (MANUELL INMATNING MED FÖRESLAGNA EGENSKAPER & ENTER) ====================
+let activeFilterProps = [];
 
 function renderSearchPage() {
   const app = document.getElementById("wiki-app");
 
-  let catFilterRows = Object.keys(activeSearchCategories).map(cat => {
-    const props = activeSearchCategories[cat];
-    const tags = props.map(p => `
-      <span>
-        <a href="#property/${encodeURIComponent(p)}" class="wiki-link">${p}</a>
-        <a class="wiki-action-link" style="color:var(--danger); margin-right:6px;" onclick="removeSearchProp('${cat}', '${p}')">[✕]</a>
-      </span>
-    `).join(", ");
+  let tagsHtml = activeFilterProps.map(p => `
+    <span style="background:#eaecf0; padding:3px 8px; border-radius:3px; display:inline-flex; align-items:center; gap:6px; font-size:14px;">
+      <a href="#property/${encodeURIComponent(p)}" class="wiki-link">${p}</a>
+      <a class="wiki-action-link" style="color:var(--danger); cursor:pointer; font-weight:bold;" onclick="removeFilterProp('${p}')">✕</a>
+    </span>
+  `).join(" ");
 
-    return `
-      <div class="wiki-data-row">
-        <span class="wiki-row-label" style="color:#000;">${cat}:</span>
-        <div class="wiki-row-content">
-          ${tags || '<i>inga valda</i>'}
-          <a class="btn-wiki-add" onclick="openSearchPropPopup('${cat}')">[+]</a>
-        </div>
-      </div>
-    `;
-  }).join("");
-
-  const allFilterProps = Object.values(activeSearchCategories).flat();
-  let matchesHtml = "";
-
-  if (allFilterProps.length > 0) {
-    const hits = [];
+  let hits = [];
+  if (activeFilterProps.length > 0) {
     db.objects.forEach(obj => {
-      const matchCount = allFilterProps.filter(p => hasProp(obj, p)).length;
+      const matchCount = activeFilterProps.filter(p => hasProp(obj, p)).length;
       if (matchCount > 0) {
-        const pct = Math.round((matchCount / allFilterProps.length) * 100);
-        hits.push({ id: obj.id, name: getDisplayObjName(obj), pct, matchCount });
+        const pct = Math.round((matchCount / activeFilterProps.length) * 100);
+        hits.push({ id: obj.id, name: getDisplayObjName(obj), pct, matchCount, type: "Ört" });
+      }
+    });
+    (db.studyObjects || []).forEach(so => {
+      const matchCount = activeFilterProps.filter(p => hasProp(so, p)).length;
+      if (matchCount > 0) {
+        const pct = Math.round((matchCount / activeFilterProps.length) * 100);
+        hits.push({ id: so.id, name: so.name, pct, matchCount, type: so.type || "Studieobjekt", isStudy: true });
       }
     });
     hits.sort((a,b) => b.pct - a.pct);
-
-    matchesHtml = hits.length === 0 ? `<li><i>Inga örter matchade sökningen.</i></li>` : hits.map(h => `
-      <li>
-        <a href="#herb/${h.id}" class="wiki-link" style="font-weight:700;">${h.name}</a>
-        — <b style="color:var(--accent-gold); font-family:monospace;">${h.pct}% match</b> (${h.matchCount}/${allFilterProps.length} egenskaper)
-      </li>
-    `).join("");
-  } else {
-    matchesHtml = `<li><i>Välj egenskaper ovan för att filtrera fram örter.</i></li>`;
   }
+
+  let matchesHtml = activeFilterProps.length === 0
+    ? `<li><i>Skriv och lägg till egenskaper ovan för att filtrera fram profiler.</i></li>`
+    : (hits.length === 0 ? `<li><i>Inga profiler matchade sökningen.</i></li>` : hits.map(h => `
+      <li>
+        <a href="${h.isStudy ? '#study/' + h.id : '#herb/' + h.id}" class="wiki-link" style="font-weight:700;">${h.name}</a>
+        <span style="font-size:12px; color:var(--text-muted);">[${h.type}]</span>
+        — <b style="color:var(--accent-gold); font-family:monospace;">${h.pct}% match</b> (${h.matchCount}/${activeFilterProps.length} egenskaper)
+      </li>
+    `).join(""));
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>Filtersök ört</span>
+      <span>Filtersök profil</span>
       <a class="wiki-action-link" style="color:var(--danger);" onclick="resetSearch()">[återställ filter]</a>
     </h1>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">Kombinerad kategorifiltrering</h2>
-    <div class="wiki-data-table">${catFilterRows || '<i>Inga aktiva filter än.</i>'}</div>
-
-    <div style="margin: 10px 0 24px 0; text-align: left;">
-      <a class="wiki-action-link" onclick="promptAddSearchCategory()">(+ lägg till ny sökkategori)</a>
+    <div style="margin-bottom: 14px; position:relative;">
+      <label style="font-weight:700; font-size:14px; display:block; margin-bottom:4px;">Skriv in egenskap:</label>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="search-prop-input" placeholder="Skriv egenskap (tryck Enter)..." autocomplete="off" oninput="handleSearchPropInput(this.value)" onkeydown="handleSearchPropKeydown(event)">
+        <button class="wiki-btn primary" onclick="addTypedSearchProp()">Lägg till</button>
+      </div>
+      <div class="suggest-dropdown" id="search-prop-dropdown"></div>
     </div>
 
-    <h2 class="wiki-section">Matchade artiklar</h2>
+    <div style="margin-bottom: 14px; display:flex; flex-wrap:wrap; gap:6px; min-height:36px; background:#f8f9fa; border:1px solid var(--border-subtle); padding:8px; border-radius:3px; align-items:center;">
+      <span style="font-size:13px; color:var(--text-muted); font-weight:700;">Aktiva egenskaper:</span>
+      ${tagsHtml || '<i style="font-size:13px; color:var(--text-muted);">Inga egenskaper tillagda än.</i>'}
+    </div>
+    <hr class="wiki-divider">
+
+    <h2 class="wiki-section">Matchade profiler (${hits.length})</h2>
     <ul class="wiki-list">${matchesHtml}</ul>
   `;
 }
 
-function promptAddSearchCategory() {
-  const catsWithProps = Object.keys(db.categories).filter(c => Object.keys(db.properties).some(p => db.properties[p]?.category === c));
-  if (catsWithProps.length === 0) return;
-  const choice = prompt("Välj kategori:\n" + catsWithProps.map((c, i) => `${i+1}. ${c}`).join("\n"));
-  if (!choice) return;
-  const idx = parseInt(choice) - 1;
-  if (catsWithProps[idx]) {
-    if (!activeSearchCategories[catsWithProps[idx]]) activeSearchCategories[catsWithProps[idx]] = [];
+function handleSearchPropInput(val) {
+  const q = val.trim().toLowerCase();
+  const dd = document.getElementById("search-prop-dropdown");
+  if (!q) { dd.style.display = "none"; dd.innerHTML = ""; return; }
+
+  const matches = Object.keys(db.properties).filter(p => p.toLowerCase().includes(q) && !activeFilterProps.includes(p));
+  if (matches.length === 0) { dd.style.display = "none"; dd.innerHTML = ""; return; }
+
+  dd.innerHTML = matches.slice(0, 6).map(m => `
+    <div class="suggest-item" onclick="selectSearchPropSuggestion('${m}')">
+      <b>${m}</b> <span style="font-size:11px; color:var(--text-muted);">[${db.properties[m]?.category}]</span>
+    </div>
+  `).join("");
+  dd.style.display = "block";
+}
+
+function selectSearchPropSuggestion(propName) {
+  document.getElementById("search-prop-dropdown").style.display = "none";
+  document.getElementById("search-prop-input").value = "";
+  if (!activeFilterProps.includes(propName)) {
+    activeFilterProps.push(propName);
     renderSearchPage();
   }
 }
 
-function openSearchPropPopup(cat) {
-  const available = Object.keys(db.properties).filter(p => db.properties[p].category === cat);
-  const choice = prompt("Välj egenskap ur " + cat + ":\n" + available.map((p, i) => `${i+1}. ${p}`).join("\n"));
-  if (!choice) return;
-  const idx = parseInt(choice) - 1;
-  if (available[idx]) {
-    if (!activeSearchCategories[cat]) activeSearchCategories[cat] = [];
-    if (!activeSearchCategories[cat].includes(available[idx])) activeSearchCategories[cat].push(available[idx]);
-    renderSearchPage();
+function handleSearchPropKeydown(e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    addTypedSearchProp();
   }
 }
 
-function removeSearchProp(cat, prop) {
-  activeSearchCategories[cat] = activeSearchCategories[cat].filter(p => p !== prop);
+function addTypedSearchProp() {
+  const inp = document.getElementById("search-prop-input");
+  const val = inp.value.trim();
+  if (!val) return;
+  const found = Object.keys(db.properties).find(p => p.toLowerCase() === val.toLowerCase());
+  if (found && !activeFilterProps.includes(found)) {
+    activeFilterProps.push(found);
+    inp.value = "";
+    document.getElementById("search-prop-dropdown").style.display = "none";
+    renderSearchPage();
+  } else if (!found) {
+    alert(`Egenskapen "${val}" finns inte i biblioteket.`);
+  }
+}
+
+function removeFilterProp(prop) {
+  activeFilterProps = activeFilterProps.filter(p => p !== prop);
   renderSearchPage();
 }
 
 function resetSearch() {
-  activeSearchCategories = {};
+  activeFilterProps = [];
   renderSearchPage();
 }
 
