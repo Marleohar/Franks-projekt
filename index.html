@@ -2156,23 +2156,77 @@ function downloadBackupFile() {
 
 function validateImportLibrary(data) {
   const isRecord = value => value !== null && typeof value === "object" && !Array.isArray(value);
-  if (!isRecord(data) || !Array.isArray(data.objects)) {
-    throw new Error("Biblioteket måste vara ett objekt med en objects-lista.");
-  }
-  const recordLists = ["objects", "studyObjects", "sources", "trash"];
-  for (const key of recordLists) {
-    if (Object.hasOwn(data, key) && (!Array.isArray(data[key]) || !data[key].every(isRecord))) {
-      throw new Error(`${key} måste vara en lista med poster.`);
+  const invalid = (path, expected) => { throw new Error(`${path}: förväntar ${expected}.`); };
+  const text = (record, key, path, required = false) => {
+    const value = record[key];
+    if ((!required && (value === undefined || value === null)) || typeof value === "string") return;
+    invalid(`${path}.${key}`, "text");
+  };
+  const list = (record, key, path) => {
+    const value = record[key];
+    if (value === undefined || value === null) return;
+    if (!Array.isArray(value) || !value.every(item => typeof item === "string")) invalid(`${path}.${key}`, "en lista med text");
+  };
+  const objectFields = (record, path, study = false) => {
+    text(record, "name", path, study);
+    text(record, "desc", path);
+    for (const key of ["props", "taxonomies"]) {
+      if (record[key] != null && !isRecord(record[key])) invalid(`${path}.${key}`, "ett objekt");
     }
+    if (record.taxonomies) {
+      for (const key of ["Swedish Name", "English Name", "Botanical Name"]) text(record.taxonomies, key, `${path}.taxonomies`);
+    }
+    list(record, "nativeSystems", path);
+    if (study) { list(record, "systems", path); text(record, "system", path); }
+  };
+  const propertyFields = (record, path) => {
+    for (const key of ["desc", "summary", "category", "subcategory"]) text(record, key, path);
+    list(record, "related", path);
+  };
+  const categoryFields = (record, path) => {
+    text(record, "desc", path);
+    text(record, "system", path);
+    list(record, "subcategories", path);
+  };
+  if (!isRecord(data) || !Array.isArray(data.objects)) invalid("objects", "en lista i ett biblioteksobjekt");
+  for (const key of ["objects", "studyObjects", "sources", "trash"]) {
+    if (Object.hasOwn(data, key) && (!Array.isArray(data[key]) || !data[key].every(isRecord))) invalid(key, "en lista med poster");
   }
   for (const key of ["categories", "properties", "systems", "formulas"]) {
-    if (Object.hasOwn(data, key) && (!isRecord(data[key]) || !Object.values(data[key]).every(isRecord))) {
-      throw new Error(`${key} måste vara ett objekt med namngivna poster.`);
+    if (Object.hasOwn(data, key) && (!isRecord(data[key]) || !Object.values(data[key]).every(isRecord))) invalid(key, "ett objekt med namngivna poster");
+  }
+  // Known consumers call string/array methods on these fields. Missing optional
+  // legacy fields and unknown metadata are retained; no coercion or cleanup.
+  if (Object.hasOwn(data, "systemOrder") && (!Array.isArray(data.systemOrder) || !data.systemOrder.every(name => typeof name === "string"))) invalid("systemOrder", "en lista med text");
+  data.objects.forEach((record, index) => objectFields(record, `objects[${index}]`));
+  (data.studyObjects || []).forEach((record, index) => objectFields(record, `studyObjects[${index}]`, true));
+  Object.entries(data.properties || {}).forEach(([key, record]) => propertyFields(record, `properties[${JSON.stringify(key)}]`));
+  Object.entries(data.categories || {}).forEach(([key, record]) => categoryFields(record, `categories[${JSON.stringify(key)}]`));
+  Object.entries(data.systems || {}).forEach(([key, record]) => {
+    const path = `systems[${JSON.stringify(key)}]`;
+    text(record, "desc", path);
+    list(record, "categories", path);
+  });
+  (data.sources || []).forEach((record, index) => {
+    const path = `sources[${index}]`;
+    text(record, "title", path, true);
+    if (record.tags != null) {
+      if (!Array.isArray(record.tags) || !record.tags.every(isRecord)) invalid(`${path}.tags`, "en lista med poster");
+      record.tags.forEach((tag, tagIndex) => {
+        text(tag, "type", `${path}.tags[${tagIndex}]`);
+        text(tag, "id", `${path}.tags[${tagIndex}]`);
+      });
     }
-  }
-  if (Object.hasOwn(data, "systemOrder") && (!Array.isArray(data.systemOrder) || !data.systemOrder.every(name => typeof name === "string"))) {
-    throw new Error("systemOrder måste vara en lista med namn.");
-  }
+  });
+  (data.trash || []).forEach((record, index) => {
+    const path = `trash[${index}].data`;
+    if (["object", "property", "category"].includes(record.type)) {
+      if (!isRecord(record.data)) invalid(path, "en post för återställning");
+      if (record.type === "object") objectFields(record.data, path);
+      if (record.type === "property") propertyFields(record.data, path);
+      if (record.type === "category") categoryFields(record.data, path);
+    }
+  });
 }
 
 function summarizeImportLibrary(data) {
@@ -2223,14 +2277,15 @@ function importBackupFile(e) {
     try {
       db = deduplicateAndSanitizeDB(parsed);
       ensureDbStructure();
+      handleRouting();
       persist();
     } catch (err) {
       db = previousDb;
+      try { handleRouting(); } catch (renderError) {}
       alert("Importen misslyckades. Det tidigare biblioteket har återställts i minnet. Eventuella redan påbörjade sparningar kan inte garanteras återställda.");
       return;
     }
     alert("Biblioteket har ersatts i minnet och den vanliga sparrutinen har anropats. Molnsparning är inte bekräftad.");
-    handleRouting();
   };
   try {
     reader.readAsText(file);

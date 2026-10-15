@@ -13,10 +13,17 @@ same entry check. Optional name-keyed collections (`categories`, `properties`,
 when present, must be an array of strings. Null collections and primitive entries
 are rejected because existing consumers expect record collections.
 
-Optional collections may be omitted. No required record IDs, names, field limits,
-taxonomy rules, or new schema are imposed. Unknown fields, duplicate names, long
-text and legacy metadata are preserved. Nested fields are not comprehensively
-validated; this is deliberately a structural check, not a schema migration.
+Optional collections may be omitted. Known fields consumed by string/array methods
+are type-checked with their failing path in the error message. These include
+object name/description, props/taxonomy containers, the three display-name
+taxonomies, native systems, study systems, property summaries/related names,
+category subcategories, system categories, source titles/tags, and recognized
+trash restoration payloads. Study names and source titles must be strings because
+their ordinary selection lists unconditionally call `toLowerCase`; optional
+object names and other supported absent/null fields remain accepted. IDs are
+unchanged. No field limits, categorization, coercion, or cleanup are imposed.
+Unknown fields, duplicate names, long text and legacy metadata are preserved.
+This is consumer-driven type checking, not a comprehensive new schema.
 Existing `ensureDbStructure` default additions remain unchanged.
 
 Valid imports first offer the existing Exportera JSON mechanism. OK starts export;
@@ -28,8 +35,10 @@ completion cannot be verified and is not claimed. Export startup failure stops
 the import. Uploaded files are read only.
 
 On final confirmation the prior library remains referenced, untouched, in memory.
-Only incoming data receives defaults. A synchronous application/persistence error
-restores the prior library reference. Already-started persistence is not promised
+Only incoming data receives defaults. Routing runs before the import's explicit
+persist call and success message. A synchronous rendering/application/persistence
+error restores the prior library reference and attempts to redraw the old page.
+Already-started persistence is not promised
 to roll back. Success reports in-memory replacement and invocation of the existing
 save routine; it does not claim local durability or cloud success. The input resets
 so the same file can be selected again. Read errors/aborts have explicit messages.
@@ -43,19 +52,24 @@ node --test tests/legacy-preservation.test.cjs tests/import-backup.test.cjs
 node --permission --allow-fs-read=. --test --test-isolation=none tests/legacy-preservation.test.cjs tests/import-backup.test.cjs
 ```
 
-Both: exit 0, **24 passed, 0 failed, 0 TODO, 0 skipped/cancelled**.
+Both: exit 0, **29 passed, 0 failed, 0 TODO, 0 skipped/cancelled**.
 
 The 9 existing preservation tests, their harness and fixtures are unchanged.
-15 new tests cover all TASK 004 acceptance cases: valid/minimal/empty libraries,
+20 import tests cover TASK 004 acceptance cases: valid/minimal/empty libraries,
 malformed JSON/top levels/collection types, complete duplicate record preservation,
 long text/unknown fields, preview contents, cancellation, confirmation ordering,
 existing export execution, original `persist` entry point, synchronous defaults
 and persistence rollback, export failure, file errors/abort, and isolation.
+Corrections add numeric-name rejection, a table of incompatible known fields,
+supported optional/null metadata, actual duplicate index rendering, and rendering
+failure rollback with no success message or persistence.
 
 The new harness extracts actual import/validation/summary/default/export functions
-and the initial state from `index.html`. It executes them in an isolated VM using
-synthetic fixtures and in-context FileReader, dialogs, download objects, routing,
-and a recording `persist` stand-in. No replacement import algorithm is maintained.
+and the initial state from `index.html`, plus actual `getDisplayObjName`,
+`getPropKeys`, and `renderIndexPage`. It executes them in an isolated VM using
+synthetic fixtures and in-context FileReader, dialogs, download objects, a routing
+adapter that executes the actual index renderer, and a recording `persist`
+stand-in. No replacement import algorithm is maintained.
 No host objects/callbacks enter the VM; dynamic compilation is disabled. Firebase,
 network APIs, Node access, and real localStorage are absent. Actual cloud/local
 persistence is deliberately not executed. Regex extraction depends on reviewed
@@ -63,13 +77,18 @@ top-level formatting and is not a sandbox for malicious future source.
 
 ## Limits, risks, and deployment
 
-No live browser test was run. Native-dialog appearance, actual file picker/download
-behavior, and saved backup completion require manual QA with synthetic data in an
-isolated browser. No claim is made that cloud sync, authentication, or import
+An isolated real Chrome smoke test passed; see `BROWSER-QA.md` for the exact command,
+configuration, scenarios and limits. No production browser test was performed.
+No claim is made that cloud sync, authentication, or import
 durability was integration-tested. Existing asynchronous saves, remote snapshots,
 and whole-document overwrite races remain. A synchronous failure after a write
 starts cannot guarantee storage rollback; only memory is restored. The existing
-post-import routing function and its known side effects are unchanged. Unsafe
+post-import routing function and its known side effects are unchanged: a missing
+category route may create a category and invoke persist inside routing after
+confirmation. Therefore rendering before the explicit import save is not a
+transactional guarantee against every existing route side effect. Rendering
+exceptions caught and handled internally by routing remain its existing behavior.
+Unsafe
 rendering of imported content remains a separate existing security task.
 
 Application edits are limited to import handling and its two validation/preview

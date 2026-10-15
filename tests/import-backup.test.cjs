@@ -100,7 +100,7 @@ test('cancelling final confirmation preserves state and performs no persistence'
 test('both confirmation stages precede replacement and the original persist entry point', () => {
   const current = currentLibrary();
   const result = runImport(current, JSON.stringify(duplicateLibrary()));
-  assert.deepEqual(result.trace.map(step => step.action), ['read', 'confirm', 'confirm', 'persist', 'route']);
+  assert.deepEqual(result.trace.map(step => step.action), ['read', 'confirm', 'confirm', 'route', 'persist']);
   for (const step of result.trace.filter(step => step.action === 'confirm')) assert.deepEqual(step.db, current);
 });
 
@@ -125,7 +125,8 @@ test('export startup failure stops import without replacement or persistence', (
 test('synchronous defaults failure restores previous in-memory state before persistence', () => {
   const current = currentLibrary();
   const result = runImport(current, JSON.stringify(duplicateLibrary()), { failDefaults: true });
-  unchanged(result, current);
+  assert.deepEqual(result.db, current);
+  assert.equal(result.persistCalls, 0);
   assert.match(result.alerts[0], /återställts i minnet/);
 });
 
@@ -134,7 +135,7 @@ test('synchronous persist failure restores memory without claiming storage rollb
   const result = runImport(current, JSON.stringify(duplicateLibrary()), { failPersist: true });
   assert.deepEqual(result.db, current);
   assert.equal(result.persistCalls, 1);
-  assert.equal(result.routed, 0);
+  assert.equal(result.routed, 2);
   assert.match(result.alerts[0], /påbörjade sparningar kan inte garanteras återställda/);
 });
 
@@ -151,4 +152,68 @@ test('file read errors and aborts leave library unchanged', () => {
 test('isolation excludes production APIs, node access and real browser storage', () => {
   const result = runImport(currentLibrary(), JSON.stringify(duplicateLibrary()));
   assert.deepEqual(result.isolation, Array(7).fill('undefined'));
+});
+
+test('numeric object name rejects before any confirmation, render or persistence', () => {
+  const current = currentLibrary();
+  const result = runImport(current, JSON.stringify({ objects: [{ id: 'synthetic-malformed', name: 7 }] }));
+  unchanged(result, current);
+  assert.deepEqual(result.prompts, []);
+  assert.match(result.alerts[0], /objects\[0\]\.name/);
+});
+
+test('incompatible known fields used by ordinary consumers reject with paths and no writes', () => {
+  const invalidLibraries = [
+    { objects: [{ desc: 7 }] },
+    { objects: [{ props: [] }] },
+    { objects: [{ taxonomies: 'wrong' }] },
+    ...['Swedish Name', 'English Name', 'Botanical Name'].map(key => ({ objects: [{ taxonomies: { [key]: 7 } }] })),
+    { objects: [{ nativeSystems: {} }] },
+    { objects: [], studyObjects: [{ name: 7 }] },
+    { objects: [], studyObjects: [{ name: 'Synthetic', systems: 'wrong' }] },
+    { objects: [], properties: { Synthetic: { summary: 7 } } },
+    { objects: [], properties: { Synthetic: { related: 'wrong' } } },
+    { objects: [], categories: { Synthetic: { subcategories: 'wrong' } } },
+    { objects: [], systems: { Synthetic: { categories: [7] } } },
+    { objects: [], sources: [{ title: 7 }] },
+    { objects: [], sources: [{ title: 'Synthetic', tags: [null] }] },
+    { objects: [], sources: [{ title: 'Synthetic', tags: [{ type: 7 }] }] },
+    { objects: [], trash: [{ type: 'object', data: null }] },
+    { objects: [], trash: [{ type: 'object', data: { name: 7 } }] },
+  ];
+  const current = currentLibrary();
+  for (const library of invalidLibraries) {
+    const result = runImport(current, JSON.stringify(library));
+    unchanged(result, current);
+    assert.deepEqual(result.prompts, []);
+    assert.match(result.alerts[0], /Ogiltigt bibliotek: .*förväntar/);
+  }
+});
+
+test('missing optional fields, supported nulls and arbitrary unknown metadata survive actual rendering', () => {
+  const incoming = { objects: [{ id: 'synthetic-optional', desc: null, props: null, taxonomies: { extra: { arbitrary: true } } }], extra: [7, null] };
+  const result = runImport(currentLibrary(), JSON.stringify(incoming));
+  assert.deepEqual(result.db.objects, incoming.objects);
+  assert.deepEqual(result.db.extra, incoming.extra);
+  assert.equal(result.persistCalls, 1);
+  assert.match(result.renderedHTML, /synthetic-optional/);
+});
+
+test('actual getDisplayObjName and renderIndexPage render both duplicate records', () => {
+  const result = runImport(currentLibrary(), JSON.stringify(duplicateLibrary()));
+  assert.match(result.renderedHTML, /herb\/synthetic-first/);
+  assert.match(result.renderedHTML, /herb\/synthetic-second/);
+  assert.equal(result.persistCalls, 1);
+});
+
+test('synchronous rendering failure restores memory and UI without success or persistence', () => {
+  const current = currentLibrary();
+  const result = runImport(current, JSON.stringify(duplicateLibrary()), { failRender: true });
+  assert.deepEqual(result.db, current);
+  assert.equal(result.persistCalls, 0);
+  assert.equal(result.routed, 2);
+  assert.match(result.renderedHTML, /Current synthetic record/);
+  assert.equal(result.alerts.length, 1);
+  assert.match(result.alerts[0], /misslyckades/);
+  assert.doesNotMatch(result.alerts[0], /har ersatts/);
 });

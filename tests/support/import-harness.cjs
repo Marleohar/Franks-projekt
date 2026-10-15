@@ -14,7 +14,8 @@ function extract(pattern, name) {
 const declarations = [
   extract(/^let db = \{[\s\S]*?^\};/gm, 'db'),
   ...['deduplicateAndSanitizeDB', 'ensureDbStructure', 'validateImportLibrary',
-    'summarizeImportLibrary', 'downloadBackupFile', 'importBackupFile'].map(name =>
+    'summarizeImportLibrary', 'downloadBackupFile', 'importBackupFile',
+    'getDisplayObjName', 'getPropKeys', 'renderIndexPage'].map(name =>
     extract(new RegExp(`^function ${name}\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}`, 'gm'), name)),
 ].join('\n');
 
@@ -35,6 +36,12 @@ function runImport(current, text, options = {}) {
     let persistCalls = 0;
     let routed = 0;
     let blobValue;
+    const currentLang = 'sv';
+    const indexViewMode = 'alpha';
+    const indexNameDisplayMode = 'auto';
+    const herbSwedishDictionary = {};
+    const t = key => key;
+    const app = { innerHTML: '' };
     const confirm = message => {
       trace.push({ action: 'confirm', db: JSON.parse(JSON.stringify(db)) });
       prompts.push(message);
@@ -48,13 +55,18 @@ function runImport(current, text, options = {}) {
       if (input.options.failPersist) throw new Error('Synthetic persistence failure');
       persisted = JSON.parse(JSON.stringify(db));
     }
-    function handleRouting() { routed++; trace.push({ action: 'route' }); }
+    function handleRouting() {
+      routed++;
+      trace.push({ action: 'route' });
+      renderIndexPage();
+      if (input.options.failRender && routed === 1) throw new Error('Synthetic render failure');
+    }
     class Blob { constructor(parts) { this.text = parts.join(''); } }
     const URL = {
       createObjectURL(blob) { blobValue = blob.text; return 'synthetic:download'; },
       revokeObjectURL() {}
     };
-    const document = { createElement() { return { click() {
+    const document = { getElementById() { return app; }, createElement() { return { click() {
       trace.push({ action: 'export' });
       if (input.options.failExport) throw new Error('Synthetic export failure');
       downloads.push(JSON.parse(blobValue));
@@ -79,7 +91,7 @@ function runImport(current, text, options = {}) {
     const target = { files: [file], value: 'synthetic-selected-file' };
     importBackupFile({ target });
     JSON.stringify({ db, persisted, persistCalls, routed, trace, alerts, prompts, downloads,
-      uploadedText: file.text, inputValue: target.value,
+      uploadedText: file.text, inputValue: target.value, renderedHTML: app.innerHTML,
       isolation: [typeof fetch, typeof firebase, typeof require, typeof process,
         typeof XMLHttpRequest, typeof WebSocket, typeof localStorage] });
   `, { filename: 'isolated-actual-import.js' });
