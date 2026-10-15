@@ -827,7 +827,7 @@ window.addEventListener("DOMContentLoaded", () => {
   handleRouting();
 });
 
-function handleRouting() {
+function handleRouting(propagateErrors = false) {
   const hash = window.location.hash.slice(1) || "index";
   const [route, id] = hash.split("/");
   window.scrollTo(0, 0);
@@ -845,6 +845,8 @@ function handleRouting() {
     else if (route === "trash") renderTrashPage();
     else renderIndexPage();
   } catch(err) {
+    // Only an explicit boolean opts in; browser event objects keep fallback behavior.
+    if (propagateErrors === true) throw err;
     renderIndexPage();
   }
 }
@@ -2154,25 +2156,144 @@ function downloadBackupFile() {
   URL.revokeObjectURL(url);
 }
 
+function validateImportLibrary(data) {
+  const isRecord = value => value !== null && typeof value === "object" && !Array.isArray(value);
+  const invalid = (path, expected) => { throw new Error(`${path}: förväntar ${expected}.`); };
+  const text = (record, key, path, required = false) => {
+    const value = record[key];
+    if ((!required && (value === undefined || value === null)) || typeof value === "string") return;
+    invalid(`${path}.${key}`, "text");
+  };
+  const list = (record, key, path) => {
+    const value = record[key];
+    if (value === undefined || value === null) return;
+    if (!Array.isArray(value) || !value.every(item => typeof item === "string")) invalid(`${path}.${key}`, "en lista med text");
+  };
+  const objectFields = (record, path, study = false) => {
+    text(record, "name", path, study);
+    text(record, "desc", path);
+    for (const key of ["props", "taxonomies"]) {
+      if (record[key] != null && !isRecord(record[key])) invalid(`${path}.${key}`, "ett objekt");
+    }
+    if (record.taxonomies) {
+      for (const key of ["Swedish Name", "English Name", "Botanical Name"]) text(record.taxonomies, key, `${path}.taxonomies`);
+    }
+    list(record, "nativeSystems", path);
+    if (study) { list(record, "systems", path); text(record, "system", path); }
+  };
+  const propertyFields = (record, path) => {
+    for (const key of ["desc", "summary", "category", "subcategory"]) text(record, key, path);
+    list(record, "related", path);
+  };
+  const categoryFields = (record, path) => {
+    text(record, "desc", path);
+    text(record, "system", path);
+    list(record, "subcategories", path);
+  };
+  if (!isRecord(data) || !Array.isArray(data.objects)) invalid("objects", "en lista i ett biblioteksobjekt");
+  for (const key of ["objects", "studyObjects", "sources", "trash"]) {
+    if (Object.hasOwn(data, key) && (!Array.isArray(data[key]) || !data[key].every(isRecord))) invalid(key, "en lista med poster");
+  }
+  for (const key of ["categories", "properties", "systems", "formulas"]) {
+    if (Object.hasOwn(data, key) && (!isRecord(data[key]) || !Object.values(data[key]).every(isRecord))) invalid(key, "ett objekt med namngivna poster");
+  }
+  // Known consumers call string/array methods on these fields. Missing optional
+  // legacy fields and unknown metadata are retained; no coercion or cleanup.
+  if (Object.hasOwn(data, "systemOrder") && (!Array.isArray(data.systemOrder) || !data.systemOrder.every(name => typeof name === "string"))) invalid("systemOrder", "en lista med text");
+  data.objects.forEach((record, index) => objectFields(record, `objects[${index}]`));
+  (data.studyObjects || []).forEach((record, index) => objectFields(record, `studyObjects[${index}]`, true));
+  Object.entries(data.properties || {}).forEach(([key, record]) => propertyFields(record, `properties[${JSON.stringify(key)}]`));
+  Object.entries(data.categories || {}).forEach(([key, record]) => categoryFields(record, `categories[${JSON.stringify(key)}]`));
+  Object.entries(data.systems || {}).forEach(([key, record]) => {
+    const path = `systems[${JSON.stringify(key)}]`;
+    text(record, "desc", path);
+    list(record, "categories", path);
+  });
+  (data.sources || []).forEach((record, index) => {
+    const path = `sources[${index}]`;
+    text(record, "title", path, true);
+    if (record.tags != null) {
+      if (!Array.isArray(record.tags) || !record.tags.every(isRecord)) invalid(`${path}.tags`, "en lista med poster");
+      record.tags.forEach((tag, tagIndex) => {
+        text(tag, "type", `${path}.tags[${tagIndex}]`);
+        text(tag, "id", `${path}.tags[${tagIndex}]`);
+      });
+    }
+  });
+  (data.trash || []).forEach((record, index) => {
+    const path = `trash[${index}].data`;
+    if (["object", "property", "category"].includes(record.type)) {
+      if (!isRecord(record.data)) invalid(path, "en post för återställning");
+      if (record.type === "object") objectFields(record.data, path);
+      if (record.type === "property") propertyFields(record.data, path);
+      if (record.type === "category") categoryFields(record.data, path);
+    }
+  });
+}
+
+function summarizeImportLibrary(data) {
+  const labels = { categories: "kategorier", properties: "egenskaper", systems: "system", studyObjects: "studieobjekt", sources: "källor", formulas: "formler", trash: "papperskorg" };
+  const populated = Object.entries(labels).map(([key, label]) => {
+    const collection = data[key];
+    const count = collection && typeof collection === "object" ? Object.keys(collection).length : 0;
+    return count ? `${label}: ${count}` : "";
+  }).filter(Boolean);
+  return populated.join(", ") || "inga andra fyllda samlingar";
+}
+
 function importBackupFile(e) {
   const file = e.target.files[0];
   if (!file) return;
+  e.target.value = "";
   const reader = new FileReader();
+  reader.onerror = () => alert("Filen kunde inte läsas. Biblioteket har inte ändrats.");
+  reader.onabort = () => alert("Filläsningen avbröts. Biblioteket har inte ändrats.");
   reader.onload = (event) => {
+    let parsed;
     try {
-      const parsed = JSON.parse(event.target.result);
-      if (parsed && Array.isArray(parsed.objects)) {
-        db = deduplicateAndSanitizeDB(parsed);
-        ensureDbStructure();
-        persist();
-        alert("Biblioteket importerat!");
-        handleRouting();
-      }
-    } catch(err) {
-      alert("Fel vid läsning av fil.");
+      parsed = JSON.parse(event.target.result);
+    } catch (err) {
+      alert("Ogiltig JSON. Biblioteket har inte ändrats.");
+      return;
     }
+    try {
+      validateImportLibrary(parsed);
+    } catch (err) {
+      alert(`Ogiltigt bibliotek: ${err.message} Biblioteket har inte ändrats.`);
+      return;
+    }
+
+    if (confirm("Spara en säkerhetskopia av det nuvarande biblioteket före ersättning. OK startar Exportera JSON; Avbryt hoppar över exporten och går till bekräftelsen. Vill du exportera nu?")) {
+      try {
+        downloadBackupFile();
+      } catch (err) {
+        alert("Exporten kunde inte startas. Importen avbröts; biblioteket har inte ändrats.");
+        return;
+      }
+    }
+    const preview = `Filen: ${file.name}\nImporten ERSÄTTER hela det inlästa biblioteket; innehållet slås inte ihop.\nObjekt nu: ${db.objects.length}; i filen: ${parsed.objects.length}.\nÖvrigt nu: ${summarizeImportLibrary(db)}.\nÖvrigt i filen: ${summarizeImportLibrary(parsed)}.\nOsparade eller osynkroniserade ändringar kan gå förlorade.\nSpara säkerhetskopian innan du fortsätter. En startad nedladdning betyder inte att filen har sparats; detta kan inte verifieras här.\nOK ersätter biblioteket. Avbryt behåller det nuvarande biblioteket.`;
+    if (!confirm(preview)) return;
+
+    // Retain the previous library untouched; defaults are applied only to incoming data.
+    const previousDb = db;
+    try {
+      db = deduplicateAndSanitizeDB(parsed);
+      ensureDbStructure();
+      handleRouting(true);
+      persist();
+    } catch (err) {
+      db = previousDb;
+      try { handleRouting(); } catch (renderError) {}
+      alert("Importen misslyckades. Det tidigare biblioteket har återställts i minnet. Eventuella redan påbörjade sparningar kan inte garanteras återställda.");
+      return;
+    }
+    alert("Biblioteket har ersatts i minnet och den vanliga sparrutinen har anropats. Molnsparning är inte bekräftad.");
   };
-  reader.readAsText(file);
+  try {
+    reader.readAsText(file);
+  } catch (err) {
+    alert("Filen kunde inte läsas. Biblioteket har inte ändrats.");
+  }
 }
 </script>
 
