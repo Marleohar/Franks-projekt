@@ -5,59 +5,60 @@ const assert = require('node:assert/strict');
 const { createHarness } = require('./support/legacy-harness.cjs');
 const { duplicateLibrary, emptyObjectLibrary, firstDescription, secondDescription } = require('./fixtures/legacy-libraries.cjs');
 
-test('characterization: normalized duplicate names discard the second ID', () => {
+test('preservation: retain both IDs and original names even when normalized names match', () => {
   const fixture = duplicateLibrary();
-  assert.equal(fixture.objects.length, 2);
   const result = createHarness().deduplicate(fixture);
-  assert.equal(result.objects.length, 1);
-  assert.deepEqual(result.objects.map(object => object.id), ['synthetic-first']);
-  assert.equal(result.objects[0].name, '  Sample Leaf ');
+  assert.deepEqual(result.objects.map(object => object.id), ['synthetic-first', 'synthetic-second']);
+  assert.deepEqual(result.objects.map(object => object.name), ['  Sample Leaf ', 'sample LEAF']);
+  assert.deepEqual(result, fixture);
 });
 
-test('characterization: duplicate description and metadata disappear; taxonomy merges selectively', () => {
+test('preservation: retain all descriptions, metadata, and unknown fields without truncation', () => {
   assert.ok(firstDescription.length > 280);
   assert.ok(secondDescription.length > 280);
-  const result = createHarness().deduplicate(duplicateLibrary());
-  const survivor = result.objects[0];
-  assert.equal(survivor.desc, firstDescription);
-  assert.notEqual(survivor.desc, secondDescription);
-  assert.deepEqual(survivor.nativeSystems, ['system-first']);
-  assert.deepEqual(survivor.unknownObjectField, { origin: 'first' });
-  assert.equal(Object.hasOwn(survivor, 'secondOnlyMetadata'), false);
-  assert.deepEqual(survivor.taxonomies, { language: 'first', extra: 'retained taxonomy' });
-  assert.deepEqual(result.unknownLibraryField, duplicateLibrary().unknownLibraryField);
-});
-
-test('characterization: false properties from duplicate records become true', () => {
   const fixture = duplicateLibrary();
-  assert.equal(fixture.objects[0].props.shared, false);
-  assert.equal(fixture.objects[1].props.shared, false);
-  assert.equal(fixture.objects[1].props.secondOnly, false);
-  const survivor = createHarness().deduplicate(fixture).objects[0];
-  assert.deepEqual(survivor.props, { shared: true, secondOnly: true });
+  assert.deepEqual(createHarness().deduplicate(fixture), fixture);
+  const { db } = createHarness().recover(fixture);
+  assert.deepEqual(db.objects, fixture.objects);
+  assert.deepEqual(db.unknownLibraryField, fixture.unknownLibraryField);
 });
 
-test('characterization: actual local recovery also invokes destructive deduplication', () => {
-  const { db, storageReads } = createHarness().recover(duplicateLibrary());
-  assert.deepEqual(storageReads, ['taxonomy_ide_master_db']);
-  assert.equal(db.objects.length, 1);
-  assert.equal(db.objects[0].id, 'synthetic-first');
-  assert.equal(db.objects[0].props.shared, true);
+test('preservation: never turn false properties into true during recovery', () => {
+  const fixture = duplicateLibrary();
+  for (const result of [createHarness().deduplicate(fixture), createHarness().recover(fixture).db]) {
+    assert.deepEqual(result.objects[0].props, { shared: false });
+    assert.deepEqual(result.objects[1].props, { shared: false, secondOnly: false });
+  }
 });
 
-test('characterization: zero-object local library ignores every populated collection', () => {
+test('preservation: recover populated collections when objects is empty', () => {
   const fixture = emptyObjectLibrary();
   const { db, storageReads } = createHarness().recover(fixture);
   assert.deepEqual(storageReads, ['taxonomy_ide_master_db']);
-  assert.deepEqual(db.objects, []);
-  for (const key of ['categories', 'properties', 'studyObjects', 'sources', 'formulas', 'trash']) {
-    assert.ok(Object.keys(fixture[key]).length > 0, `${key} fixture must be populated`);
-    assert.deepEqual(db[key], Array.isArray(fixture[key]) ? [] : {}, `${key} was not recovered`);
+  for (const key of Object.keys(fixture)) {
+    if (key === 'systems' || key === 'systemOrder') continue;
+    assert.deepEqual(db[key], fixture[key], `${key} must survive intact`);
   }
-  assert.equal(Object.hasOwn(db.systems, 'Synthetic System'), false);
-  assert.deepEqual(db.systemOrder, ['Ospecifierade kategorier']);
-  assert.equal(Object.hasOwn(db, 'unknownLibraryField'), false);
-  // The recovery function reads storage but does not write the stored snapshot.
+  for (const [name, system] of Object.entries(fixture.systems)) {
+    assert.deepEqual(db.systems[name], system);
+  }
+  // Existing ensureDbStructure behavior appends its fallback system; unchanged.
+  assert.deepEqual(db.systemOrder, [...fixture.systemOrder, 'Ospecifierade kategorier']);
+  assert.deepEqual(db.systems['Ospecifierade kategorier'], {
+    desc: 'Kategorier som saknar skola.', categories: []
+  });
+});
+
+test('preservation: repeated recovery never progressively changes or removes records', () => {
+  for (const fixture of [duplicateLibrary(), emptyObjectLibrary()]) {
+    const harness = createHarness();
+    const first = harness.recover(fixture).db;
+    let recovered = first;
+    for (let iteration = 0; iteration < 5; iteration++) {
+      recovered = harness.recover(recovered).db;
+      assert.deepEqual(recovered, first);
+    }
+  }
 });
 
 test('control: distinct normalized names retain long text and unknown fields', () => {
@@ -68,15 +69,21 @@ test('control: distinct normalized names retain long text and unknown fields', (
   assert.deepEqual(db.unknownLibraryField, fixture.unknownLibraryField);
 });
 
+test('preservation: identical names also remain separate records', () => {
+  const fixture = duplicateLibrary();
+  fixture.objects[1].name = fixture.objects[0].name;
+  assert.deepEqual(createHarness().recover(fixture).db.objects, fixture.objects);
+});
+
+test('control: malformed non-array objects do not replace valid recovered state', () => {
+  const harness = createHarness();
+  const first = harness.recover(duplicateLibrary()).db;
+  assert.deepEqual(harness.recover({ objects: {}, unknownLibraryField: 'invalid' }).db, first);
+});
+
 test('isolation: extracted code has no service APIs or writable browser storage', () => {
   const isolation = createHarness().isolation();
   assert.deepEqual(isolation.unavailable, Array(9).fill('undefined'));
   assert.deepEqual(isolation.storageMethods, ['getItem']);
   assert.equal(isolation.dynamicCodeBlocked, true);
 });
-
-// Acceptance cases for later fixes. Passing characterization is NOT preservation.
-test.todo('preservation: retain both IDs even when normalized names match');
-test.todo('preservation: retain all descriptions, metadata, and unknown fields without truncation');
-test.todo('preservation: never turn false properties into true during recovery');
-test.todo('preservation: recover populated collections when objects is empty');
