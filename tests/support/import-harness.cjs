@@ -15,7 +15,8 @@ const declarations = [
   extract(/^let db = \{[\s\S]*?^\};/gm, 'db'),
   ...['deduplicateAndSanitizeDB', 'ensureDbStructure', 'validateImportLibrary',
     'summarizeImportLibrary', 'downloadBackupFile', 'importBackupFile',
-    'getDisplayObjName', 'getPropKeys', 'renderIndexPage'].map(name =>
+    'getDisplayObjName', 'getPropKeys', 'hasProp', 'renderIndexPage',
+    'handleRouting', 'renderCategoryPage'].map(name =>
     extract(new RegExp(`^function ${name}\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}`, 'gm'), name)),
 ].join('\n');
 
@@ -35,6 +36,8 @@ function runImport(current, text, options = {}) {
     let persisted = null;
     let persistCalls = 0;
     let routed = 0;
+    let routeFailure = null;
+    let renderCalls = 0;
     let blobValue;
     const currentLang = 'sv';
     const indexViewMode = 'alpha';
@@ -42,6 +45,7 @@ function runImport(current, text, options = {}) {
     const herbSwedishDictionary = {};
     const t = key => key;
     const app = { innerHTML: '' };
+    const window = { location: { hash: input.options.route || '#index' }, scrollTo() {} };
     const confirm = message => {
       trace.push({ action: 'confirm', db: JSON.parse(JSON.stringify(db)) });
       prompts.push(message);
@@ -54,12 +58,6 @@ function runImport(current, text, options = {}) {
       persistCalls++;
       if (input.options.failPersist) throw new Error('Synthetic persistence failure');
       persisted = JSON.parse(JSON.stringify(db));
-    }
-    function handleRouting() {
-      routed++;
-      trace.push({ action: 'route' });
-      renderIndexPage();
-      if (input.options.failRender && routed === 1) throw new Error('Synthetic render failure');
     }
     class Blob { constructor(parts) { this.text = parts.join(''); } }
     const URL = {
@@ -82,6 +80,19 @@ function runImport(current, text, options = {}) {
     }
     ${declarations}
     db = input.current;
+    // Instrument calls while retaining the real router's dispatch/catch behavior.
+    const actualRouting = handleRouting;
+    handleRouting = function(mode) {
+      routed++;
+      trace.push({ action: 'route' });
+      return actualRouting(mode);
+    };
+    const actualIndex = renderIndexPage;
+    renderIndexPage = function() {
+      renderCalls++;
+      if (input.options.failRender && renderCalls === 1) throw new Error('Synthetic render failure');
+      return actualIndex();
+    };
     const normalDefaults = ensureDbStructure;
     ensureDbStructure = function() {
       normalDefaults();
@@ -89,9 +100,17 @@ function runImport(current, text, options = {}) {
     };
     const file = { name: input.options.fileName || 'synthetic-backup.json', text: input.text };
     const target = { files: [file], value: 'synthetic-selected-file' };
-    importBackupFile({ target });
+    if (input.options.navigationOnly || input.options.directCategory) {
+      try {
+        if (input.options.directCategory) renderCategoryPage('C');
+        else if (input.options.navigationArgument === 'event') handleRouting({ type: 'hashchange', isTrusted: true });
+        else if (input.options.navigationArgument === 'dom-event') handleRouting({ type: 'DOMContentLoaded', propagateErrors: true });
+        else if (input.options.navigationArgument === 'truthy') handleRouting('true');
+        else handleRouting(input.options.navigationArgument === 'strict' ? true : undefined);
+      } catch (error) { routeFailure = { name: error.name, message: error.message }; }
+    } else importBackupFile({ target });
     JSON.stringify({ db, persisted, persistCalls, routed, trace, alerts, prompts, downloads,
-      uploadedText: file.text, inputValue: target.value, renderedHTML: app.innerHTML,
+      uploadedText: file.text, inputValue: target.value, renderedHTML: app.innerHTML, routeFailure,
       isolation: [typeof fetch, typeof firebase, typeof require, typeof process,
         typeof XMLHttpRequest, typeof WebSocket, typeof localStorage] });
   `, { filename: 'isolated-actual-import.js' });

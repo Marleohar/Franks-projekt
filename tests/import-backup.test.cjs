@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { runImport } = require('./support/import-harness.cjs');
 const { duplicateLibrary, emptyObjectLibrary } = require('./fixtures/legacy-libraries.cjs');
+const { previousCategoryLibrary, categoryFailureLibrary } = require('./fixtures/routing-libraries.cjs');
 
 function currentLibrary() {
   const current = duplicateLibrary();
@@ -216,4 +217,61 @@ test('synchronous rendering failure restores memory and UI without success or pe
   assert.equal(result.alerts.length, 1);
   assert.match(result.alerts[0], /misslyckades/);
   assert.doesNotMatch(result.alerts[0], /har ersatts/);
+});
+
+test('actual category renderer reproduces constructor grouping defect without changing the name', () => {
+  const incoming = categoryFailureLibrary();
+  const result = runImport(incoming, '', { directCategory: true });
+  assert.equal(result.routeFailure.name, 'TypeError');
+  assert.match(result.routeFailure.message, /push is not a function/);
+  assert.deepEqual(result.db, incoming);
+  assert.equal(result.persistCalls, 0);
+});
+
+test('actual strict router propagates category errors instead of hiding them', () => {
+  const result = runImport(categoryFailureLibrary(), '', {
+    navigationOnly: true, route: '#category/C', navigationArgument: 'strict'
+  });
+  assert.equal(result.routeFailure.name, 'TypeError');
+  assert.equal(result.persistCalls, 0);
+  assert.equal(result.renderedHTML, '');
+});
+
+test('category-route import failure restores previous library and UI with no save or success', () => {
+  const previous = previousCategoryLibrary();
+  const incoming = categoryFailureLibrary();
+  const result = runImport(previous, JSON.stringify(incoming), { route: '#category/C' });
+  assert.deepEqual(result.db, previous);
+  assert.equal(result.persistCalls, 0);
+  assert.equal(result.persisted, null);
+  assert.equal(result.routed, 2);
+  assert.match(result.renderedHTML, /Previous synthetic category/);
+  assert.equal(result.prompts.length, 2); // Accepted for rendering; name not rejected.
+  assert.equal(result.alerts.length, 1);
+  assert.match(result.alerts[0], /misslyckades/);
+  assert.doesNotMatch(result.alerts[0], /har ersatts/);
+  assert.equal(incoming.properties.P.subcategory, 'constructor');
+});
+
+test('normal navigation and browser event arguments retain category-error fallback', () => {
+  for (const navigationArgument of [undefined, 'event', 'dom-event', 'truthy']) {
+    const incoming = categoryFailureLibrary();
+    const result = runImport(incoming, '', { navigationOnly: true, route: '#category/C', navigationArgument });
+    assert.equal(result.routeFailure, null);
+    assert.equal(result.persistCalls, 0);
+    assert.match(result.renderedHTML, /indexTitle/);
+    assert.deepEqual(result.db, incoming);
+  }
+});
+
+test('constructor names and metadata remain valid when the selected page renders', () => {
+  const incoming = categoryFailureLibrary();
+  incoming.objects = [{ id: 'synthetic-constructor', name: 'constructor', unknown: { preserve: true } }];
+  incoming.categories.Valid = { subcategories: [] };
+  // The legacy display-name dictionary also has inherited keys; use a valid
+  // category route that does not invoke that unrelated object-name lookup.
+  const result = runImport(currentLibrary(), JSON.stringify(incoming), { route: '#category/Valid' });
+  assert.equal(result.persistCalls, 1);
+  assert.deepEqual(result.db.objects, incoming.objects);
+  assert.deepEqual(result.db.properties, incoming.properties);
 });

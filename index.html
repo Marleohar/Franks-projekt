@@ -827,7 +827,7 @@ window.addEventListener("DOMContentLoaded", () => {
   handleRouting();
 });
 
-function handleRouting() {
+function handleRouting(propagateErrors = false) {
   const hash = window.location.hash.slice(1) || "index";
   const [route, id] = hash.split("/");
   window.scrollTo(0, 0);
@@ -845,6 +845,8 @@ function handleRouting() {
     else if (route === "trash") renderTrashPage();
     else renderIndexPage();
   } catch(err) {
+    // Only an explicit boolean opts in; browser event objects keep fallback behavior.
+    if (propagateErrors === true) throw err;
     renderIndexPage();
   }
 }
@@ -2277,7 +2279,7 @@ function importBackupFile(e) {
     try {
       db = deduplicateAndSanitizeDB(parsed);
       ensureDbStructure();
-      handleRouting();
+      handleRouting(true);
       persist();
     } catch (err) {
       db = previousDb;

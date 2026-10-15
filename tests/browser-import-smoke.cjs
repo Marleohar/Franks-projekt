@@ -8,6 +8,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const { duplicateLibrary } = require('./fixtures/legacy-libraries.cjs');
+const { previousCategoryLibrary, categoryFailureLibrary } = require('./fixtures/routing-libraries.cjs');
 
 async function main() {
   let html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
@@ -114,12 +115,35 @@ async function main() {
     await page.waitForURL('**/#herb/synthetic-first');
     assert.ok((await page.locator('#wiki-app').innerText()).includes('Sample Leaf'));
     assert.ok((await page.evaluate(() => window.qaConfirmStates)).every(state => state.calls === 0 && state.writes === 0));
+    // Existing C in BOTH libraries avoids the unrelated auto-create-and-save
+    // behavior of visiting a category absent from the current library.
+    await page.evaluate(previous => {
+      db = previous;
+      ensureDbStructure();
+      window.location.hash = '#category/C';
+      handleRouting();
+    }, previousCategoryLibrary());
+    await page.waitForURL('**/#category/C');
+    await page.waitForFunction(() => document.getElementById('wiki-app').innerText.includes('Previous synthetic category'));
+    const categoryBefore = await page.evaluate(() => JSON.stringify(db));
+    const writesBeforeFailure = await page.evaluate(() => ({ calls: window.qaPersistCalls, writes: window.qaWrites.length }));
+    await select(categoryFailureLibrary(), [false, true], 'synthetic-category-failure.json');
+    assert.equal(await page.evaluate(() => JSON.stringify(db)), categoryBefore);
+    assert.deepEqual(await page.evaluate(() => ({ calls: window.qaPersistCalls, writes: window.qaWrites.length })), writesBeforeFailure);
+    assert.match(dialogs.at(-1).message, /misslyckades/);
+    assert.doesNotMatch(dialogs.at(-1).message, /har ersatts/);
+    assert.ok((await page.locator('#wiki-app').innerText()).includes('Previous synthetic category'));
+    // Normal navigation still falls back for the very same failing category.
+    await page.evaluate(incoming => { db = incoming; ensureDbStructure(); }, categoryFailureLibrary());
+    await page.evaluate(() => window.dispatchEvent(new HashChangeEvent('hashchange')));
+    assert.ok((await page.locator('#wiki-app').innerText()).includes('Alfabetisk'));
+    assert.deepEqual(await page.evaluate(() => ({ calls: window.qaPersistCalls, writes: window.qaWrites.length })), writesBeforeFailure);
     assert.deepEqual(await page.evaluate(() => ({ firebase: typeof firebase, ready: isCloudReady, db: firestoreDb })), { firebase: 'undefined', ready: false, db: null });
     assert.deepEqual(errors, []);
     assert.deepEqual(externalRequests, []);
     await page.screenshot({ path: path.join(tempDir, 'synthetic-import-result.png'), fullPage: true });
     console.log(JSON.stringify({ status: 'PASS', browser: await browser.version(), executablePath,
-      syntheticScenarios: ['numeric-name rejection', 'backup export and cancellation', 'same-file reselection', 'confirmed import', 'index and object rendering'],
+      syntheticScenarios: ['numeric-name rejection', 'backup export and cancellation', 'same-file reselection', 'confirmed import', 'index and object rendering', 'actual category-route failure rollback', 'normal hashchange fallback'],
       persistCalls: 1, libraryStorageWrites: 1, uncaughtErrors: errors, externalRequests,
       isolation: 'loopback only; stripped SDK/config/init; CSP connect-src none; blocked egress proxy; new browser context; service workers blocked',
       disposableCopy: tempDir, screenshot: path.join(tempDir, 'synthetic-import-result.png') }, null, 2));

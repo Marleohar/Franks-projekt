@@ -40,13 +40,23 @@ default was `C:/Program Files/Google/Chrome/Application/chrome.exe`.
    imported object page with its long description.
 4. All confirmation-time snapshots show zero save calls/writes. Exactly one save
    call and one isolated localStorage write occur after final approval.
-5. **Zero uncaught page errors. Zero external page requests.** The original local
+5. A synthetic previous library already contains category C; the current route
+   is `#category/C`. Importing the failing `constructor` subcategory fixture
+   produces only the failure message, restores exact previous library data and
+   category UI, and adds zero persistence calls or storage writes. Both fixtures
+   contain C, avoiding the unrelated missing-category auto-save path.
+6. Dispatching a real `HashChangeEvent` against the same failing fixture retains
+   normal index fallback without uncaught errors or extra writes. The Node suite
+   independently verifies explicit strict routing propagates the actual error.
+7. **Zero uncaught page errors. Zero external page requests.** The original local
    persistence pathway executes only in the disposable origin; cloud is disabled.
 
 Evidence output directory for the final run:
-`C:\Users\veija\AppData\Local\Temp\franks-import-browser-qWH4ff`.
+`C:\Users\veija\AppData\Local\Temp\franks-import-browser-hPapbG`.
 It contains the sanitized disposable HTML and `synthetic-import-result.png`.
-The screenshot was inspected and shows the synthetic object and long description.
+The final screenshot records the normal fallback index after the category-error
+scenario; successful object rendering and restored category UI are asserted
+earlier in the same run.
 Artifacts are local and disposable, contain no real library data, and are not
 committed. Re-running creates a new directory. An initial direct loopback attempt
 was blocked by the dead proxy; the final script fulfills HTML in interception and

@@ -52,10 +52,10 @@ node --test tests/legacy-preservation.test.cjs tests/import-backup.test.cjs
 node --permission --allow-fs-read=. --test --test-isolation=none tests/legacy-preservation.test.cjs tests/import-backup.test.cjs
 ```
 
-Both: exit 0, **29 passed, 0 failed, 0 TODO, 0 skipped/cancelled**.
+Both: exit 0, **34 passed, 0 failed, 0 TODO, 0 skipped/cancelled**.
 
 The 9 existing preservation tests, their harness and fixtures are unchanged.
-20 import tests cover TASK 004 acceptance cases: valid/minimal/empty libraries,
+25 import tests cover TASK 004 acceptance cases: valid/minimal/empty libraries,
 malformed JSON/top levels/collection types, complete duplicate record preservation,
 long text/unknown fields, preview contents, cancellation, confirmation ordering,
 existing export execution, original `persist` entry point, synchronous defaults
@@ -63,13 +63,18 @@ and persistence rollback, export failure, file errors/abort, and isolation.
 Corrections add numeric-name rejection, a table of incompatible known fields,
 supported optional/null metadata, actual duplicate index rendering, and rendering
 failure rollback with no success message or persistence.
+The final routing correction additionally reproduces the supplied category
+failure, exercises strict propagation through the actual router, verifies import
+rollback/UI restoration with zero saves, checks normal/event/truthy-argument
+fallback, and preserves legitimate `constructor` names and unknown metadata.
 
 The new harness extracts actual import/validation/summary/default/export functions
 and the initial state from `index.html`, plus actual `getDisplayObjName`,
-`getPropKeys`, and `renderIndexPage`. It executes them in an isolated VM using
-synthetic fixtures and in-context FileReader, dialogs, download objects, a routing
-adapter that executes the actual index renderer, and a recording `persist`
-stand-in. No replacement import algorithm is maintained.
+`getPropKeys`, `hasProp`, `renderIndexPage`, `renderCategoryPage`, and
+`handleRouting`. It executes them in an isolated VM using synthetic fixtures and
+in-context FileReader, dialogs, download objects, and a recording `persist`
+stand-in. A wrapper counts router calls but delegates unchanged to the extracted
+actual router. No replacement import or routing algorithm is maintained.
 No host objects/callbacks enter the VM; dynamic compilation is disabled. Firebase,
 network APIs, Node access, and real localStorage are absent. Actual cloud/local
 persistence is deliberately not executed. Regex extraction depends on reviewed
@@ -86,13 +91,23 @@ starts cannot guarantee storage rollback; only memory is restored. The existing
 post-import routing function and its known side effects are unchanged: a missing
 category route may create a category and invoke persist inside routing after
 confirmation. Therefore rendering before the explicit import save is not a
-transactional guarantee against every existing route side effect. Rendering
-exceptions caught and handled internally by routing remain its existing behavior.
+transactional guarantee against every existing route side effect. Normal routing
+retains its existing fallback. The importer alone calls `handleRouting(true)`:
+only literal boolean true propagates caught rendering exceptions, so browser
+event objects cannot accidentally opt in. A failure is caught by the importer
+before its explicit persist/success, then old memory/UI restoration is attempted
+using normal routing. The category grouping defect itself is deliberately not
+fixed, and names such as `constructor` are not rejected or modified.
+An initial new test expecting the object name `constructor` to render on the index
+failed (33 pass, 1 fail) because the existing display-name dictionary also has
+inherited-key behavior. The fixture now uses a valid selected category route to
+test name preservation without assuming that unrelated defect is fixed; the
+application dictionary was not changed. Final results are the 34 passes above.
 Unsafe
 rendering of imported content remains a separate existing security task.
 
-Application edits are limited to import handling and its two validation/preview
-helpers. No production access, real data import, migration, credentials, manual
+Application edits are limited to import handling, its two validation/preview
+helpers, and the router's explicit error-propagation option. No production access, real data import, migration, credentials, manual
 deployment, synchronization redesign, or changes to unrelated features.
 
 GitHub Actions history shows successful `pages build and deployment` runs for
