@@ -1,7 +1,9 @@
-# TASK 002: offline legacy preservation characterization
+# Legacy preservation regression tests (TASK 003)
 
-Baseline: `main` at `feb4469c65ffd2f6c87b7ce2b3b2f63ea47a323b`.
-Application blob: `9305bf3b976bfc47f780f73825ed8ea41f98ee79`.
+TASK 003 baseline: `main` at `673bdeb7d6efe054b6b9c5d1ecbbb7ec727ea05a`,
+after approved PR #1 merged. TASK 002 baseline was
+`feb4469c65ffd2f6c87b7ce2b3b2f63ea47a323b`, with application blob
+`9305bf3b976bfc47f780f73825ed8ea41f98ee79`.
 
 ## Run
 
@@ -44,7 +46,32 @@ extractor assumes the reviewed top-level formatting (unindented closing braces),
 requires exactly one match per declaration, and must be reviewed after structural
 source changes. It is intentionally not a general JavaScript parser.
 
-## Validation report
+## TASK 003 behavior and validation
+
+`deduplicateAndSanitizeDB` now returns the supplied library unchanged. Its name
+and call sites remain compatible; duplicate cleanup is manual. Local recovery
+accepts an empty `objects` array under the same existing array-shape check.
+No schema validation redesign is introduced.
+
+The four former TODO preservation requirements are executable assertions.
+Tests compare full object records and unknown fields, both long descriptions,
+original IDs/names, false properties, every populated empty-object collection,
+and repeated recovery over five additional cycles. Identical-name and normal
+distinct-name records are covered, along with a non-array rejection control.
+
+Executed on Node.js `v24.12.0`:
+
+| Exact command | Result |
+| --- | --- |
+| `node --test tests/legacy-preservation.test.cjs` | Exit 0: 9 pass, 0 fail, 0 TODO, 0 skipped/cancelled |
+| `node --permission --allow-fs-read=. --test --test-isolation=none tests/legacy-preservation.test.cjs` | Exit 0: 9 pass, 0 fail, 0 TODO, 0 skipped/cancelled |
+
+The existing `ensureDbStructure` still adds its fallback system and missing
+defaults. Tests explicitly distinguish those existing additions from loss or
+modification of supplied records. No changes to that function are included.
+No descriptions or legacy fields are truncated or normalized by this fix.
+
+## Historical TASK 002 validation (before the fix)
 
 Executed on Node.js `v24.12.0` against the baseline above:
 
@@ -70,17 +97,15 @@ Reproduced defects:
 A control verifies that distinct names retain both long descriptions and unknown
 object/library fields through recovery. All fixtures are newly invented data.
 
-## Future preservation acceptance cases
+## Preservation requirements now enforced
 
-The four `test.todo` entries are pending requirements, not passing preservation
-tests. Passing characterization demonstrates reproducible defects, not acceptable
-application behavior. Later fixes must update the affected characterization and
-replace TODO entries with executable preservation assertions:
+TASK 002 had four explicit `test.todo` entries. TASK 003 replaces them and the
+destructive characterization assertions with executable preservation checks:
 
 - Keep distinct records and IDs even when names normalize identically; cleanup
   and object deletion must remain manual.
 - Retain every description, metadata field, and unknown field without truncation.
-  Existing long text must remain editable under grandfathered limits.
+  This recovery-only scope adds no field limits or editor changes.
 - Preserve false property values exactly; do not infer active relationships.
 - Recover all valid populated collections even when there are zero objects.
 
@@ -88,9 +113,13 @@ replace TODO entries with executable preservation assertions:
 
 No Firestore, snapshots, concurrent edits, import UI, save/unload, browser rendering,
 authentication/rules, deletion/restoration, or migration is exercised. Empty-object
-recovery demonstrates loss from in-memory recovered state, not a proven cloud
-overwrite. No claims are made about production data or historical data loss.
+recovery previously demonstrated loss from in-memory recovered state, not a proven
+cloud overwrite. No claims are made about production data or historical data loss.
 
-No application behavior or schema changes. No automatic categorization, cleanup,
-or migration. This test-only PR requires independent QA and review; do not merge
-without owner approval. TASK 003 is not started.
+Application changes are restricted to the two recovery/deduplication functions.
+Shared callers (including snapshot/import paths) now receive unmerged records,
+but their surrounding workflows are unchanged and not integration-tested.
+No automatic categorization, cleanup, or migration. Prior data already discarded
+cannot be reconstructed by this fix. Other known import, overwrite, concurrency,
+rendering, authentication, and relationship risks remain separate tasks.
+This PR requires independent QA and review; do not merge without owner approval.

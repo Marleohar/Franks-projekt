@@ -623,29 +623,7 @@ let db = {
 };
 
 function deduplicateAndSanitizeDB(data) {
-  if (!data) return data;
-  if (Array.isArray(data.objects)) {
-    const uniqueMap = new Map();
-    data.objects.forEach(obj => {
-      const cleanName = (obj.name || "").trim().toLowerCase();
-      if (!uniqueMap.has(cleanName)) {
-        uniqueMap.set(cleanName, obj);
-      } else {
-        const existing = uniqueMap.get(cleanName);
-        if (obj.props) {
-          if (!existing.props) existing.props = {};
-          Object.keys(obj.props).forEach(p => existing.props[p] = true);
-        }
-        if (obj.taxonomies) {
-          if (!existing.taxonomies) existing.taxonomies = {};
-          Object.keys(obj.taxonomies).forEach(tk => {
-            if (!existing.taxonomies[tk]) existing.taxonomies[tk] = obj.taxonomies[tk];
-          });
-        }
-      }
-    });
-    data.objects = Array.from(uniqueMap.values());
-  }
+  // Preserve every record and field; duplicate cleanup is exclusively manual.
   return data;
 }
 
@@ -656,7 +634,7 @@ function loadAndRecoverAllData() {
     if (raw) loaded = JSON.parse(raw);
   } catch(e) {}
 
-  if (loaded && Array.isArray(loaded.objects) && loaded.objects.length > 0) {
+  if (loaded && Array.isArray(loaded.objects)) {
     db = deduplicateAndSanitizeDB(loaded);
   }
   ensureDbStructure();
