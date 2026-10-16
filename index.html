@@ -799,6 +799,10 @@ function bindCoreActions(root) {
       const args = JSON.parse(element.dataset.coreArgs);
       // Fixed action names select functions, never executable library content.
       switch (element.dataset.coreAction) {
+        case "filterRemove": removeFilterProp(...args); break;
+        case "filterReset": resetSearch(); break;
+        case "filterAdd": addTypedSearchProp(); break;
+        case "filterSuggestion": selectSearchPropSuggestion(...args); break;
         case "systemCategory": toggleSysCategory(...args); break;
         case "systemStudy": openSysStudyModal(...args); break;
         case "systemSource": openSysSourceModal(...args); break;
@@ -1926,8 +1930,8 @@ function renderSearchPage() {
 
   let tagsHtml = activeFilterProps.map(p => `
     <span style="background:#eaecf0; padding:3px 8px; border-radius:3px; display:inline-flex; align-items:center; gap:6px; font-size:14px;">
-      <a href="#property/${encodeURIComponent(p)}" class="wiki-link">${p}</a>
-      <a class="wiki-action-link" style="color:var(--danger); cursor:pointer; font-weight:bold;" onclick="removeFilterProp('${p}')">✕</a>
+      <a href="#property/${encodeURIComponent(p)}" class="wiki-link">${escapeCoreText(p)}</a>
+      <a class="wiki-action-link" style="color:var(--danger); cursor:pointer; font-weight:bold;" ${coreAction("filterRemove", p)}>✕</a>
     </span>
   `).join(" ");
 
@@ -1954,8 +1958,8 @@ function renderSearchPage() {
     ? `<li><i>Skriv och lägg till egenskaper ovan för att filtrera fram profiler.</i></li>`
     : (hits.length === 0 ? `<li><i>Inga profiler matchade sökningen.</i></li>` : hits.map(h => `
       <li>
-        <a href="${h.isStudy ? '#study/' + h.id : '#herb/' + h.id}" class="wiki-link" style="font-weight:700;">${h.name}</a>
-        <span style="font-size:12px; color:var(--text-muted);">[${h.type}]</span>
+        <a href="${escapeCoreText(h.isStudy ? '#study/' + h.id : '#herb-id/' + encodeURIComponent(h.id))}" class="wiki-link" style="font-weight:700;">${escapeCoreText(h.name)}</a>
+        <span style="font-size:12px; color:var(--text-muted);">[${escapeCoreText(h.type)}]</span>
         — <b style="color:var(--accent-gold); font-family:monospace;">${h.pct}% match</b> (${h.matchCount}/${activeFilterProps.length} egenskaper)
       </li>
     `).join(""));
@@ -1963,15 +1967,15 @@ function renderSearchPage() {
   app.innerHTML = `
     <h1 class="wiki-title">
       <span>Filtersök profil</span>
-      <a class="wiki-action-link" style="color:var(--danger);" onclick="resetSearch()">[återställ filter]</a>
+      <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("filterReset")}>[återställ filter]</a>
     </h1>
     <hr class="wiki-divider">
 
     <div style="margin-bottom: 14px; position:relative;">
       <label style="font-weight:700; font-size:14px; display:block; margin-bottom:4px;">Skriv in egenskap:</label>
       <div style="display:flex; gap:6px;">
-        <input type="text" id="search-prop-input" placeholder="Skriv egenskap (tryck Enter)..." autocomplete="off" oninput="handleSearchPropInput(this.value)" onkeydown="handleSearchPropKeydown(event)">
-        <button class="wiki-btn primary" onclick="addTypedSearchProp()">Lägg till</button>
+        <input type="text" id="search-prop-input" placeholder="Skriv egenskap (tryck Enter)..." autocomplete="off">
+        <button class="wiki-btn primary" ${coreAction("filterAdd")}>Lägg till</button>
       </div>
       <div class="suggest-dropdown" id="search-prop-dropdown"></div>
     </div>
@@ -1985,6 +1989,10 @@ function renderSearchPage() {
     <h2 class="wiki-section">Matchade profiler (${hits.length})</h2>
     <ul class="wiki-list">${matchesHtml}</ul>
   `;
+  bindCoreActions(app);
+  const input = document.getElementById("search-prop-input");
+  input.addEventListener("input", () => handleSearchPropInput(input.value));
+  input.addEventListener("keydown", handleSearchPropKeydown);
 }
 
 function handleSearchPropInput(val) {
@@ -1996,10 +2004,11 @@ function handleSearchPropInput(val) {
   if (matches.length === 0) { dd.style.display = "none"; dd.innerHTML = ""; return; }
 
   dd.innerHTML = matches.slice(0, 6).map(m => `
-    <div class="suggest-item" onclick="selectSearchPropSuggestion('${m}')">
-      <b>${m}</b> <span style="font-size:11px; color:var(--text-muted);">[${db.properties[m]?.category}]</span>
+    <div class="suggest-item" ${coreAction("filterSuggestion", m)}>
+      <b>${escapeCoreText(m)}</b> <span style="font-size:11px; color:var(--text-muted);">[${escapeCoreText(db.properties[m]?.category)}]</span>
     </div>
   `).join("");
+  bindCoreActions(dd);
   dd.style.display = "block";
 }
 
