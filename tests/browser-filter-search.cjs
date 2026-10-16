@@ -78,7 +78,7 @@ async function main() {
     await input.fill(fixture.second);await page.locator('[data-core-action="filterAdd"]').click();await filters([fixture.first,fixture.second]);
     const rows=page.locator('#wiki-app ul.wiki-list > li');
     const rowData=await rows.evaluateAll(items=>items.map(e=>({href:e.querySelector('a').getAttribute('href'),text:e.textContent})));
-    assert.deepEqual(rowData.map(r=>r.href),['#herb-id/item%2520name','#herb-id/'+encodeURIComponent(fixture.specialId),'#herb-id/item%20name','#study/'+fixture.library.studyObjects[0].id]);
+    assert.deepEqual(rowData.map(r=>r.href),['#herb-id/item%2520name','#herb-id/'+encodeURIComponent(fixture.specialId),'#herb-id/item%20name','#study/'+encodeURIComponent(fixture.library.studyObjects[0].id)]);
     assert.deepEqual(rowData.map(r=>r.text.match(/(\d+)% match/)[1]),['100','100','50','50']);
     assert.deepEqual(rowData.map(r=>r.text.match(/\((\d+)\/(\d+) egenskaper\)/).slice(1)),[['2','2'],['2','2'],['1','2'],['1','2']]);
     assert(rowData[1].text.includes(fixture.longName.trim()));assert(rowData[3].text.includes(fixture.library.studyObjects[0].type));await preserved();
@@ -94,10 +94,10 @@ async function main() {
       const deletion=page.locator('[data-core-action="delete"]');assert.deepEqual(await deletion.evaluate(e=>JSON.parse(e.dataset.coreArgs)),['object',id]);await deletion.click(); // dialog handler dismisses.
       await preserved();await back();
     }
-    // Missing study route is retained; it falls back to index without selecting any herb.
+    // Study result opens its read-only detail view.
     await page.locator('#wiki-app ul.wiki-list a').last().click();
     assert((await page.evaluate(()=>window.location.hash)).startsWith('#study/'));
-    await page.waitForFunction(()=>!document.getElementById('search-prop-input'));assert.equal(await page.locator('[data-core-action="delete"]').count(),0);await preserved();await back();
+    await page.waitForFunction(()=>document.querySelector('h1.wiki-title > span')?.textContent.startsWith('Study '));assert.equal(await page.locator('[data-core-action="delete"]').count(),0);await preserved();await back();
     await input.fill('ALPHA');assert.equal(await suggestions.count(),1);await suggestions.click();await filters([fixture.first,fixture.second,fixture.near]);
     const removes=page.locator('[data-core-action="filterRemove"]');assert.deepEqual(await removes.first().evaluate(e=>JSON.parse(e.dataset.coreArgs)),[fixture.first]);
     await removes.first().click();await filters([fixture.second,fixture.near]);
@@ -109,7 +109,7 @@ async function main() {
     assert.equal(await page.evaluate(()=>typeof firebase),'undefined');assert.equal(await page.evaluate(()=>firestoreDb),null);
     assert.deepEqual(errors,[]);assert.deepEqual(externalRequests,[]);
     await page.screenshot({path:path.join(tempDir,'safe-filter-search.png'),fullPage:true});
-    console.log(JSON.stringify({result:'PASS',browser:browser.version(),payloadExecutions:0,injectedElements:0,errors,externalRequests,persistenceCalls:0,storageWrites:0,storedRecordsUnchanged:true,canonicalCollisionIds:true,missingStudyRouteDocumented:true,evidence:tempDir}));
+    console.log(JSON.stringify({result:'PASS',browser:browser.version(),payloadExecutions:0,injectedElements:0,errors,externalRequests,persistenceCalls:0,storageWrites:0,storedRecordsUnchanged:true,canonicalCollisionIds:true,studyRouteVerified:true,evidence:tempDir}));
     await context.close();
   }finally{if(browser)await browser.close()}
 }
