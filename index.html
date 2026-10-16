@@ -799,6 +799,7 @@ function bindCoreActions(root) {
       const args = JSON.parse(element.dataset.coreArgs);
       // Fixed action names select functions, never executable library content.
       switch (element.dataset.coreAction) {
+        case "glossaryCreate": promptCreateHerbFromGlossary(); break;
         case "filterRemove": removeFilterProp(...args); break;
         case "filterReset": resetSearch(); break;
         case "filterAdd": addTypedSearchProp(); break;
@@ -1067,12 +1068,12 @@ function renderGlossaryPage() {
     const sortedBots = Array.from(botMap.keys()).sort((a,b) => a.localeCompare(b));
     sortedBots.forEach(bot => {
       const herbs = botMap.get(bot);
-      const herbLinks = herbs.map(h => `<a href="#herb/${h.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(h)}</a>`).join(", ");
+      const herbLinks = herbs.map(h => `<a href="#herb-id/${encodeURIComponent(h.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(getDisplayObjName(h))}</a>`).join(", ");
 
       rowsHtml += `
         <tr>
           <td style="width:45%;">
-            <input type="text" class="glossary-input-cell" value="${bot}" onblur="updateGlossaryBotanicalName('${bot}', this.value)">
+            <input type="text" class="glossary-input-cell" value="${escapeCoreText(bot)}" data-glossary-edit="group" data-glossary-args="${escapeCoreText(JSON.stringify([bot]))}">
           </td>
           <td>${herbLinks}</td>
         </tr>
@@ -1085,9 +1086,9 @@ function renderGlossaryPage() {
       rowsHtml += `
         <tr>
           <td style="width:45%;">
-            <input type="text" class="glossary-input-cell" placeholder="[Ange synonymer/botaniskt namn...]" onblur="setHerbBotanicalFromGlossary('${h.id}', this.value)">
+            <input type="text" class="glossary-input-cell" placeholder="[Ange synonymer/botaniskt namn...]" data-glossary-edit="herb" data-glossary-args="${escapeCoreText(JSON.stringify([h.id]))}">
           </td>
-          <td><a href="#herb/${h.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(h)}</a></td>
+          <td><a href="#herb-id/${encodeURIComponent(h.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(getDisplayObjName(h))}</a></td>
         </tr>
       `;
     });
@@ -1096,14 +1097,14 @@ function renderGlossaryPage() {
   app.innerHTML = `
     <h1 class="wiki-title">
       <span>Synonymer & Glossary</span>
-      <a class="wiki-action-link" onclick="promptCreateHerbFromGlossary()">[➕ Ny rad / Ört]</a>
+      <a class="wiki-action-link" ${coreAction("glossaryCreate")}>[➕ Ny rad / Ört]</a>
     </h1>
     <div class="wiki-paragraph">Korsreferens mellan latinska namn/synonymer och örtbiblioteket. Klicka i cellen för att redigera direkt.</div>
 
     <div style="font-size:13px; display:flex; gap:14px; margin-bottom:12px; background:#f8f9fa; border:1px solid var(--border-subtle); padding:6px 10px;">
-      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='all'?'checked':''} onchange="switchGlossaryFilter('all')"> Visa alla</label>
-      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='with_bot'?'checked':''} onchange="switchGlossaryFilter('with_bot')"> Endast med synonymer</label>
-      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='no_bot'?'checked':''} onchange="switchGlossaryFilter('no_bot')"> Endast utan synonymer</label>
+      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='all'?'checked':''} value="all"> Visa alla</label>
+      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='with_bot'?'checked':''} value="with_bot"> Endast med synonymer</label>
+      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='no_bot'?'checked':''} value="no_bot"> Endast utan synonymer</label>
     </div>
 
     <table class="glossary-table">
@@ -1118,6 +1119,17 @@ function renderGlossaryPage() {
       </tbody>
     </table>
   `;
+  bindCoreActions(app);
+  app.querySelectorAll('input[name="gloss_filter"]').forEach(input => {
+    input.addEventListener("change", () => switchGlossaryFilter(input.value));
+  });
+  app.querySelectorAll("[data-glossary-edit]").forEach(input => {
+    input.addEventListener("blur", () => {
+      const [original] = JSON.parse(input.dataset.glossaryArgs);
+      if (input.dataset.glossaryEdit === "group") updateGlossaryBotanicalName(original, input.value);
+      else if (input.dataset.glossaryEdit === "herb") setHerbBotanicalFromGlossary(original, input.value);
+    });
+  });
 }
 
 function switchGlossaryFilter(mode) {
@@ -1130,7 +1142,7 @@ function updateGlossaryBotanicalName(oldBot, newBot) {
   if (!cleanNew || cleanNew === oldBot) return;
 
   db.objects.forEach(o => {
-    if (o.taxonomies && o.taxonomies["Botanical Name"] === oldBot) {
+    if (o.taxonomies && (o.taxonomies["Botanical Name"] || "").trim() === oldBot) {
       o.taxonomies["Botanical Name"] = cleanNew;
     }
   });
