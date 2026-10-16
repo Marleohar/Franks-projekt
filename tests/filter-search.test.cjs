@@ -30,7 +30,7 @@ test('filter renderer preserves match counts, percentages, stable descending ord
   const counts=[...r.result.matchAll(/(\d+)% match<\/b> \((\d+)\/(\d+) /g)].map(m=>m.slice(1));
   assert.deepEqual(counts,[['100','2','2'],['100','2','2'],['50','1','2'],['50','1','2']]);
   const links=[...r.result.matchAll(/<a href="([^\"]+)" class="wiki-link" style="font-weight:700;">/g)].map(m=>m[1]);
-  const f=filterLibrary();assert.deepEqual(links,['#herb-id/item%2520name','#herb-id/'+encodeURIComponent(f.specialId).replace(/'/g,'&#39;'),'#herb-id/item%20name',run(`result=escapeCoreText('#study/'+f.library.studyObjects[0].id);`).result]);
+  const f=filterLibrary();assert.deepEqual(links,['#herb-id/item%2520name','#herb-id/'+encodeURIComponent(f.specialId).replace(/'/g,'&#39;'),'#herb-id/item%20name',run(`result=escapeCoreText('#study/'+encodeURIComponent(f.library.studyObjects[0].id));`).result]);
   assert.doesNotMatch(r.result,/<img|onerror="|onclick=|oninput=|onkeydown=/);
   assert.equal((r.result.match(/Long /g)||[]).length,20);assert(r.result.includes('&lt;img'));assert(r.result.includes('Type &lt;img'));
 });
