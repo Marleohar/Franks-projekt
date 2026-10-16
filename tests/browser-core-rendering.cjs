@@ -156,13 +156,11 @@ async function main() {
       assert.ok(dialogs.at(-1).message.includes(expected.name));
       await safe();
     }
-    // These are actual links from the unchanged legacy property renderer.
-    // Legacy raw links preserve literal percent sequences. Raw spaces in old
-    // hrefs are normalized by browsers; new canonical links cover those IDs.
-    for (const object of [identities.objects[0], identities.objects[2]]) {
+    // TASK 006 protects property links with the canonical namespace as well.
+    for (const object of identities.objects.slice(0, 3)) {
       await page.evaluate(() => renderPropertyPage('P'));
       const link = page.getByRole('link', { name: object.name, exact: true });
-      assert.equal(await link.getAttribute('href'), `#herb/${object.id}`);
+      assert.equal(await link.getAttribute('href'), `#herb-id/${encodeURIComponent(object.id)}`);
       await link.click();
       await identity(object.id);
     }
@@ -211,7 +209,7 @@ async function main() {
     await page.screenshot({ path: path.join(tempDir, 'safe-core-rendering.png'), fullPage: true });
     console.log(JSON.stringify({ status: 'PASS', browser: await browser.version(), payloadExecutions: await page.evaluate(() => window.__payloads),
       surfaces: ['index (both views)', 'global search', 'object detail', 'category detail', 'property assignment checklist'],
-      controls: ['object/category navigation', 'search selection', 'rename cancellation', 'delete cancellation', 'description editor', 'botanical editor', 'property assignment', 'create-property cancellation', 'view selectors', 'legacy property links', 'canonical collision links', 'bookmarks/hashchange', 'malformed routes'],
+      controls: ['object/category navigation', 'search selection', 'rename cancellation', 'delete cancellation', 'description editor', 'botanical editor', 'property assignment', 'create-property cancellation', 'view selectors', 'canonical property links', 'canonical collision links', 'bookmarks/hashchange', 'malformed routes'],
       storedDataUnchanged: true, errors, externalRequests, disposableCopy: tempDir }, null, 2));
     await context.close();
   } finally { if (browser) await browser.close(); }

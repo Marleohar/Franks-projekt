@@ -61,11 +61,11 @@ test('actual router distinguishes literal legacy IDs and canonical decode-once I
   }
 });
 
-test('actual property renderer keeps raw legacy links resolving to original objects', () => {
+test('protected property renderer uses canonical links resolving to original objects', () => {
   const library = identityLibrary();
   const result = render(library, 'property', 'P');
   const link = result.html.match(/href="([^"]+)"[^>]*>Literal percent record<\/a>/);
-  assert.equal(link[1], '#herb/item%20name');
+  assert.equal(link[1], '#herb-id/item%2520name');
   const destination = render(library, 'route', link[1]);
   assert.ok(destination.html.includes('<span>Literal percent record</span>'));
   assert.deepEqual(destination.library, library);
