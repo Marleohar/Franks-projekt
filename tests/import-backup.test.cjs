@@ -202,8 +202,8 @@ test('missing optional fields, supported nulls and arbitrary unknown metadata su
 
 test('actual getDisplayObjName and renderIndexPage render both duplicate records', () => {
   const result = runImport(currentLibrary(), JSON.stringify(duplicateLibrary()));
-  assert.match(result.renderedHTML, /herb\/synthetic-first/);
-  assert.match(result.renderedHTML, /herb\/synthetic-second/);
+  assert.match(result.renderedHTML, /herb-id\/synthetic-first/);
+  assert.match(result.renderedHTML, /herb-id\/synthetic-second/);
   assert.equal(result.persistCalls, 1);
 });
 

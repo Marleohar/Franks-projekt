@@ -5,7 +5,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../../index.html'), 'utf8');
 const names = ['escapeCoreText', 'coreAction', 'bindCoreActions', 'getDisplayObjName', 'getPropKeys',
-  'hasProp', 'renderIndexPage', 'handleGlobalSearch', 'renderHerbPage', 'renderCategoryPage'];
+  'hasProp', 'renderIndexPage', 'handleGlobalSearch', 'renderHerbPage', 'renderCategoryPage',
+  'handleRouting', 'renderPropertyPage'];
 const functions = names.map(name => {
   const matches = [...source.matchAll(new RegExp(`^function ${name}\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}`, 'gm'))];
   assert.equal(matches.length, 1, name);
@@ -19,6 +20,7 @@ function render(library, action, value, native = false) {
     const currentLang = 'sv', indexViewMode = input.native ? 'native_system' : 'alpha', indexNameDisplayMode = 'auto';
     const herbSwedishDictionary = {}, t = key => key;
     const nodes = Object.create(null);
+    const window = { location: { hash: input.value || '#index' }, scrollTo() {} };
     const document = { getElementById(id) { return nodes[id] ||= { innerHTML: '', style: {}, querySelectorAll() { return []; } }; } };
     function persist() { throw new Error('Unexpected rendering write'); }
     ${functions}
@@ -26,6 +28,8 @@ function render(library, action, value, native = false) {
     else if (input.action === 'search') handleGlobalSearch(input.value);
     else if (input.action === 'herb') renderHerbPage(input.value);
     else if (input.action === 'category') renderCategoryPage(input.value);
+    else if (input.action === 'property') renderPropertyPage(input.value);
+    else if (input.action === 'route') handleRouting({ type: 'hashchange' });
     JSON.stringify({ html: document.getElementById(input.action === 'search' ? 'global-search-dropdown' : 'wiki-app').innerHTML, library: db });
   `).runInContext(context, { timeout: 1000 }));
 }

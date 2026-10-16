@@ -804,7 +804,7 @@ function handleGlobalSearch(query) {
   db.objects.forEach(o => {
     const disp = getDisplayObjName(o);
     if (disp.toLowerCase().includes(q) || (o.name && o.name.toLowerCase().includes(q))) {
-      results.push({ type: "Ört", title: disp, link: `#herb/${encodeURIComponent(o.id)}`, desc: o.desc });
+      results.push({ type: "Ört", title: disp, link: `#herb-id/${encodeURIComponent(o.id)}`, desc: o.desc });
     }
   });
   Object.keys(db.properties).forEach(p => {
@@ -859,22 +859,18 @@ window.addEventListener("DOMContentLoaded", () => {
   handleRouting();
 });
 
-function resolveHerbRouteId(id) {
-  try {
-    const decoded = decodeURIComponent(id);
-    if (db.objects.some(object => object.id === decoded)) return decoded;
-  } catch (error) {}
-  // Preserve legacy raw IDs/bookmarks when no decoded object exists.
-  return id;
-}
-
 function handleRouting(propagateErrors = false) {
   const hash = window.location.hash.slice(1) || "index";
   const [route, id] = hash.split("/");
   window.scrollTo(0, 0);
 
   try {
-    if (route === "herb" && id) renderHerbPage(resolveHerbRouteId(id));
+    if (route === "herb" && id) renderHerbPage(id);
+    else if (route === "herb-id") {
+      // Canonical IDs have one encoded component; legacy herb routes stay literal.
+      if (!id || hash.split("/").length !== 2) throw new Error("Ogiltig objektadress.");
+      renderHerbPage(decodeURIComponent(id));
+    }
     else if (route === "property" && id) renderPropertyPage(decodeURIComponent(id));
     else if (route === "category" && id) renderCategoryPage(decodeURIComponent(id));
     else if (route === "system" && id) renderSystemPage(decodeURIComponent(id));
@@ -911,7 +907,7 @@ function renderIndexPage() {
       const nativeHerbs = db.objects.filter(o => o.nativeSystems && o.nativeSystems.includes(sysName));
       nativeHerbs.sort((a,b) => getDisplayObjName(a).localeCompare(getDisplayObjName(b), currentLang));
 
-      let herbItems = nativeHerbs.map(h => `<li><a href="#herb/${encodeURIComponent(h.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(getDisplayObjName(h))}</a></li>`).join("");
+      let herbItems = nativeHerbs.map(h => `<li><a href="#herb-id/${encodeURIComponent(h.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(getDisplayObjName(h))}</a></li>`).join("");
 
       sysSectionsHtml += `
         <h2 class="wiki-section" style="margin-top:20px;">
@@ -941,7 +937,7 @@ function renderIndexPage() {
       const tagCount = getPropKeys(obj).length;
       listHtml += `
         <li>
-          <a href="#herb/${encodeURIComponent(obj.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(disp)}</a>
+          <a href="#herb-id/${encodeURIComponent(obj.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(disp)}</a>
           <span style="color:var(--text-muted); font-size:13px; font-family:monospace;"> [${tagCount} ${t("propsCountLabel")}]</span>
         </li>
       `;
@@ -1560,7 +1556,7 @@ function renderCategoryPage(catName) {
     const list = grouped[sc] || [];
     let items = list.map(p => {
       const herbs = db.objects.filter(o => hasProp(o, p));
-      const herbLinks = herbs.map(h => `<a href="#herb/${encodeURIComponent(h.id)}" class="wiki-link">${escapeCoreText(getDisplayObjName(h))}</a>`).join(", ");
+      const herbLinks = herbs.map(h => `<a href="#herb-id/${encodeURIComponent(h.id)}" class="wiki-link">${escapeCoreText(getDisplayObjName(h))}</a>`).join(", ");
       const summary = db.properties[p]?.summary ? `<div style="font-size:12px; color:var(--text-muted);">${escapeCoreText(db.properties[p].summary)}</div>` : '';
       return `
         <div class="wiki-data-row">
@@ -1584,7 +1580,7 @@ function renderCategoryPage(catName) {
   if (grouped["_none_"].length > 0) {
     let uncatItems = grouped["_none_"].map(p => {
       const herbs = db.objects.filter(o => hasProp(o, p));
-      const herbLinks = herbs.map(h => `<a href="#herb/${encodeURIComponent(h.id)}" class="wiki-link">${escapeCoreText(getDisplayObjName(h))}</a>`).join(", ");
+      const herbLinks = herbs.map(h => `<a href="#herb-id/${encodeURIComponent(h.id)}" class="wiki-link">${escapeCoreText(getDisplayObjName(h))}</a>`).join(", ");
       const summary = db.properties[p]?.summary ? `<div style="font-size:12px; color:var(--text-muted);">${escapeCoreText(db.properties[p].summary)}</div>` : '';
       return `
         <div class="wiki-data-row">

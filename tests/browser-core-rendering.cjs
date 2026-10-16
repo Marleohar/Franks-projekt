@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const { renderingLibrary } = require('./fixtures/rendering-library.cjs');
+const { identityLibrary } = require('./fixtures/identity-library.cjs');
 
 async function main() {
   let html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
@@ -66,7 +67,7 @@ async function main() {
     assert.equal(await page.locator('#wiki-app a.wiki-link').first().textContent(), fixture.library.objects[0].name);
     // Link must survive slashes, quotes, percent signs, Unicode and JS-like IDs.
     await page.locator('#wiki-app a.wiki-link').first().click();
-    await page.waitForURL(`**/#herb/${encodeURIComponent(fixture.id)}`);
+    await page.waitForURL(`**/#herb-id/${encodeURIComponent(fixture.id)}`);
     await page.waitForFunction(name => document.querySelector('h1.wiki-title > span')?.textContent === name, fixture.library.objects[0].name);
     assert.equal(await page.locator('h1.wiki-title > span').textContent(), fixture.library.objects[0].name);
     assert.ok((await page.locator('#wiki-app').textContent()).includes(fixture.long));
@@ -114,7 +115,7 @@ async function main() {
     assert.ok(titles.includes(fixture.library.objects[0].name));
     assert.ok(titles.includes(fixture.category));
     await page.locator('#global-search-dropdown .suggest-item').nth(0).click();
-    await page.waitForURL(`**/#herb/${encodeURIComponent(fixture.id)}`);
+    await page.waitForURL(`**/#herb-id/${encodeURIComponent(fixture.id)}`);
     await safe();
     await page.evaluate(() => openHeaderSearch());
     await page.locator('#global-search-input').fill('sök');
@@ -134,9 +135,74 @@ async function main() {
     }, ordinary);
     assert.equal(await page.locator('#wiki-app a.wiki-link').first().textContent(), ordinary.objects[0].name);
     await page.locator('#wiki-app a.wiki-link').first().click();
-    await page.waitForURL('**/#herb/ordinary');
+    await page.waitForURL('**/#herb-id/ordinary');
     await page.waitForFunction(() => document.querySelector('h1.wiki-title > span')?.textContent === 'Ålandsrot 🐉');
     assert.ok((await page.locator('#wiki-app').textContent()).includes(ordinary.objects[0].desc));
+    await safe();
+    const identities = identityLibrary();
+    await page.evaluate(library => {
+      db = library; window.beforeLibrary = JSON.stringify(db); renderPropertyPage('P');
+    }, identities);
+    async function identity(expectedId) {
+      const expected = identities.objects.find(object => object.id === expectedId);
+      await page.waitForFunction(name => document.querySelector('h1.wiki-title > span')?.textContent === name, expected.name);
+      const args = await page.locator('[data-core-action="editor"]').getAttribute('data-core-args');
+      assert.deepEqual(JSON.parse(args), ['herb', expectedId]);
+      await page.locator('[data-core-action="editor"]').click();
+      assert.equal(await page.evaluate(() => editorTargetId), expectedId);
+      await page.evaluate(() => closePopup());
+      await page.locator('[data-core-action="delete"]').click();
+      assert.equal(dialogs.at(-1).type, 'confirm');
+      assert.ok(dialogs.at(-1).message.includes(expected.name));
+      await safe();
+    }
+    // These are actual links from the unchanged legacy property renderer.
+    // Legacy raw links preserve literal percent sequences. Raw spaces in old
+    // hrefs are normalized by browsers; new canonical links cover those IDs.
+    for (const object of [identities.objects[0], identities.objects[2]]) {
+      await page.evaluate(() => renderPropertyPage('P'));
+      const link = page.getByRole('link', { name: object.name, exact: true });
+      assert.equal(await link.getAttribute('href'), `#herb/${object.id}`);
+      await link.click();
+      await identity(object.id);
+    }
+    // Actual newly generated canonical links distinguish the same colliding IDs.
+    for (const object of identities.objects.slice(0, 5)) {
+      await page.evaluate(() => renderIndexPage());
+      const link = page.getByRole('link', { name: object.name, exact: true });
+      assert.equal(await link.getAttribute('href'), `#herb-id/${encodeURIComponent(object.id)}`);
+      await link.click();
+      await identity(object.id);
+    }
+    // Native-system/category links and search selections use the same namespace.
+    await page.evaluate(() => { indexViewMode = 'native_system'; renderIndexPage(); });
+    await page.getByRole('link', { name: 'Literal percent record', exact: true }).click();
+    await identity('item%20name');
+    await page.evaluate(() => { indexViewMode = 'alpha'; renderCategoryPage('C'); });
+    await page.getByRole('link', { name: 'Space record', exact: true }).click();
+    await identity('item name');
+    for (const object of identities.objects.slice(0, 2)) {
+      await page.evaluate(() => openHeaderSearch());
+      await page.locator('#global-search-input').fill(object.name);
+      await page.locator('#global-search-dropdown .suggest-item').first().click();
+      await identity(object.id);
+    }
+    for (const [route, id] of [['#herb/item%20name', 'item%20name'], ['#herb-id/item%20name', 'item name'],
+      ['#herb-id/item%2520name', 'item%20name'], ['#herb-id/item%252520name', 'item%2520name']]) {
+      // Direct bookmarks in the disposable origin, with actual hashchange routing.
+      await page.goto(`${origin}/${route}`);
+      await page.evaluate(() => window.dispatchEvent(new HashChangeEvent('hashchange')));
+      await identity(id);
+    }
+    for (const route of ['#herb-id', '#herb-id/', '#herb-id/%bad', '#herb-id/item%20name/extra']) {
+      await page.evaluate(hash => { window.location.hash = hash; window.dispatchEvent(new HashChangeEvent('hashchange')); }, route);
+      await page.waitForFunction(() => document.querySelector('h1.wiki-title > span')?.textContent === 'Ört- och objektindex');
+      assert.equal(await page.locator('[data-core-action="editor"]').count(), 0);
+      await safe();
+    }
+    await page.evaluate(() => { window.location.hash = '#herb-id/not-an-object'; window.dispatchEvent(new HashChangeEvent('hashchange')); });
+    await page.waitForFunction(() => document.querySelector('#wiki-app h2') !== null);
+    assert.equal(await page.locator('[data-core-action="editor"]').count(), 0);
     await safe();
     assert.deepEqual(await page.evaluate(() => ({ firebase: typeof firebase, cloud: firestoreDb, ready: isCloudReady })),
       { firebase: 'undefined', cloud: null, ready: false });
@@ -145,7 +211,7 @@ async function main() {
     await page.screenshot({ path: path.join(tempDir, 'safe-core-rendering.png'), fullPage: true });
     console.log(JSON.stringify({ status: 'PASS', browser: await browser.version(), payloadExecutions: await page.evaluate(() => window.__payloads),
       surfaces: ['index (both views)', 'global search', 'object detail', 'category detail', 'property assignment checklist'],
-      controls: ['object/category navigation', 'search selection', 'rename cancellation', 'delete cancellation', 'description editor', 'botanical editor', 'property assignment', 'create-property cancellation', 'view selectors'],
+      controls: ['object/category navigation', 'search selection', 'rename cancellation', 'delete cancellation', 'description editor', 'botanical editor', 'property assignment', 'create-property cancellation', 'view selectors', 'legacy property links', 'canonical collision links', 'bookmarks/hashchange', 'malformed routes'],
       storedDataUnchanged: true, errors, externalRequests, disposableCopy: tempDir }, null, 2));
     await context.close();
   } finally { if (browser) await browser.close(); }

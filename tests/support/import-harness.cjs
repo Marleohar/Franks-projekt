@@ -16,7 +16,7 @@ const declarations = [
   ...['deduplicateAndSanitizeDB', 'ensureDbStructure', 'validateImportLibrary',
     'summarizeImportLibrary', 'downloadBackupFile', 'importBackupFile',
     'getDisplayObjName', 'getPropKeys', 'hasProp', 'renderIndexPage',
-    'handleRouting', 'renderCategoryPage', 'escapeCoreText', 'coreAction', 'bindCoreActions', 'resolveHerbRouteId'].map(name =>
+    'handleRouting', 'renderCategoryPage', 'escapeCoreText', 'coreAction', 'bindCoreActions'].map(name =>
     extract(new RegExp(`^function ${name}\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}`, 'gm'), name)),
 ].join('\n');
 

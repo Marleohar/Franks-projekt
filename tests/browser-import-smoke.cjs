@@ -111,8 +111,8 @@ async function main() {
     assert.deepEqual(await page.evaluate(() => db.objects), incoming.objects);
     assert.equal(await page.evaluate(() => window.qaPersistCalls), 1);
     assert.equal(await page.evaluate(() => window.qaWrites.length), 1);
-    await page.locator('a[href="#herb/synthetic-first"]').first().click();
-    await page.waitForURL('**/#herb/synthetic-first');
+    await page.locator('a[href="#herb-id/synthetic-first"]').first().click();
+    await page.waitForURL('**/#herb-id/synthetic-first');
     assert.ok((await page.locator('#wiki-app').innerText()).includes('Sample Leaf'));
     assert.ok((await page.evaluate(() => window.qaConfirmStates)).every(state => state.calls === 0 && state.writes === 0));
     // Existing C in BOTH libraries avoids the unrelated auto-create-and-save
