@@ -799,6 +799,9 @@ function bindCoreActions(root) {
       const args = JSON.parse(element.dataset.coreArgs);
       // Fixed action names select functions, never executable library content.
       switch (element.dataset.coreAction) {
+        case "systemCategory": toggleSysCategory(...args); break;
+        case "systemStudy": openSysStudyModal(...args); break;
+        case "systemSource": openSysSourceModal(...args); break;
         case "renameProperty": promptRenameProperty(...args); break;
         case "propertySummary": promptEditPropertySummary(...args); break;
         case "connectHerb": openConnectHerbsToPropertyPopup(...args); break;
@@ -1701,6 +1704,9 @@ function promptCreatePropertyWithSubcat(catName) {
 let activeSystemForAdd = "";
 
 function renderSystemPage(sysName) {
+  // Discard stale system checklists before changing their shared mutation target.
+  document.getElementById("popup-sys-study").style.display = "none";
+  document.getElementById("popup-sys-source").style.display = "none";
   activeSystemForAdd = sysName;
   const app = document.getElementById("wiki-app");
   const sys = db.systems[sysName];
@@ -1710,14 +1716,14 @@ function renderSystemPage(sysName) {
     const props = Object.keys(db.properties).filter(p => db.properties[p]?.category === catName);
     const propListItems = props.map(p => {
       const count = db.objects.filter(o => hasProp(o, p)).length;
-      return `<li><a href="#property/${encodeURIComponent(p)}" class="wiki-link" style="font-weight:700;">${p}</a> <span style="color:var(--text-muted); font-size:13px;">(${count})</span></li>`;
+      return `<li><a href="#property/${encodeURIComponent(p)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(p)}</a> <span style="color:var(--text-muted); font-size:13px;">(${count})</span></li>`;
     }).join("");
 
     return `
       <div style="margin-bottom: 10px; border: 1px solid var(--border-subtle); border-radius: 3px; background: #fafafa;">
-        <div onclick="toggleSysCategory(${idx})" style="cursor: pointer; font-weight: 700; font-size: 15px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; user-select: none;">
+        <div ${coreAction("systemCategory", idx)} style="cursor: pointer; font-weight: 700; font-size: 15px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; user-select: none;">
           <span id="cat-icon-${idx}" style="font-family: monospace; font-weight: bold;">《</span>
-          <a href="#category/${encodeURIComponent(catName)}" class="wiki-link" onclick="event.stopPropagation()">${catName}</a>
+          <a href="#category/${encodeURIComponent(catName)}" class="wiki-link" data-system-category-link>${escapeCoreText(catName)}</a>
           <span style="font-size:13px; color:var(--text-muted); font-weight:400; margin-left: auto;">(${props.length})</span>
         </div>
         <ul class="wiki-list" id="cat-list-${idx}" style="padding: 0 10px 8px 30px; margin: 0; display: block;">${propListItems || '<li><i>inga egenskaper</i></li>'}</ul>
@@ -1728,17 +1734,17 @@ function renderSystemPage(sysName) {
   const linkedStudy = (db.studyObjects || []).filter(so => so.system === sysName || (so.systems && so.systems.includes(sysName)));
   let studyHtml = linkedStudy.length === 0
     ? `<li><i>Inga studieobjekt kopplade.</i></li>`
-    : linkedStudy.map(so => `<li><b>${so.name}</b> (${so.type || 'Ref'})</li>`).join("");
+    : linkedStudy.map(so => `<li><b>${escapeCoreText(so.name)}</b> (${escapeCoreText(so.type || 'Ref')})</li>`).join("");
 
   const linkedSources = (db.sources || []).filter(src => (src.tags || []).some(tg => tg.type === "system" && tg.id === sysName));
   let sourcesHtml = linkedSources.length === 0
     ? `<li><i>Inga källor kopplade.</i></li>`
-    : linkedSources.map(src => `<li><b>${src.author || 'Okänd'}</b> (${src.year || 'u.å.'}) <i>${src.title}</i></li>`).join("");
+    : linkedSources.map(src => `<li><b>${escapeCoreText(src.author || 'Okänd')}</b> (${escapeCoreText(src.year || 'u.å.')}) <i>${escapeCoreText(src.title)}</i></li>`).join("");
 
   app.innerHTML = `
-    <h1 class="wiki-title"><span>${sysName}</span></h1>
+    <h1 class="wiki-title"><span>${escapeCoreText(sysName)}</span></h1>
     <hr class="wiki-divider">
-    <div class="wiki-paragraph">${sys.desc || `<i>Ingen beskrivning skriven.</i>`}</div>
+    <div class="wiki-paragraph">${sys.desc ? escapeCoreText(sys.desc) : `<i>Ingen beskrivning skriven.</i>`}</div>
     <hr class="wiki-divider">
 
     <h2 class="wiki-section">Kategorier och egenskaper</h2>
@@ -1748,16 +1754,20 @@ function renderSystemPage(sysName) {
     <h2 class="wiki-section">Relaterade studieobjekt</h2>
     <ul class="wiki-list">${studyHtml}</ul>
     <div style="margin-top:-4px; margin-bottom:12px;">
-      <a class="wiki-action-link" onclick="openSysStudyModal('${sysName}')">+ Lägg till studieobjekt</a>
+      <a class="wiki-action-link" ${coreAction("systemStudy", sysName)}>+ Lägg till studieobjekt</a>
     </div>
     <hr class="wiki-divider">
 
     <h2 class="wiki-section">Källor</h2>
     <ul class="wiki-list">${sourcesHtml}</ul>
     <div style="margin-top:-4px; margin-bottom:12px;">
-      <a class="wiki-action-link" onclick="openSysSourceModal('${sysName}')">+ Lägg till källa</a>
+      <a class="wiki-action-link" ${coreAction("systemSource", sysName)}>+ Lägg till källa</a>
     </div>
   `;
+  app.querySelectorAll("[data-system-category-link]").forEach(link => {
+    link.addEventListener("click", event => event.stopPropagation());
+  });
+  bindCoreActions(app);
 }
 
 function toggleSysCategory(idx) {
@@ -1773,6 +1783,7 @@ function toggleSysCategory(idx) {
 }
 
 function openSysStudyModal(sysName) {
+  activeSystemForAdd = sysName;
   document.getElementById("sys-study-filter").value = "";
   document.getElementById("new-sys-study-name").value = "";
   document.getElementById("new-sys-study-type").value = "";
@@ -1781,6 +1792,7 @@ function openSysStudyModal(sysName) {
 }
 
 function renderSysStudyList() {
+  const targetSystem = activeSystemForAdd;
   const q = document.getElementById("sys-study-filter").value.trim().toLowerCase();
   const cont = document.getElementById("sys-study-checklist");
   cont.innerHTML = "";
@@ -1791,7 +1803,17 @@ function renderSysStudyList() {
   filtered.forEach(s => {
     const lbl = document.createElement("label");
     lbl.className = "check-label";
-    lbl.innerHTML = `<input type="checkbox" onchange="toggleSysStudyLink('${s.id}', this.checked)"> <span>${s.name} (${s.type})</span>`;
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.addEventListener("change", () => {
+      // A stale checklist must never mutate another system after navigation.
+      if (activeSystemForAdd !== targetSystem) return;
+      toggleSysStudyLink(s.id, checkbox.checked);
+    });
+    const caption = document.createElement("span");
+    caption.textContent = `${s.name} (${s.type})`;
+    lbl.appendChild(checkbox);
+    lbl.appendChild(caption);
     cont.appendChild(lbl);
   });
 }
@@ -1820,6 +1842,7 @@ function submitCreateSysStudy() {
 }
 
 function openSysSourceModal(sysName) {
+  activeSystemForAdd = sysName;
   document.getElementById("sys-source-filter").value = "";
   document.getElementById("new-sys-src-title").value = "";
   document.getElementById("new-sys-src-year").value = "";
@@ -1828,6 +1851,7 @@ function openSysSourceModal(sysName) {
 }
 
 function renderSysSourceList() {
+  const targetSystem = activeSystemForAdd;
   const q = document.getElementById("sys-source-filter").value.trim().toLowerCase();
   const cont = document.getElementById("sys-source-checklist");
   cont.innerHTML = "";
@@ -1838,7 +1862,17 @@ function renderSysSourceList() {
   filtered.forEach(src => {
     const lbl = document.createElement("label");
     lbl.className = "check-label";
-    lbl.innerHTML = `<input type="checkbox" onchange="toggleSysSourceLink('${src.id}', this.checked)"> <span>${src.title} (${src.year || 'u.å.'})</span>`;
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.addEventListener("change", () => {
+      // A stale checklist must never mutate another system after navigation.
+      if (activeSystemForAdd !== targetSystem) return;
+      toggleSysSourceLink(src.id, checkbox.checked);
+    });
+    const caption = document.createElement("span");
+    caption.textContent = `${src.title} (${src.year || 'u.å.'})`;
+    lbl.appendChild(checkbox);
+    lbl.appendChild(caption);
     cont.appendChild(lbl);
   });
 }
