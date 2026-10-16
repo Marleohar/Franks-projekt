@@ -763,6 +763,37 @@ function closeHeaderSearch() {
   document.getElementById("global-search-dropdown").style.display = "none";
 }
 
+// Plain-text encoding only at render time; stored library values are untouched.
+function escapeCoreText(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[character]);
+}
+
+function coreAction(name, ...args) {
+  return `data-core-action="${escapeCoreText(name)}" data-core-args="${escapeCoreText(JSON.stringify(args))}"`;
+}
+
+function bindCoreActions(root) {
+  root.querySelectorAll("[data-core-action]").forEach(element => {
+    element.addEventListener("click", event => {
+      event.preventDefault();
+      const args = JSON.parse(element.dataset.coreArgs);
+      // Fixed action names select functions, never executable library content.
+      switch (element.dataset.coreAction) {
+        case "search": selectGlobalSearchResult(...args); break;
+        case "renameHerb": promptRenameHerb(...args); break;
+        case "delete": deleteTagWithWarning(...args); break;
+        case "botanical": promptEditHerbBotanical(...args); break;
+        case "editor": openEditor(...args); break;
+        case "assign": openAssignPropsModal(...args); break;
+        case "renameCategory": promptRenameCategory(...args); break;
+        case "createProperty": promptCreatePropertyWithSubcat(...args); break;
+      }
+    });
+  });
+}
+
 function handleGlobalSearch(query) {
   const dd = document.getElementById("global-search-dropdown");
   const q = query.trim().toLowerCase();
@@ -773,7 +804,7 @@ function handleGlobalSearch(query) {
   db.objects.forEach(o => {
     const disp = getDisplayObjName(o);
     if (disp.toLowerCase().includes(q) || (o.name && o.name.toLowerCase().includes(q))) {
-      results.push({ type: "Ört", title: disp, link: `#herb/${o.id}`, desc: o.desc });
+      results.push({ type: "Ört", title: disp, link: `#herb-id/${encodeURIComponent(o.id)}`, desc: o.desc });
     }
   });
   Object.keys(db.properties).forEach(p => {
@@ -799,13 +830,14 @@ function handleGlobalSearch(query) {
   }
 
   let html = results.slice(0, 8).map(r => `
-    <div class="suggest-item" onclick="selectGlobalSearchResult('${r.link}')">
-      <div><b>${r.title}</b> <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">[${r.type}]</span></div>
-      <div style="font-size:12px; color:var(--text-muted);">${r.desc ? r.desc.split('.')[0] + '.' : ''}</div>
+    <div class="suggest-item" ${coreAction("search", r.link)}>
+      <div><b>${escapeCoreText(r.title)}</b> <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">[${escapeCoreText(r.type)}]</span></div>
+      <div style="font-size:12px; color:var(--text-muted);">${escapeCoreText(r.desc ? r.desc.split('.')[0] + '.' : '')}</div>
     </div>
   `).join("");
 
   dd.innerHTML = html;
+  bindCoreActions(dd);
   dd.style.display = "block";
 }
 
@@ -834,6 +866,11 @@ function handleRouting(propagateErrors = false) {
 
   try {
     if (route === "herb" && id) renderHerbPage(id);
+    else if (route === "herb-id") {
+      // Canonical IDs have one encoded component; legacy herb routes stay literal.
+      if (!id || hash.split("/").length !== 2) throw new Error("Ogiltig objektadress.");
+      renderHerbPage(decodeURIComponent(id));
+    }
     else if (route === "property" && id) renderPropertyPage(decodeURIComponent(id));
     else if (route === "category" && id) renderCategoryPage(decodeURIComponent(id));
     else if (route === "system" && id) renderSystemPage(decodeURIComponent(id));
@@ -870,11 +907,11 @@ function renderIndexPage() {
       const nativeHerbs = db.objects.filter(o => o.nativeSystems && o.nativeSystems.includes(sysName));
       nativeHerbs.sort((a,b) => getDisplayObjName(a).localeCompare(getDisplayObjName(b), currentLang));
 
-      let herbItems = nativeHerbs.map(h => `<li><a href="#herb/${h.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(h)}</a></li>`).join("");
+      let herbItems = nativeHerbs.map(h => `<li><a href="#herb-id/${encodeURIComponent(h.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(getDisplayObjName(h))}</a></li>`).join("");
 
       sysSectionsHtml += `
         <h2 class="wiki-section" style="margin-top:20px;">
-          <a href="#system/${encodeURIComponent(sysName)}" class="wiki-link">${sysName}</a>
+          <a href="#system/${encodeURIComponent(sysName)}" class="wiki-link">${escapeCoreText(sysName)}</a>
         </h2>
         <ul class="wiki-list">${herbItems || '<li><i>none</i></li>'}</ul>
       `;
@@ -895,12 +932,12 @@ function renderIndexPage() {
       if (first !== currentLetter) {
         if (currentLetter !== "") listHtml += `</ul>`;
         currentLetter = first;
-        listHtml += `<h2 class="wiki-section" id="letter-${currentLetter}">${currentLetter}</h2><ul class="wiki-list">`;
+        listHtml += `<h2 class="wiki-section" id="letter-${escapeCoreText(currentLetter)}">${escapeCoreText(currentLetter)}</h2><ul class="wiki-list">`;
       }
       const tagCount = getPropKeys(obj).length;
       listHtml += `
         <li>
-          <a href="#herb/${obj.id}" class="wiki-link" style="font-weight:700;">${disp}</a>
+          <a href="#herb-id/${encodeURIComponent(obj.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(disp)}</a>
           <span style="color:var(--text-muted); font-size:13px; font-family:monospace;"> [${tagCount} ${t("propsCountLabel")}]</span>
         </li>
       `;
@@ -1121,16 +1158,16 @@ function renderHerbPage(herbId) {
 
       let tagsList = assigned.map(p => {
         const subcat = db.properties[p]?.subcategory;
-        const subcatBadge = subcat ? ` <a href="#category/${encodeURIComponent(cat)}" style="font-size:11px; color:var(--text-muted); text-decoration:none;">(${subcat})</a>` : '';
-        return `<span><a href="#property/${encodeURIComponent(p)}" class="wiki-link">${p}</a>${subcatBadge}</span>`;
+        const subcatBadge = subcat ? ` <a href="#category/${encodeURIComponent(cat)}" style="font-size:11px; color:var(--text-muted); text-decoration:none;">(${escapeCoreText(subcat)})</a>` : '';
+        return `<span><a href="#property/${encodeURIComponent(p)}" class="wiki-link">${escapeCoreText(p)}</a>${subcatBadge}</span>`;
       }).join(", ");
 
       catRowsInSys += `
         <div class="wiki-data-row">
-          <a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${cat}:</a>
+          <a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${escapeCoreText(cat)}:</a>
           <div class="wiki-row-content">
             ${tagsList || '<i>none</i>'}
-            <a class="btn-wiki-add" onclick="openAssignPropsModal('${obj.id}', '${cat}')">[+]</a>
+            <a class="btn-wiki-add" ${coreAction("assign", obj.id, cat)}>[+]</a>
           </div>
         </div>
       `;
@@ -1138,7 +1175,7 @@ function renderHerbPage(herbId) {
 
     if (catRowsInSys !== "") {
       systemsHtml += `
-        <div style="font-weight:700; color:var(--text-muted); text-transform:uppercase; font-size:13px; margin:10px 0 2px 0;">${sysName}</div>
+        <div style="font-weight:700; color:var(--text-muted); text-transform:uppercase; font-size:13px; margin:10px 0 2px 0;">${escapeCoreText(sysName)}</div>
         <div class="wiki-data-table">${catRowsInSys}</div>
       `;
     }
@@ -1147,29 +1184,29 @@ function renderHerbPage(herbId) {
   const taxEntries = Object.entries(obj.taxonomies || {}).filter(([k, v]) => Boolean(v));
   let taxRows = taxEntries.map(([k, v]) => `
     <div class="wiki-data-row">
-      <span class="wiki-row-label" style="color:var(--text);">${k}:</span>
-      <div class="wiki-row-content"><b>${v}</b></div>
+      <span class="wiki-row-label" style="color:var(--text);">${escapeCoreText(k)}:</span>
+      <div class="wiki-row-content"><b>${escapeCoreText(v)}</b></div>
     </div>
   `).join("");
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>${getDisplayObjName(obj)}</span>
+      <span>${escapeCoreText(getDisplayObjName(obj))}</span>
       <div style="display:flex; align-items:center; gap:8px;">
-        <a class="wiki-action-link" onclick="promptRenameHerb('${obj.id}')" title="Ändra primärnamn">🖋</a>
-        <a class="wiki-action-link" style="color:var(--danger);" onclick="deleteTagWithWarning('object', '${obj.id}')">[radera]</a>
+        <a class="wiki-action-link" ${coreAction("renameHerb", obj.id)} title="Ändra primärnamn">🖋</a>
+        <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("delete", "object", obj.id)}>[radera]</a>
       </div>
     </h1>
 
     <div class="wiki-subtitle">
-      <span>${botName ? botName : 'Inga synonymer tillskrivna'}</span>
-      <a class="wiki-action-link" onclick="promptEditHerbBotanical('${obj.id}')" style="margin-left:6px;">🖋</a>
+      <span>${escapeCoreText(botName ? botName : 'Inga synonymer tillskrivna')}</span>
+      <a class="wiki-action-link" ${coreAction("botanical", obj.id)} style="margin-left:6px;">🖋</a>
     </div>
     <hr class="wiki-divider">
 
     <div class="wiki-paragraph">
-      <span style="float:right;"><a class="wiki-action-link" onclick="openEditor('herb', '${obj.id}')">🖋</a></span>
-      ${obj.desc || `<i>${t("noDesc")}</i>`}
+      <span style="float:right;"><a class="wiki-action-link" ${coreAction("editor", "herb", obj.id)}>🖋</a></span>
+      ${obj.desc ? escapeCoreText(obj.desc) : `<i>${t("noDesc")}</i>`}
     </div>
     <hr class="wiki-divider">
 
@@ -1185,6 +1222,7 @@ function renderHerbPage(herbId) {
     <hr class="wiki-divider-subtle">
     <div class="wiki-data-table">${taxRows || '<i>Inga synonymer fyllda.</i>'}</div>
   `;
+  bindCoreActions(app);
 }
 
 function promptEditHerbBotanical(herbId) {
@@ -1256,7 +1294,7 @@ function renderAssignPropsList() {
     const isChecked = pendingSelectedProps.has(p);
     const lbl = document.createElement("label");
     lbl.className = "check-label";
-    lbl.innerHTML = `<input type="checkbox" ${isChecked ? 'checked' : ''}> <span>${p}</span>`;
+    lbl.innerHTML = `<input type="checkbox" ${isChecked ? 'checked' : ''}> <span>${escapeCoreText(p)}</span>`;
     lbl.querySelector("input").onchange = (e) => {
       if (e.target.checked) pendingSelectedProps.add(p);
       else pendingSelectedProps.delete(p);
@@ -1518,12 +1556,12 @@ function renderCategoryPage(catName) {
     const list = grouped[sc] || [];
     let items = list.map(p => {
       const herbs = db.objects.filter(o => hasProp(o, p));
-      const herbLinks = herbs.map(h => `<a href="#herb/${h.id}" class="wiki-link">${getDisplayObjName(h)}</a>`).join(", ");
-      const summary = db.properties[p]?.summary ? `<div style="font-size:12px; color:var(--text-muted);">${db.properties[p].summary}</div>` : '';
+      const herbLinks = herbs.map(h => `<a href="#herb-id/${encodeURIComponent(h.id)}" class="wiki-link">${escapeCoreText(getDisplayObjName(h))}</a>`).join(", ");
+      const summary = db.properties[p]?.summary ? `<div style="font-size:12px; color:var(--text-muted);">${escapeCoreText(db.properties[p].summary)}</div>` : '';
       return `
         <div class="wiki-data-row">
           <div class="wiki-row-label">
-            <a href="#property/${encodeURIComponent(p)}">${p}:</a>
+            <a href="#property/${encodeURIComponent(p)}">${escapeCoreText(p)}:</a>
             ${summary}
           </div>
           <div class="wiki-row-content">${herbLinks || '<i>inga örter</i>'}</div>
@@ -1533,7 +1571,7 @@ function renderCategoryPage(catName) {
 
     contentSectionsHtml += `
       <div style="margin-top:12px;" id="subcat-${encodeURIComponent(sc)}">
-        <div style="font-weight:800; font-size:15px; color:var(--text); border-bottom:1px solid var(--border-subtle); padding-bottom:2px;">Underkategori: ${sc}</div>
+        <div style="font-weight:800; font-size:15px; color:var(--text); border-bottom:1px solid var(--border-subtle); padding-bottom:2px;">Underkategori: ${escapeCoreText(sc)}</div>
         <div class="wiki-data-table">${items || '<i>inga egenskaper</i>'}</div>
       </div>
     `;
@@ -1542,12 +1580,12 @@ function renderCategoryPage(catName) {
   if (grouped["_none_"].length > 0) {
     let uncatItems = grouped["_none_"].map(p => {
       const herbs = db.objects.filter(o => hasProp(o, p));
-      const herbLinks = herbs.map(h => `<a href="#herb/${h.id}" class="wiki-link">${getDisplayObjName(h)}</a>`).join(", ");
-      const summary = db.properties[p]?.summary ? `<div style="font-size:12px; color:var(--text-muted);">${db.properties[p].summary}</div>` : '';
+      const herbLinks = herbs.map(h => `<a href="#herb-id/${encodeURIComponent(h.id)}" class="wiki-link">${escapeCoreText(getDisplayObjName(h))}</a>`).join(", ");
+      const summary = db.properties[p]?.summary ? `<div style="font-size:12px; color:var(--text-muted);">${escapeCoreText(db.properties[p].summary)}</div>` : '';
       return `
         <div class="wiki-data-row">
           <div class="wiki-row-label">
-            <a href="#property/${encodeURIComponent(p)}">${p}:</a>
+            <a href="#property/${encodeURIComponent(p)}">${escapeCoreText(p)}:</a>
             ${summary}
           </div>
           <div class="wiki-row-content">${herbLinks || '<i>inga örter</i>'}</div>
@@ -1565,18 +1603,18 @@ function renderCategoryPage(catName) {
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>${catName}</span>
+      <span>${escapeCoreText(catName)}</span>
       <div style="display:flex; align-items:center; gap:8px;">
-        <a class="wiki-action-link" onclick="promptRenameCategory('${catName}')" title="Ändra namn">🖋</a>
-        <a class="wiki-action-link" style="color:var(--danger);" onclick="deleteTagWithWarning('category', '${catName}')">${t("delete")}</a>
-        <a href="#system/${encodeURIComponent(cat.system || 'Universal')}" class="wiki-action-link">[System: ${cat.system || 'Generellt'}]</a>
+        <a class="wiki-action-link" ${coreAction("renameCategory", catName)} title="Ändra namn">🖋</a>
+        <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("delete", "category", catName)}>${t("delete")}</a>
+        <a href="#system/${encodeURIComponent(cat.system || 'Universal')}" class="wiki-action-link">[System: ${escapeCoreText(cat.system || 'Generellt')}]</a>
       </div>
     </h1>
     <hr class="wiki-divider">
 
     <div class="wiki-paragraph">
-      <span style="float:right;"><a class="wiki-action-link" onclick="openEditor('cat', '${catName}')">🖋</a></span>
-      ${cat.desc || `<i>${t("noDesc")}</i>`}
+      <span style="float:right;"><a class="wiki-action-link" ${coreAction("editor", "cat", catName)}>🖋</a></span>
+      ${cat.desc ? escapeCoreText(cat.desc) : `<i>${t("noDesc")}</i>`}
     </div>
     <hr class="wiki-divider">
 
@@ -1586,9 +1624,10 @@ function renderCategoryPage(catName) {
     <div style="margin-top:6px;">${contentSectionsHtml || '<i>Inga egenskaper i kategorin.</i>'}</div>
 
     <div style="margin-top:10px;">
-      <a class="wiki-action-link" onclick="promptCreatePropertyWithSubcat('${catName}')">(+ Skapa ny egenskap)</a>
+      <a class="wiki-action-link" ${coreAction("createProperty", catName)}>(+ Skapa ny egenskap)</a>
     </div>
   `;
+  bindCoreActions(app);
 }
 
 function promptRenameCategory(oldName) {

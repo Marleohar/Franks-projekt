@@ -16,7 +16,7 @@ const declarations = [
   ...['deduplicateAndSanitizeDB', 'ensureDbStructure', 'validateImportLibrary',
     'summarizeImportLibrary', 'downloadBackupFile', 'importBackupFile',
     'getDisplayObjName', 'getPropKeys', 'hasProp', 'renderIndexPage',
-    'handleRouting', 'renderCategoryPage'].map(name =>
+    'handleRouting', 'renderCategoryPage', 'escapeCoreText', 'coreAction', 'bindCoreActions'].map(name =>
     extract(new RegExp(`^function ${name}\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}`, 'gm'), name)),
 ].join('\n');
 
@@ -44,7 +44,7 @@ function runImport(current, text, options = {}) {
     const indexNameDisplayMode = 'auto';
     const herbSwedishDictionary = {};
     const t = key => key;
-    const app = { innerHTML: '' };
+    const app = { innerHTML: '', querySelectorAll() { return []; } };
     const window = { location: { hash: input.options.route || '#index' }, scrollTo() {} };
     const confirm = message => {
       trace.push({ action: 'confirm', db: JSON.parse(JSON.stringify(db)) });
