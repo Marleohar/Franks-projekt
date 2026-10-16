@@ -94,26 +94,29 @@ async function main() {
     await page.locator('#sys-study-checklist input').check();
     let expected=structuredClone(fixture.library);expected.studyObjects[1].systems.push(fixture.system);await state(expected,1);
     await page.locator('#sys-study-filter').fill('');await page.locator('#sys-study-filter').fill('ordinary');
-    // Inherited checklists reopen unchecked; use explicit change to exercise removal without changing that UI contract.
-    await page.locator('#sys-study-checklist input').evaluate(e=>{e.checked=false;e.dispatchEvent(new Event('change',{bubbles:true}))});
+    assert.equal(await page.locator('#sys-study-checklist input').isChecked(),true);
+    await page.locator('#sys-study-checklist input').uncheck();
     await state(fixture.library,2);
     await page.locator('#popup-sys-study .popup-header button').click();await state(fixture.library,2);
     await reset();await open('Study');
     await page.locator('#sys-study-filter').fill('study o');
-    await page.locator('#sys-study-checklist input').evaluate(e=>{e.checked=false;e.dispatchEvent(new Event('change',{bubbles:true}))});
+    assert.equal(await page.locator('#sys-study-checklist input').isChecked(),true);
+    await page.locator('#sys-study-checklist input').uncheck();
     expected=structuredClone(fixture.library);expected.studyObjects[0].systems=[fixture.other];await state(expected,1);
     await reset();await open('Source');await page.locator('#sys-source-filter').fill('ordinary');await state(fixture.library,0);
     await page.locator('#sys-source-checklist input').check();expected=structuredClone(fixture.library);expected.sources[1].tags.push({type:'system',id:fixture.system});await state(expected,1);
     await page.locator('#sys-source-checklist input').uncheck();await state(fixture.library,2);
     await page.locator('#sys-source-filter').fill('title');
-    await page.locator('#sys-source-checklist input').evaluate(e=>{e.checked=false;e.dispatchEvent(new Event('change',{bubbles:true}))});
+    assert.equal(await page.locator('#sys-source-checklist input').isChecked(),true);
+    await page.locator('#sys-source-checklist input').uncheck();
     expected=structuredClone(fixture.library);expected.sources[0].tags.shift();await state(expected,3);
     await page.locator('#popup-sys-source .popup-header button').click();
     await reset();await open('Study');
     await page.evaluate(other=>renderSystemPage(other),fixture.other);
     assert.equal(await page.locator('#popup-sys-study').isVisible(),false);
     await open('Study');await page.locator('#sys-study-filter').fill('ordinary');
-    await page.locator('#sys-study-checklist input').evaluate(e=>{e.checked=false;e.dispatchEvent(new Event('change',{bubbles:true}))});
+    assert.equal(await page.locator('#sys-study-checklist input').isChecked(),true);
+    await page.locator('#sys-study-checklist input').uncheck();
     expected=structuredClone(fixture.library);expected.studyObjects[1].systems=[];await state(expected,1);
     await reset();await open('Study');await page.locator('#new-sys-study-name').fill('Synthetic created study');await page.locator('#new-sys-study-type').fill('Synthetic type');
     await page.locator('#popup-sys-study button').filter({hasText:'Skapa'}).click();
@@ -122,11 +125,42 @@ async function main() {
     await page.locator('#popup-sys-source button').filter({hasText:'Skapa'}).click();
     created=await page.evaluate(()=>JSON.parse(JSON.stringify(db.sources.at(-1))));assert.match(created.id,/^src_\d+$/);assert.deepEqual({...created,id:''},{id:'',title:'Synthetic created source',year:'2026',author:'',tags:[{type:'system',id:fixture.system}]});expected.sources.push(created);await state(expected,2);
     await reset();await open('Source');await page.locator('#popup-sys-source').click({position:{x:5,y:5}});assert.equal(await page.locator('#popup-sys-source').isVisible(),false);await state(fixture.library,0);
+    // Original loss reproduction, now with genuine checked state and ordinary clicks.
+    await reset();await open('Study');await page.locator('#sys-study-filter').fill('study o');
+    const studyBox=page.locator('#sys-study-checklist input');
+    assert.equal(await studyBox.isChecked(),true);await state(fixture.library,0);
+    await studyBox.check();await state(fixture.library,0); // Selecting an already selected row is a no-op.
+    await studyBox.click(); // An ordinary click on a checked box explicitly unchecks it.
+    expected=structuredClone(fixture.library);expected.studyObjects[0].systems=[fixture.other];await state(expected,1);
+    await studyBox.uncheck();await state(expected,1);
+    await studyBox.click();expected.studyObjects[0].systems.push(fixture.system);await state(expected,2);
+    await page.locator('#sys-study-filter').fill('missing');assert.equal(await studyBox.count(),0);
+    await page.locator('#sys-study-filter').fill('study o');assert.equal(await studyBox.isChecked(),true);await state(expected,2);
+    await page.locator('#popup-sys-study .popup-header button').click();await open('Study');
+    assert.equal(await page.locator('#sys-study-checklist input').first().isChecked(),true);await state(expected,2);
+    await reset();await open('Source');await page.locator('#sys-source-filter').fill('title');
+    const sourceBox=page.locator('#sys-source-checklist input');assert.equal(await sourceBox.isChecked(),true);
+    await sourceBox.check();await state(fixture.library,0);
+    await sourceBox.click();expected=structuredClone(fixture.library);expected.sources[0].tags.shift();await state(expected,1);
+    await sourceBox.uncheck();await state(expected,1);
+    await sourceBox.click();expected.sources[0].tags.push({type:'system',id:fixture.system});await state(expected,2);
+    await page.locator('#sys-source-filter').fill('missing');assert.equal(await sourceBox.count(),0);
+    await page.locator('#sys-source-filter').fill('title');assert.equal(await sourceBox.isChecked(),true);await state(expected,2);
+    await page.locator('#popup-sys-source .popup-header button').click();await open('Source');
+    assert.equal(await page.locator('#sys-source-checklist input').first().isChecked(),true);await state(expected,2);
+    // Mixed legacy representations remove only the selected relationship, then re-add through systems.
+    await reset();
+    await page.evaluate(f=>{db.studyObjects[0].system=f.system;openSysStudyModal(f.system);},fixture);
+    expected=structuredClone(fixture.library);expected.studyObjects[0].system=fixture.system;await state(expected,0);
+    await page.locator('#sys-study-checklist input').first().uncheck();
+    delete expected.studyObjects[0].system;expected.studyObjects[0].systems=[fixture.other];await state(expected,1);
+    await page.locator('#sys-study-checklist input').first().check();expected.studyObjects[0].systems.push(fixture.system);await state(expected,2);
+    await reset();await state(fixture.library,0);
     assert.equal(await page.evaluate(()=>JSON.stringify(db)),original);
     assert.equal(await page.evaluate(()=>typeof firebase),'undefined');assert.equal(await page.evaluate(()=>firestoreDb),null);
     assert.deepEqual(errors,[]);assert.deepEqual(externalRequests,[]);
     await page.screenshot({path:path.join(tempDir,'safe-system-rendering.png'),fullPage:true});
-    console.log(JSON.stringify({result:'PASS',browser:browser.version(),payloadExecutions:0,injectedElements:0,unexpectedWrites:0,expectedWritesByScenario:[2,1,3,1,2],finalWrites:0,errors,externalRequests,evidence:tempDir}));
+    console.log(JSON.stringify({result:'PASS',browser:browser.version(),payloadExecutions:0,injectedElements:0,unexpectedWrites:0,expectedWritesByScenario:[2,1,3,1,2,2,2,2],ordinaryClicksVerified:true,finalWrites:0,errors,externalRequests,evidence:tempDir}));
     await context.close();
   } finally { if(browser)await browser.close(); }
 }

@@ -1805,6 +1805,7 @@ function renderSysStudyList() {
     lbl.className = "check-label";
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
+    checkbox.checked = s.system === targetSystem || (s.systems || []).includes(targetSystem);
     checkbox.addEventListener("change", () => {
       // A stale checklist must never mutate another system after navigation.
       if (activeSystemForAdd !== targetSystem) return;
@@ -1820,12 +1821,22 @@ function renderSysStudyList() {
 
 function toggleSysStudyLink(studyId, isChecked) {
   const so = (db.studyObjects || []).find(s => s.id === studyId);
-  if (so) {
+  if (!so) return;
+  const target = activeSystemForAdd;
+  const singularLinked = so.system === target;
+  const pluralLinked = (so.systems || []).includes(target);
+  if (isChecked) {
+    // Either legacy representation already establishes this relationship.
+    if (singularLinked || pluralLinked) return;
     if (!so.systems) so.systems = [];
-    if (isChecked && !so.systems.includes(activeSystemForAdd)) so.systems.push(activeSystemForAdd);
-    else so.systems = so.systems.filter(s => s !== activeSystemForAdd);
-    persist();
+    so.systems.push(target);
+  } else {
+    if (!singularLinked && !pluralLinked) return;
+    // Remove only the selected relationship, including both representations.
+    if (singularLinked) delete so.system;
+    if (pluralLinked) so.systems = so.systems.filter(system => system !== target);
   }
+  persist();
 }
 
 function submitCreateSysStudy() {
@@ -1864,6 +1875,7 @@ function renderSysSourceList() {
     lbl.className = "check-label";
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
+    checkbox.checked = (src.tags || []).some(tag => tag.type === "system" && tag.id === targetSystem);
     checkbox.addEventListener("change", () => {
       // A stale checklist must never mutate another system after navigation.
       if (activeSystemForAdd !== targetSystem) return;
@@ -1879,17 +1891,18 @@ function renderSysSourceList() {
 
 function toggleSysSourceLink(srcId, isChecked) {
   const src = (db.sources || []).find(s => s.id === srcId);
-  if (src) {
+  if (!src) return;
+  const target = activeSystemForAdd;
+  const linked = (src.tags || []).some(tag => tag.type === "system" && tag.id === target);
+  if (isChecked) {
+    if (linked) return;
     if (!src.tags) src.tags = [];
-    if (isChecked) {
-      if (!src.tags.some(t => t.type === "system" && t.id === activeSystemForAdd)) {
-        src.tags.push({ type: "system", id: activeSystemForAdd });
-      }
-    } else {
-      src.tags = src.tags.filter(t => !(t.type === "system" && t.id === activeSystemForAdd));
-    }
-    persist();
+    src.tags.push({ type: "system", id: target });
+  } else {
+    if (!linked) return;
+    src.tags = src.tags.filter(tag => !(tag.type === "system" && tag.id === target));
   }
+  persist();
 }
 
 function submitCreateSysSource() {
