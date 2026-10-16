@@ -496,6 +496,24 @@
     </div>
   </div>
 
+  <!-- Property source editor: existing functions use text/value DOM APIs. -->
+  <div class="popup-overlay" id="popup-edit-prop-source" onclick="closeOnOverlayClick(event, 'popup-edit-prop-source')">
+    <div class="popup-box">
+      <div class="popup-header"><span>Redigera källa/sidor</span>
+        <button class="wiki-btn" onclick="closePopup()">✕</button></div>
+      <div class="popup-body">
+        <div id="edit-source-title-display"></div>
+        <label for="edit-source-pages-input">Sidor</label>
+        <input type="text" id="edit-source-pages-input">
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button class="wiki-btn primary" onclick="saveSourcePagesOnProperty()">Spara</button>
+          <button class="wiki-btn" onclick="removeSourceFromProperty()">Ta bort koppling</button>
+          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
 // ==================== FIRESTORE & KONSTANTER ====================
 const firebaseConfig = {
@@ -781,6 +799,12 @@ function bindCoreActions(root) {
       const args = JSON.parse(element.dataset.coreArgs);
       // Fixed action names select functions, never executable library content.
       switch (element.dataset.coreAction) {
+        case "renameProperty": promptRenameProperty(...args); break;
+        case "propertySummary": promptEditPropertySummary(...args); break;
+        case "connectHerb": openConnectHerbsToPropertyPopup(...args); break;
+        case "relatedProperty": openRelatedPropertiesTwoWayPopup(...args); break;
+        case "addPropertySource": openAddSourceToPropertyDirect(...args); break;
+        case "propertySource": openEditPropSourceModal(...args); break;
         case "search": selectGlobalSearchResult(...args); break;
         case "renameHerb": promptRenameHerb(...args); break;
         case "delete": deleteTagWithWarning(...args); break;
@@ -1331,20 +1355,20 @@ function renderPropertyPage(propName) {
   const herbsWith = db.objects.filter(o => hasProp(o, propName)).sort((a,b) => getDisplayObjName(a).localeCompare(getDisplayObjName(b), currentLang));
   let herbsListHtml = herbsWith.length === 0
     ? `<li><i>Inga örter kopplade än.</i></li>`
-    : herbsWith.map(o => `<li><a href="#herb/${o.id}" class="wiki-link" style="font-weight:700;">${getDisplayObjName(o)}</a></li>`).join("");
+    : herbsWith.map(o => `<li><a href="#herb-id/${encodeURIComponent(o.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(getDisplayObjName(o))}</a></li>`).join("");
 
   const relatedProps = prop.related || [];
   let relPropsHtml = relatedProps.length === 0
     ? `<i>Inga relaterade egenskaper än.</i>`
     : relatedProps.map(rp => {
         const rc = db.properties[rp]?.category || "Övrigt";
-        return `<div style="margin-bottom:4px;"><b>${rc}:</b> <a href="#property/${encodeURIComponent(rp)}" class="wiki-link">${rp}</a></div>`;
+        return `<div style="margin-bottom:4px;"><b>${escapeCoreText(rc)}:</b> <a href="#property/${encodeURIComponent(rp)}" class="wiki-link">${escapeCoreText(rp)}</a></div>`;
       }).join("");
 
   const linkedStudy = (db.studyObjects || []).filter(so => hasProp(so, propName));
   let studyHtml = linkedStudy.length === 0
     ? `<li><i>Inga studieobjekt kopplade.</i></li>`
-    : linkedStudy.map(so => `<li>${so.name} (${so.type || 'Ref'})</li>`).join("");
+    : linkedStudy.map(so => `<li>${escapeCoreText(so.name)} (${escapeCoreText(so.type || 'Ref')})</li>`).join("");
 
   const linkedSources = [];
   db.sources.forEach(src => {
@@ -1363,35 +1387,35 @@ function renderPropertyPage(propName) {
     : linkedSources.map(item => `
       <li style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <div>
-          <b>${item.src.author || 'Okänd'}</b> (${item.src.year || 'u.å.'}) <i>${item.src.title}</i>${item.pages ? ` (s. ${item.pages})` : ''}
+          <b>${escapeCoreText(item.src.author || 'Okänd')}</b> (${escapeCoreText(item.src.year || 'u.å.')}) <i>${escapeCoreText(item.src.title)}</i>${item.pages ? ` (s. ${escapeCoreText(item.pages)})` : ''}
         </div>
-        <span onclick="openEditPropSourceModal('${propName}', '${item.src.id}', '${item.pages}')" title="Redigera källa/sidor">${svgEditIcon}</span>
+        <span ${coreAction("propertySource", propName, item.src.id, item.pages)} title="Redigera källa/sidor">${svgEditIcon}</span>
       </li>
     `).join("");
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>${propName}</span>
+      <span>${escapeCoreText(propName)}</span>
       <div style="display:flex; align-items:center; gap:8px;">
-        <a class="wiki-action-link" onclick="promptRenameProperty('${propName}')" title="Ändra namn">🖋</a>
-        <a class="wiki-action-link" style="color:var(--danger);" onclick="deleteTagWithWarning('property', '${propName}')">[radera]</a>
+        <a class="wiki-action-link" ${coreAction("renameProperty", propName)} title="Ändra namn">🖋</a>
+        <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("delete", "property", propName)}>[radera]</a>
       </div>
     </h1>
 
     <div style="font-size:13px; color:var(--text-muted); margin-bottom:4px;">
-      ${prop.summary || `<i>Kort sammanfattning saknas.</i>`}
-      <a class="wiki-action-link" onclick="promptEditPropertySummary('${propName}')">🖋</a>
+      ${prop.summary ? escapeCoreText(prop.summary) : `<i>Kort sammanfattning saknas.</i>`}
+      <a class="wiki-action-link" ${coreAction("propertySummary", propName)}>🖋</a>
     </div>
 
     <div style="font-size:13px; font-weight:700; color:var(--text-muted); margin-bottom:8px;">
-      <a href="#category/${encodeURIComponent(cat)}" class="wiki-link">${cat}</a> / 
-      <a href="#system/${encodeURIComponent(sys)}" class="wiki-link">${sys}</a>
+      <a href="#category/${encodeURIComponent(cat)}" class="wiki-link">${escapeCoreText(cat)}</a> /
+      <a href="#system/${encodeURIComponent(sys)}" class="wiki-link">${escapeCoreText(sys)}</a>
     </div>
     <hr class="wiki-divider">
 
     <div class="wiki-paragraph">
-      <span style="float:right;"><a class="wiki-action-link" onclick="openEditor('prop', '${propName}')">🖋</a></span>
-      ${prop.desc || `<i>${t("noDesc")}</i>`}
+      <span style="float:right;"><a class="wiki-action-link" ${coreAction("editor", "prop", propName)}>🖋</a></span>
+      ${prop.desc ? escapeCoreText(prop.desc) : `<i>${t("noDesc")}</i>`}
     </div>
     <hr class="wiki-divider">
 
@@ -1400,14 +1424,14 @@ function renderPropertyPage(propName) {
     </h2>
     <ul class="wiki-list">${herbsListHtml}</ul>
     <div style="margin-top:-4px; margin-bottom:12px;">
-      <a class="wiki-action-link" onclick="openConnectHerbsToPropertyPopup('${propName}')">+ Lägg till ört</a>
+      <a class="wiki-action-link" ${coreAction("connectHerb", propName)}>+ Lägg till ört</a>
     </div>
     <hr class="wiki-divider">
 
     <h2 class="wiki-section">Relaterade Egenskaper</h2>
     <div style="margin-top:6px; font-size:15px;">${relPropsHtml}</div>
     <div style="margin-top:6px; margin-bottom:12px;">
-      <a class="wiki-action-link" onclick="openRelatedPropertiesTwoWayPopup('${propName}')">+ Lägg till egenskap</a>
+      <a class="wiki-action-link" ${coreAction("relatedProperty", propName)}>+ Lägg till egenskap</a>
     </div>
     <hr class="wiki-divider">
 
@@ -1418,9 +1442,10 @@ function renderPropertyPage(propName) {
     <h2 class="wiki-section">KÄLLOR</h2>
     <ul class="wiki-list">${sourcesListHtml}</ul>
     <div style="margin-top:-4px; margin-bottom:12px;">
-      <a class="wiki-action-link" onclick="openAddSourceToPropertyDirect('${propName}')">+ Lägg till källa</a>
+      <a class="wiki-action-link" ${coreAction("addPropertySource", propName)}>+ Lägg till källa</a>
     </div>
   `;
+  bindCoreActions(app);
 }
 
 function promptEditPropertySummary(pName) {
