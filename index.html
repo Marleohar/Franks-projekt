@@ -799,6 +799,8 @@ function bindCoreActions(root) {
       const args = JSON.parse(element.dataset.coreArgs);
       // Fixed action names select functions, never executable library content.
       switch (element.dataset.coreAction) {
+        case "formulaCreate": promptCreateFormula(); break;
+        case "formulaDelete": deleteFormula(...args); break;
         case "glossaryCreate": promptCreateHerbFromGlossary(); break;
         case "filterRemove": removeFilterProp(...args); break;
         case "filterReset": resetSearch(); break;
@@ -2070,20 +2072,21 @@ function renderFormulasIndexPage() {
   const app = document.getElementById("wiki-app");
   const listHtml = Object.entries(db.formulas || {}).map(([fName, fData]) => `
     <li>
-      <a href="#formula/${encodeURIComponent(fName)}" class="wiki-link" style="font-weight:700;">⚗ ${fName}</a>
-      <span style="color:var(--text-muted); font-size:13px;"> — ${fData.components ? fData.components.length : 0} komponenter</span>
+      <a href="#formula/${encodeURIComponent(fName)}" class="wiki-link" style="font-weight:700;">⚗ ${escapeCoreText(fName)}</a>
+      <span style="color:var(--text-muted); font-size:13px;"> — ${Array.isArray(fData?.components) ? fData.components.length : 0} komponenter</span>
     </li>
   `).join("");
 
   app.innerHTML = `
     <h1 class="wiki-title">
       <span>Formelarkiv</span>
-      <a class="wiki-action-link" onclick="promptCreateFormula()">[+ Ny formel]</a>
+      <a class="wiki-action-link" ${coreAction("formulaCreate")}>[+ Ny formel]</a>
     </h1>
     <hr class="wiki-divider">
     <div class="wiki-paragraph">Sammansatta örtrecept och beredningar.</div>
     <ul class="wiki-list">${listHtml || '<i>Inga formler sparade än.</i>'}</ul>
   `;
+  bindCoreActions(app);
 }
 
 function promptCreateFormula() {
@@ -2104,12 +2107,13 @@ function renderFormulaDetailPage(fName) {
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>⚗ ${fName}</span>
-      <a class="wiki-action-link" style="color:var(--danger);" onclick="deleteFormula('${fName}')">[radera formel]</a>
+      <span>⚗ ${escapeCoreText(fName)}</span>
+      <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("formulaDelete", fName)}>[radera formel]</a>
     </h1>
     <hr class="wiki-divider">
-    <div class="wiki-paragraph">${formula.desc || `<i>Ingen beskrivning skriven än.</i>`}</div>
+    <div class="wiki-paragraph">${formula.desc ? escapeCoreText(formula.desc) : `<i>Ingen beskrivning skriven än.</i>`}</div>
   `;
+  bindCoreActions(app);
 }
 
 function deleteFormula(fName) { if (!confirm(`Radera formeln '${fName}'?`)) return; delete db.formulas[fName]; persist(); window.location.hash = "#formulas"; }
