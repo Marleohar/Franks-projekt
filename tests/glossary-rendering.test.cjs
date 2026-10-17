@@ -8,6 +8,7 @@ function run(code){const c=vm.createContext(Object.create(null),{codeGeneration:
 const f=JSON.parse(inputJSON),db=f.library,currentLang='sv',indexNameDisplayMode='auto',herbSwedishDictionary={};let glossaryFilterMode='all',writes=0,answers=[];
 const edits=[],radios=[],app={innerHTML:'',querySelectorAll(selector){if(selector==='[data-glossary-edit]')return edits;if(selector.includes('gloss_filter'))return radios;return []}};
 const document={getElementById(){return app}};function persist(){writes++}function prompt(){return answers.shift()??null}
+function t(key, params = {}) { return key.replace(/\\{(\\w+)\\}/g, (token, name) => Object.hasOwn(params, name) ? String(params[name]) : token); }
 ${functions}
 const before=JSON.stringify(db);let result;
 ${code}

@@ -363,20 +363,20 @@
       <a href="#index" class="header-logo" onclick="navigateTo('index')">
         <span>🌿</span> <span id="brand-title">Ört-Wiki</span>
       </a>
-      <button class="btn-icon-trigger" onclick="openHeaderSearch()" title="Sök i hela biblioteket">🔍</button>
+      <button class="btn-icon-trigger" onclick="openHeaderSearch()" title="Sök i hela biblioteket" data-i18n-title="Sök i hela biblioteket">🔍</button>
     </div>
 
     <!-- GLOBALT SÖKFÄLT (ENBART MATCHNINGAR) -->
     <div id="header-search-bar" style="display:none; flex-grow:1; position:relative; margin-right:8px;">
       <div style="display:flex; align-items:center; gap:4px;">
-        <input type="text" id="global-search-input" placeholder="Sök i biblioteket..." autocomplete="off" oninput="handleGlobalSearch(this.value)">
-        <button class="wiki-btn" style="padding:4px 8px;" onclick="closeHeaderSearch()">✕</button>
+        <input type="text" id="global-search-input" placeholder="Sök i biblioteket..." data-i18n-placeholder="Sök i biblioteket..." autocomplete="off" oninput="handleGlobalSearch(this.value)">
+        <button class="wiki-btn" style="padding:4px 8px;" onclick="closeHeaderSearch()" aria-label="Stäng" data-i18n-aria-label="Stäng">✕</button>
       </div>
       <div class="suggest-dropdown" id="global-search-dropdown"></div>
     </div>
 
     <div style="display:flex; align-items:center; gap:8px;">
-      <span id="cloud-status-indicator" style="font-size:12px; color:var(--text-muted);" title="Molnstatus">☁️</span>
+      <span id="cloud-status-indicator" style="font-size:12px; color:var(--text-muted);" title="Molnstatus" data-i18n-title="Molnstatus">☁️</span>
       <button class="btn-icon-trigger" onclick="openNavMenuModal()" id="btn-menu-text">☰ Meny</button>
     </div>
   </header>
@@ -386,9 +386,9 @@
 
   <!-- FOTNOT -->
   <footer class="wiki-footer">
-    <span>Ört-Wiki Molndatabas (Google Firestore)</span> • 
-    <a class="wiki-action-link" onclick="downloadBackupFile()">Exportera JSON</a> • 
-    <a class="wiki-action-link" onclick="document.getElementById('import-file-input').click()">Importera JSON</a>
+    <span data-i18n="Ört-Wiki Molndatabas (Google Firestore)">Ört-Wiki Molndatabas (Google Firestore)</span> •
+    <a class="wiki-action-link" onclick="downloadBackupFile()" data-i18n="Exportera JSON">Exportera JSON</a> •
+    <a class="wiki-action-link" onclick="document.getElementById('import-file-input').click()" data-i18n="Importera JSON">Importera JSON</a>
     <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importBackupFile(event)">
   </footer>
 
@@ -397,29 +397,29 @@
     <div class="popup-box" style="max-width:320px; margin:10px auto;">
       <div class="popup-header">
         <span id="menu-heading-title">Meny</span>
-        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()" aria-label="Stäng" data-i18n-aria-label="Stäng">✕</button>
       </div>
       <div class="popup-body" style="gap:6px;">
-        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('index')">📖 Index A–Ö</a>
-        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('glossary')">📋 Synonymer / Glossary</a>
-        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('search')">🔍 Filtersök profil</a>
-        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('formulas')">⚗ Formler</a>
-        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('sources')">📚 Källor</a>
-        <a class="check-label" style="font-weight:700; color:var(--danger); text-decoration:none;" onclick="menuNavigate('trash')">🗑 Papperskorg</a>
+        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('index')" data-i18n="📖 Index A–Ö">📖 Index A–Ö</a>
+        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('glossary')" data-i18n="📋 Synonymer / Glossary">📋 Synonymer / Glossary</a>
+        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('search')" data-i18n="🔍 Filtersök profil">🔍 Filtersök profil</a>
+        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('formulas')" data-i18n="⚗ Formler">⚗ Formler</a>
+        <a class="check-label" style="font-weight:700; color:var(--link); text-decoration:none;" onclick="menuNavigate('sources')" data-i18n="📚 Källor">📚 Källor</a>
+        <a class="check-label" style="font-weight:700; color:var(--danger); text-decoration:none;" onclick="menuNavigate('trash')" data-i18n="🗑 Papperskorg">🗑 Papperskorg</a>
         <hr style="border:none; border-top:1px solid var(--border-subtle); margin:6px 0;">
-        <a class="check-label" style="font-size:14px; color:var(--text-muted); cursor:pointer;" onclick="toggleLanguage()">🌐 <span id="menu-lang-prompt">Språk:</span> <b id="menu-lang-label">Svenska</b></a>
+        <a class="check-label" style="font-size:14px; color:var(--text-muted); cursor:pointer;" onclick="toggleLanguage()">🌐 <span id="menu-lang-prompt" data-i18n="Språk:">Språk:</span> <b id="menu-lang-label" data-i18n="Svenska">Svenska</b></a>
       </div>
     </div>
   </div>
 
   <div class="popup-overlay" id="popup-assign-category" onclick="closeOnOverlayClick(event, 'popup-assign-category')">
     <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="assign-category-title">
-      <div class="popup-header"><span id="assign-category-title">Lägg till befintlig kategori / egenskap</span></div>
+      <div class="popup-header"><span id="assign-category-title" data-i18n="Lägg till befintlig kategori / egenskap">Lägg till befintlig kategori / egenskap</span></div>
       <div class="popup-body">
-        <input id="assign-category-filter" aria-label="Sök kategori" placeholder="Sök kategori..." oninput="renderAssignCategoryList()">
+        <input id="assign-category-filter" aria-label="Sök kategori" data-i18n-aria-label="Sök kategori" placeholder="Sök kategori..." data-i18n-placeholder="Sök kategori..." oninput="renderAssignCategoryList()">
         <div class="checklist-container" id="assign-category-list"></div>
-        <p>Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.</p>
-        <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
+        <p data-i18n="Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.">Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.</p>
+        <button class="wiki-btn" onclick="closePopup()" data-i18n="Avbryt">Avbryt</button>
       </div>
     </div>
   </div>
@@ -428,17 +428,17 @@
   <div class="popup-overlay" id="popup-assign-prop" onclick="closeOnOverlayClick(event, 'popup-assign-prop')">
     <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="assign-prop-modal-title">
       <div class="popup-header">
-        <span id="assign-prop-modal-title">Koppla egenskaper</span>
-        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
+        <span id="assign-prop-modal-title" data-i18n="Koppla egenskaper">Koppla egenskaper</span>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()" aria-label="Stäng" data-i18n-aria-label="Stäng">✕</button>
       </div>
       <div class="popup-body">
-        <input type="text" id="assign-prop-filter" placeholder="🔍 Sök egenskap..." oninput="renderAssignPropsList()">
+        <input type="text" id="assign-prop-filter" placeholder="🔍 Sök egenskap..." data-i18n-placeholder="🔍 Sök egenskap..." oninput="renderAssignPropsList()">
         <div class="checklist-container" id="assign-props-checklist"></div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-          <span style="font-size:12px; color:var(--text-muted);">Bocka i och klicka Spara.</span>
+          <span style="font-size:12px; color:var(--text-muted);" data-i18n="Bocka i och klicka Spara.">Bocka i och klicka Spara.</span>
           <div style="display:flex; gap:6px;">
-            <button class="wiki-btn primary" onclick="submitAssignProps()">Spara kopplingar</button>
-            <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
+            <button class="wiki-btn primary" onclick="submitAssignProps()" data-i18n="Spara kopplingar">Spara kopplingar</button>
+            <button class="wiki-btn" onclick="closePopup()" data-i18n="Avbryt">Avbryt</button>
           </div>
         </div>
       </div>
@@ -449,14 +449,14 @@
   <div class="popup-overlay" id="popup-editor" onclick="closeOnOverlayClick(event, 'popup-editor')">
     <div class="popup-box">
       <div class="popup-header">
-        <span>Redigera beskrivning</span>
-        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
+        <span data-i18n="Redigera beskrivning">Redigera beskrivning</span>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()" aria-label="Stäng" data-i18n-aria-label="Stäng">✕</button>
       </div>
       <div class="popup-body">
-        <textarea id="popup-editor-input" rows="8" placeholder="Skriv beskrivning här..."></textarea>
+        <textarea id="popup-editor-input" rows="8" placeholder="Skriv beskrivning här..." data-i18n-placeholder="Skriv beskrivning här..."></textarea>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button class="wiki-btn primary" onclick="saveDescription()">Spara</button>
-          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
+          <button class="wiki-btn primary" onclick="saveDescription()" data-i18n="Spara">Spara</button>
+          <button class="wiki-btn" onclick="closePopup()" data-i18n="Avbryt">Avbryt</button>
         </div>
       </div>
     </div>
@@ -466,20 +466,20 @@
   <div class="popup-overlay" id="popup-sys-study" onclick="closeOnOverlayClick(event, 'popup-sys-study')">
     <div class="popup-box">
       <div class="popup-header">
-        <span>Lägg till studieobjekt</span>
-        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
+        <span data-i18n="Lägg till studieobjekt">Lägg till studieobjekt</span>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()" aria-label="Stäng" data-i18n-aria-label="Stäng">✕</button>
       </div>
       <div class="popup-body">
-        <input type="text" id="sys-study-filter" placeholder="🔍 Sök studieobjekt..." oninput="renderSysStudyList()">
+        <input type="text" id="sys-study-filter" placeholder="🔍 Sök studieobjekt..." data-i18n-placeholder="🔍 Sök studieobjekt..." oninput="renderSysStudyList()">
         <div class="checklist-container" id="sys-study-checklist"></div>
         <hr style="border:none; border-top:1px solid var(--border-subtle); margin:4px 0;">
-        <div style="font-size:13px; font-weight:700;">Eller skapa nytt studieobjekt:</div>
+        <div style="font-size:13px; font-weight:700;" data-i18n="Eller skapa nytt studieobjekt:">Eller skapa nytt studieobjekt:</div>
         <div style="display:flex; gap:6px;">
-          <input type="text" id="new-sys-study-name" placeholder="Namn..." style="flex:2;">
-          <input type="text" id="new-sys-study-type" placeholder="Typ (t.ex. Kristall)..." style="flex:1;">
+          <input type="text" id="new-sys-study-name" placeholder="Namn..." data-i18n-placeholder="Namn..." style="flex:2;">
+          <input type="text" id="new-sys-study-type" placeholder="Typ (t.ex. Kristall)..." data-i18n-placeholder="Typ (t.ex. Kristall)..." style="flex:1;">
         </div>
         <div style="display:flex; justify-content:flex-end; margin-top:4px;">
-          <button class="wiki-btn primary" onclick="submitCreateSysStudy()">➕ Skapa och koppla</button>
+          <button class="wiki-btn primary" onclick="submitCreateSysStudy()" data-i18n="➕ Skapa och koppla">➕ Skapa och koppla</button>
         </div>
       </div>
     </div>
@@ -489,20 +489,20 @@
   <div class="popup-overlay" id="popup-sys-source" onclick="closeOnOverlayClick(event, 'popup-sys-source')">
     <div class="popup-box">
       <div class="popup-header">
-        <span>Lägg till källa</span>
-        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
+        <span data-i18n="Lägg till källa">Lägg till källa</span>
+        <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()" aria-label="Stäng" data-i18n-aria-label="Stäng">✕</button>
       </div>
       <div class="popup-body">
-        <input type="text" id="sys-source-filter" placeholder="🔍 Sök källa..." oninput="renderSysSourceList()">
+        <input type="text" id="sys-source-filter" placeholder="🔍 Sök källa..." data-i18n-placeholder="🔍 Sök källa..." oninput="renderSysSourceList()">
         <div class="checklist-container" id="sys-source-checklist"></div>
         <hr style="border:none; border-top:1px solid var(--border-subtle); margin:4px 0;">
-        <div style="font-size:13px; font-weight:700;">Eller skapa ny källa:</div>
+        <div style="font-size:13px; font-weight:700;" data-i18n="Eller skapa ny källa:">Eller skapa ny källa:</div>
         <div style="display:flex; gap:6px;">
-          <input type="text" id="new-sys-src-title" placeholder="Titel..." style="flex:2;">
-          <input type="text" id="new-sys-src-year" placeholder="År..." style="flex:1;">
+          <input type="text" id="new-sys-src-title" placeholder="Titel..." data-i18n-placeholder="Titel..." style="flex:2;">
+          <input type="text" id="new-sys-src-year" placeholder="År..." data-i18n-placeholder="År..." style="flex:1;">
         </div>
         <div style="display:flex; justify-content:flex-end; margin-top:4px;">
-          <button class="wiki-btn primary" onclick="submitCreateSysSource()">➕ Skapa och koppla</button>
+          <button class="wiki-btn primary" onclick="submitCreateSysSource()" data-i18n="➕ Skapa och koppla">➕ Skapa och koppla</button>
         </div>
       </div>
     </div>
@@ -511,16 +511,16 @@
   <!-- Property source editor: existing functions use text/value DOM APIs. -->
   <div class="popup-overlay" id="popup-edit-prop-source" onclick="closeOnOverlayClick(event, 'popup-edit-prop-source')">
     <div class="popup-box">
-      <div class="popup-header"><span>Redigera källa/sidor</span>
-        <button class="wiki-btn" onclick="closePopup()">✕</button></div>
+      <div class="popup-header"><span data-i18n="Redigera källa/sidor">Redigera källa/sidor</span>
+        <button class="wiki-btn" onclick="closePopup()" aria-label="Stäng" data-i18n-aria-label="Stäng">✕</button></div>
       <div class="popup-body">
         <div id="edit-source-title-display"></div>
-        <label for="edit-source-pages-input">Sidor</label>
+        <label for="edit-source-pages-input" data-i18n="Sidor">Sidor</label>
         <input type="text" id="edit-source-pages-input">
         <div style="display:flex; gap:8px; justify-content:flex-end;">
-          <button class="wiki-btn primary" onclick="saveSourcePagesOnProperty()">Spara</button>
-          <button class="wiki-btn" onclick="removeSourceFromProperty()">Ta bort koppling</button>
-          <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
+          <button class="wiki-btn primary" onclick="saveSourcePagesOnProperty()" data-i18n="Spara">Spara</button>
+          <button class="wiki-btn" onclick="removeSourceFromProperty()" data-i18n="Ta bort koppling">Ta bort koppling</button>
+          <button class="wiki-btn" onclick="closePopup()" data-i18n="Avbryt">Avbryt</button>
         </div>
       </div>
     </div>
@@ -576,49 +576,457 @@ let indexNameDisplayMode = localStorage.getItem("wiki_name_mode") || "auto";
 let indexViewMode = "alpha";
 
 const i18n = {
-  en: {
-    brand: "Herbal Wiki",
-    menuBtn: "☰ Menu",
-    menuTitle: "Menu",
-    indexTitle: "Herb & Object Index",
-    indexIntro: "Alphabetical index of herbs, plants, and natural substances.",
-    newHerb: "[+ New Herb]",
-    viewLabel: "View:",
-    viewAlpha: "Alphabetical (A–Z)",
-    viewNative: "By Native System",
-    nameDisplayLabel: "Name display:",
-    propsCountLabel: "properties",
-    emptyLetterAlert: "The library has no herbs starting with letter {L}. Create a new one?\nEnter herb name:",
-    namePrompt: "Enter herb name:",
-    noDesc: "No description written yet.",
-    delete: "[delete]",
-    featuredHerbs: "Featured Herbs"
+  "en": {
+    "brand": "Herbal Wiki",
+    "menuBtn": "☰ Menu",
+    "menuTitle": "Menu",
+    "indexTitle": "Herb & Object Index",
+    "indexIntro": "Alphabetical index of herbs, plants, and natural substances.",
+    "newHerb": "[+ New Herb]",
+    "viewLabel": "View:",
+    "viewAlpha": "Alphabetical (A–Z)",
+    "viewNative": "By Native System",
+    "nameDisplayLabel": "Name display:",
+    "propsCountLabel": "properties",
+    "emptyLetterAlert": "The library has no herbs starting with letter {L}. Create a new one?\nEnter herb name:",
+    "namePrompt": "Enter herb name:",
+    "noDesc": "No description written yet.",
+    "delete": "[delete]",
+    "featuredHerbs": "Featured Herbs",
+    "Sök i hela biblioteket": "Search the entire library",
+    "Sök i biblioteket...": "Search the library...",
+    "Molnstatus": "Cloud status",
+    "Ört-Wiki Molndatabas (Google Firestore)": "Herbal Wiki cloud database (Google Firestore)",
+    "Exportera JSON": "Export JSON",
+    "Importera JSON": "Import JSON",
+    "📖 Index A–Ö": "📖 Index A–Z",
+    "📋 Synonymer / Glossary": "📋 Synonyms / Glossary",
+    "🔍 Filtersök profil": "🔍 Profile filter search",
+    "⚗ Formler": "⚗ Formulas",
+    "📚 Källor": "📚 Sources",
+    "🗑 Papperskorg": "🗑 Trash",
+    "Språk:": "Language:",
+    "Svenska": "Swedish",
+    "English": "English",
+    "Lägg till befintlig kategori / egenskap": "Add existing category / property",
+    "Sök kategori": "Search categories",
+    "Sök kategori...": "Search categories...",
+    "Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.": "Categories without properties appear here, but are linked to the herb only when a property is assigned.",
+    "Avbryt": "Cancel",
+    "Koppla egenskaper": "Assign properties",
+    "🔍 Sök egenskap...": "🔍 Search properties...",
+    "Bocka i och klicka Spara.": "Select properties and click Save.",
+    "Spara kopplingar": "Save assignments",
+    "Redigera beskrivning": "Edit description",
+    "Skriv beskrivning här...": "Write a description here...",
+    "Spara": "Save",
+    "Lägg till studieobjekt": "Add study object",
+    "🔍 Sök studieobjekt...": "🔍 Search study objects...",
+    "Eller skapa nytt studieobjekt:": "Or create a study object:",
+    "Namn...": "Name...",
+    "Typ (t.ex. Kristall)...": "Type (e.g. Crystal)...",
+    "➕ Skapa och koppla": "➕ Create and link",
+    "Lägg till källa": "Add source",
+    "🔍 Sök källa...": "🔍 Search sources...",
+    "Eller skapa ny källa:": "Or create a source:",
+    "Titel...": "Title...",
+    "År...": "Year...",
+    "Redigera källa/sidor": "Edit source/pages",
+    "Sidor": "Pages",
+    "Ta bort koppling": "Remove link",
+    "Ogiltig objektadress.": "Invalid object address.",
+    "Studieobjekt hittades inte": "Study object not found",
+    "Adressen är ogiltig eller studieobjektet saknas.": "The address is invalid or the study object is missing.",
+    "Till filtersök": "Back to filter search",
+    "Typ:": "Type:",
+    "Egenskaper": "Properties",
+    "System": "System",
+    "none": "none",
+    "Automatiskt (Språk)": "Automatic (language)",
+    "Svenska (Botaniskt)": "Swedish (botanical)",
+    "Engelska (Botaniskt)": "English (botanical)",
+    "Endast Botaniskt": "Botanical only",
+    "Endast Svenska": "Swedish only",
+    "Endast Engelska": "English only",
+    "[Ange synonymer/botaniskt namn...]": "[Enter synonyms/botanical name...]",
+    "Synonymer & Glossary": "Synonyms & Glossary",
+    "[➕ Ny rad / Ört]": "[➕ New row / Herb]",
+    "Korsreferens mellan latinska namn/synonymer och örtbiblioteket. Klicka i cellen för att redigera direkt.": "Cross-reference Latin names/synonyms with the herb library. Click a cell to edit it.",
+    "Visa alla": "Show all",
+    "Endast med synonymer": "With synonyms only",
+    "Endast utan synonymer": "Without synonyms only",
+    "Synonyms / Botanical Name*": "Synonyms / Botanical Name*",
+    "Referred Herb(s)": "Referred Herb(s)",
+    "Inga poster matchade filtret.": "No entries matched the filter.",
+    "Ange Synonymer / Botaniskt namn:": "Enter synonyms / botanical name:",
+    "Ange örtens namn i biblioteket:": "Enter the herb's library name:",
+    "Tillbaka": "Back",
+    "Ändra primärnamn": "Rename primary name",
+    "[radera]": "[delete]",
+    "Inga synonymer tillskrivna": "No synonyms assigned",
+    "[+ Skapa ny kategori]": "[+ Create category]",
+    "Inga egenskaper tilldelade än.": "No properties assigned yet.",
+    "Synonymer": "Synonyms",
+    "Inga synonymer fyllda.": "No synonyms entered.",
+    "Ange synonymer / botaniskt namn:": "Enter synonyms / botanical name:",
+    "Ange nytt primärnamn på örten:": "Enter a new primary herb name:",
+    "Ett objekt med det namnet existerar redan.": "An object with that name already exists.",
+    "Ange namn på ny kategori:": "Enter a new category name:",
+    "Kategorin finns redan.": "The category already exists.",
+    "Data changed. Reopen the assignment dialog to use current values.": "Data changed. Reopen the assignment dialog to use current values.",
+    "Inga kategorier hittades.": "No categories found.",
+    "Koppla [{0}]": "Assign [{0}]",
+    "Inga egenskaper hittades. Inga kopplingar skapas utan en egenskap.": "No properties found. No links are created without a property.",
+    "Egenskapen hittades inte.": "Property not found.",
+    "Inga örter kopplade än.": "No herbs linked yet.",
+    "Inga relaterade egenskaper än.": "No related properties yet.",
+    "Övrigt": "Other",
+    "Inga studieobjekt kopplade.": "No study objects linked.",
+    "Inga källor kopplade än.": "No sources linked yet.",
+    "Okänd": "Unknown",
+    "u.å.": "n.d.",
+    "s.": "pp.",
+    "Ändra namn": "Rename",
+    "Kort sammanfattning saknas.": "No summary available.",
+    "+ Lägg till ört": "+ Add herb",
+    "Relaterade Egenskaper": "Related Properties",
+    "+ Lägg till egenskap": "+ Add property",
+    "Relaterade studieobjekt": "Related study objects",
+    "KÄLLOR": "SOURCES",
+    "+ Lägg till källa": "+ Add source",
+    "Ange kort sammanfattning:": "Enter a short summary:",
+    "Källa": "Source",
+    "Ange titel på källan:": "Enter the source title:",
+    "Ange sidor (t.ex. 42-45):": "Enter pages (e.g. 42-45):",
+    "Ange nytt namn på egenskapen:": "Enter a new property name:",
+    "Egenskapen finns redan.": "The property already exists.",
+    "inga örter": "no herbs",
+    "Underkategori:": "Subcategory:",
+    "inga egenskaper": "no properties",
+    "Övriga egenskaper:": "Other properties:",
+    "Generellt": "General",
+    "Egenskaper och ingående örter": "Properties and included herbs",
+    "Inga egenskaper i kategorin.": "No properties in this category.",
+    "(+ Skapa ny egenskap)": "(+ Create property)",
+    "Ange nytt namn på kategorin:": "Enter a new category name:",
+    "Ange namn på ny egenskap:": "Enter a new property name:",
+    "Systemet hittades inte.": "System not found.",
+    "Inga källor kopplade.": "No sources linked.",
+    "Ingen beskrivning skriven.": "No description written.",
+    "Kategorier och egenskaper": "Categories and properties",
+    "Inga kategorier i systemet.": "No categories in this system.",
+    "Källor": "Sources",
+    "+ Lägg till studieobjekt": "+ Add study object",
+    "Ört": "Herb",
+    "Studieobjekt": "Study object",
+    "Skriv och lägg till egenskaper ovan för att filtrera fram profiler.": "Enter and add properties above to filter profiles.",
+    "Inga profiler matchade sökningen.": "No profiles matched the search.",
+    "match": "match",
+    "Filtersök profil": "Profile filter search",
+    "[återställ filter]": "[reset filters]",
+    "Skriv in egenskap:": "Enter a property:",
+    "Skriv egenskap (tryck Enter)...": "Enter a property (press Enter)...",
+    "Lägg till": "Add",
+    "Aktiva egenskaper:": "Active properties:",
+    "Inga egenskaper tillagda än.": "No properties added yet.",
+    "Matchade profiler (": "Matching profiles (",
+    "egenskaper": "properties",
+    "Formelarkiv": "Formula library",
+    "[+ Ny formel]": "[+ New formula]",
+    "Sammansatta örtrecept och beredningar.": "Herbal formulas and preparations.",
+    "Inga formler sparade än.": "No formulas saved yet.",
+    "Ange formelnamn:": "Enter a formula name:",
+    "Formeln hittades inte.": "Formula not found.",
+    "[radera formel]": "[delete formula]",
+    "Ingen beskrivning skriven än.": "No description written yet.",
+    "Källbibliotek": "Sources Library",
+    "Inga källor.": "No sources.",
+    "Papperskorg": "Trash",
+    "Papperskorgen är tom.": "Trash is empty.",
+    "Återställ": "Restore",
+    "Radera": "Delete",
+    "Trash changed. Reopen Trash before trying again.": "Trash changed. Reopen Trash before trying again.",
+    "Cannot restore this record: its data format is invalid.": "Cannot restore this record: its data format is invalid.",
+    "This Trash record cannot be restored.": "This Trash record cannot be restored.",
+    "Restoration blocked: the destination identity is already occupied.": "Restoration blocked: the destination identity is already occupied.",
+    "Radera permanent?": "Delete permanently?",
+    "text": "text",
+    "ett objekt": "an object",
+    "en lista med text": "a list of strings",
+    "en lista i ett biblioteksobjekt": "a list in a library object",
+    "en lista med poster": "a list of records",
+    "ett objekt med namngivna poster": "an object of named records",
+    "en post för återställning": "a restorable record",
+    "kategorier": "categories",
+    "system": "systems",
+    "studieobjekt": "study objects",
+    "källor": "sources",
+    "formler": "formulas",
+    "papperskorg": "trash",
+    "inga andra fyllda samlingar": "no other populated collections",
+    "Filen kunde inte läsas. Biblioteket har inte ändrats.": "The file could not be read. The library has not changed.",
+    "Filläsningen avbröts. Biblioteket har inte ändrats.": "File reading was cancelled. The library has not changed.",
+    "Ogiltig JSON. Biblioteket har inte ändrats.": "Invalid JSON. The library has not changed.",
+    "Spara en säkerhetskopia av det nuvarande biblioteket före ersättning. OK startar Exportera JSON; Avbryt hoppar över exporten och går till bekräftelsen. Vill du exportera nu?": "Save a backup of the current library before replacement. OK starts Export JSON; Cancel skips export and continues to confirmation. Export now?",
+    "Exporten kunde inte startas. Importen avbröts; biblioteket har inte ändrats.": "Export could not start. Import was cancelled; the library has not changed.",
+    "Importen misslyckades. Det tidigare biblioteket har återställts i minnet. Eventuella redan påbörjade sparningar kan inte garanteras återställda.": "Import failed. The previous library was restored in memory. Any saves already started cannot be guaranteed to have been rolled back.",
+    "Biblioteket har ersatts i minnet och den vanliga sparrutinen har anropats. Molnsparning är inte bekräftad.": "The library was replaced in memory and the normal save routine was called. Cloud saving is not confirmed.",
+    "Redigera {0}": "Edit {0}",
+    "Egenskapen \"{0}\" finns inte i biblioteket.": "Property \"{0}\" does not exist in the library.",
+    "Radera formeln '{0}'?": "Delete formula '{0}'?",
+    "Taggobjektet '{0}' har {1} kopplingar. Vill du slänga det i papperskorgen?": "Move '{0}' to Trash? Linked records: {1}.",
+    "Vill du slänga '{0}' i papperskorgen?": "Move '{0}' to Trash?",
+    "{0}: förväntar {1}.": "{0}: expected {1}.",
+    "Ogiltigt bibliotek: {0} Biblioteket har inte ändrats.": "Invalid library: {0} The library has not changed.",
+    "Filen: {0}\nImporten ERSÄTTER hela det inlästa biblioteket; innehållet slås inte ihop.\nObjekt nu: {1}; i filen: {2}.\nÖvrigt nu: {3}.\nÖvrigt i filen: {4}.\nOsparade eller osynkroniserade ändringar kan gå förlorade.\nSpara säkerhetskopian innan du fortsätter. En startad nedladdning betyder inte att filen har sparats; detta kan inte verifieras här.\nOK ersätter biblioteket. Avbryt behåller det nuvarande biblioteket.": "File: {0}\nImport REPLACES the entire loaded library; content is not merged.\nObjects now: {1}; in file: {2}.\nOther collections now: {3}.\nOther collections in file: {4}.\nUnsaved or unsynced changes may be lost.\nSave your backup before continuing. Starting a download does not prove the file was saved; this cannot be verified here.\nOK replaces the library. Cancel keeps the current library.",
+    "Inga träffar hittades.": "No results found.",
+    "Välj egenskap att länka relaterad koppling (Two-way):\n": "Choose a related property to link (two-way):\n",
+    "Välj underkategori:\n": "Choose a subcategory:\n",
+    "Ange örtens namn att koppla till {0}:\n": "Enter the herb name to link to {0}:\n",
+    "Botanical Name": "Botanical Name",
+    "Swedish Name": "Swedish Name",
+    "English Name": "English Name",
+    "\n0. Ingen": "\n0. None",
+    "Stäng": "Close",
+    "Redigera": "Edit",
+    "Egenskap": "Property",
+    "Kategori": "Category",
+    "komponenter": "components",
+    "egenskap": "property",
+    "komponent": "component"
   },
-  sv: {
-    brand: "Ört-Wiki",
-    menuBtn: "☰ Meny",
-    menuTitle: "Meny",
-    indexTitle: "Ört- och objektindex",
-    indexIntro: "Alfabetisk förteckning över samtliga registrerade växter, örter och mineraler.",
-    newHerb: "[+ Ny Ört]",
-    viewLabel: "Vy:",
-    viewAlpha: "Alfabetisk (A–Ö)",
-    viewNative: "Efter Native System",
-    nameDisplayLabel: "Namnvisning:",
-    propsCountLabel: "egenskaper",
-    emptyLetterAlert: "Biblioteket har inga örter som börjar på bokstaven {L}. Skapa en ny?\nAnge namn på ny ört:",
-    namePrompt: "Ange örtens namn:",
-    noDesc: "Ingen beskrivning skriven än.",
-    delete: "[radera]",
-    featuredHerbs: "Utvalda örter"
+  "sv": {
+    "brand": "Ört-Wiki",
+    "menuBtn": "☰ Meny",
+    "menuTitle": "Meny",
+    "indexTitle": "Ört- och objektindex",
+    "indexIntro": "Alfabetisk förteckning över samtliga registrerade växter, örter och mineraler.",
+    "newHerb": "[+ Ny Ört]",
+    "viewLabel": "Vy:",
+    "viewAlpha": "Alfabetisk (A–Ö)",
+    "viewNative": "Efter Native System",
+    "nameDisplayLabel": "Namnvisning:",
+    "propsCountLabel": "egenskaper",
+    "emptyLetterAlert": "Biblioteket har inga örter som börjar på bokstaven {L}. Skapa en ny?\nAnge namn på ny ört:",
+    "namePrompt": "Ange örtens namn:",
+    "noDesc": "Ingen beskrivning skriven än.",
+    "delete": "[radera]",
+    "featuredHerbs": "Utvalda örter",
+    "Sök i hela biblioteket": "Sök i hela biblioteket",
+    "Sök i biblioteket...": "Sök i biblioteket...",
+    "Molnstatus": "Molnstatus",
+    "Ört-Wiki Molndatabas (Google Firestore)": "Ört-Wiki Molndatabas (Google Firestore)",
+    "Exportera JSON": "Exportera JSON",
+    "Importera JSON": "Importera JSON",
+    "📖 Index A–Ö": "📖 Index A–Ö",
+    "📋 Synonymer / Glossary": "📋 Synonymer / Ordlista",
+    "🔍 Filtersök profil": "🔍 Filtersök profil",
+    "⚗ Formler": "⚗ Formler",
+    "📚 Källor": "📚 Källor",
+    "🗑 Papperskorg": "🗑 Papperskorg",
+    "Språk:": "Språk:",
+    "Svenska": "Svenska",
+    "English": "Engelska",
+    "Lägg till befintlig kategori / egenskap": "Lägg till befintlig kategori / egenskap",
+    "Sök kategori": "Sök kategori",
+    "Sök kategori...": "Sök kategori...",
+    "Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.": "Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.",
+    "Avbryt": "Avbryt",
+    "Koppla egenskaper": "Koppla egenskaper",
+    "🔍 Sök egenskap...": "🔍 Sök egenskap...",
+    "Bocka i och klicka Spara.": "Bocka i och klicka Spara.",
+    "Spara kopplingar": "Spara kopplingar",
+    "Redigera beskrivning": "Redigera beskrivning",
+    "Skriv beskrivning här...": "Skriv beskrivning här...",
+    "Spara": "Spara",
+    "Lägg till studieobjekt": "Lägg till studieobjekt",
+    "🔍 Sök studieobjekt...": "🔍 Sök studieobjekt...",
+    "Eller skapa nytt studieobjekt:": "Eller skapa nytt studieobjekt:",
+    "Namn...": "Namn...",
+    "Typ (t.ex. Kristall)...": "Typ (t.ex. Kristall)...",
+    "➕ Skapa och koppla": "➕ Skapa och koppla",
+    "Lägg till källa": "Lägg till källa",
+    "🔍 Sök källa...": "🔍 Sök källa...",
+    "Eller skapa ny källa:": "Eller skapa ny källa:",
+    "Titel...": "Titel...",
+    "År...": "År...",
+    "Redigera källa/sidor": "Redigera källa/sidor",
+    "Sidor": "Sidor",
+    "Ta bort koppling": "Ta bort koppling",
+    "Ogiltig objektadress.": "Ogiltig objektadress.",
+    "Studieobjekt hittades inte": "Studieobjekt hittades inte",
+    "Adressen är ogiltig eller studieobjektet saknas.": "Adressen är ogiltig eller studieobjektet saknas.",
+    "Till filtersök": "Till filtersök",
+    "Typ:": "Typ:",
+    "Egenskaper": "Egenskaper",
+    "System": "System",
+    "none": "inga",
+    "Automatiskt (Språk)": "Automatiskt (Språk)",
+    "Svenska (Botaniskt)": "Svenska (Botaniskt)",
+    "Engelska (Botaniskt)": "Engelska (Botaniskt)",
+    "Endast Botaniskt": "Endast Botaniskt",
+    "Endast Svenska": "Endast Svenska",
+    "Endast Engelska": "Endast Engelska",
+    "[Ange synonymer/botaniskt namn...]": "[Ange synonymer/botaniskt namn...]",
+    "Synonymer & Glossary": "Synonymer och ordlista",
+    "[➕ Ny rad / Ört]": "[➕ Ny rad / Ört]",
+    "Korsreferens mellan latinska namn/synonymer och örtbiblioteket. Klicka i cellen för att redigera direkt.": "Korsreferens mellan latinska namn/synonymer och örtbiblioteket. Klicka i cellen för att redigera direkt.",
+    "Visa alla": "Visa alla",
+    "Endast med synonymer": "Endast med synonymer",
+    "Endast utan synonymer": "Endast utan synonymer",
+    "Synonyms / Botanical Name*": "Synonymer / Botaniskt namn*",
+    "Referred Herb(s)": "Hänvisade örter",
+    "Inga poster matchade filtret.": "Inga poster matchade filtret.",
+    "Ange Synonymer / Botaniskt namn:": "Ange Synonymer / Botaniskt namn:",
+    "Ange örtens namn i biblioteket:": "Ange örtens namn i biblioteket:",
+    "Tillbaka": "Tillbaka",
+    "Ändra primärnamn": "Ändra primärnamn",
+    "[radera]": "[radera]",
+    "Inga synonymer tillskrivna": "Inga synonymer tillskrivna",
+    "[+ Skapa ny kategori]": "[+ Skapa ny kategori]",
+    "Inga egenskaper tilldelade än.": "Inga egenskaper tilldelade än.",
+    "Synonymer": "Synonymer",
+    "Inga synonymer fyllda.": "Inga synonymer fyllda.",
+    "Ange synonymer / botaniskt namn:": "Ange synonymer / botaniskt namn:",
+    "Ange nytt primärnamn på örten:": "Ange nytt primärnamn på örten:",
+    "Ett objekt med det namnet existerar redan.": "Ett objekt med det namnet existerar redan.",
+    "Ange namn på ny kategori:": "Ange namn på ny kategori:",
+    "Kategorin finns redan.": "Kategorin finns redan.",
+    "Data changed. Reopen the assignment dialog to use current values.": "Data har ändrats. Öppna tilldelningen igen för att använda aktuella värden.",
+    "Inga kategorier hittades.": "Inga kategorier hittades.",
+    "Koppla [{0}]": "Koppla [{0}]",
+    "Inga egenskaper hittades. Inga kopplingar skapas utan en egenskap.": "Inga egenskaper hittades. Inga kopplingar skapas utan en egenskap.",
+    "Egenskapen hittades inte.": "Egenskapen hittades inte.",
+    "Inga örter kopplade än.": "Inga örter kopplade än.",
+    "Inga relaterade egenskaper än.": "Inga relaterade egenskaper än.",
+    "Övrigt": "Övrigt",
+    "Inga studieobjekt kopplade.": "Inga studieobjekt kopplade.",
+    "Inga källor kopplade än.": "Inga källor kopplade än.",
+    "Okänd": "Okänd",
+    "u.å.": "u.å.",
+    "s.": "s.",
+    "Ändra namn": "Ändra namn",
+    "Kort sammanfattning saknas.": "Kort sammanfattning saknas.",
+    "+ Lägg till ört": "+ Lägg till ört",
+    "Relaterade Egenskaper": "Relaterade Egenskaper",
+    "+ Lägg till egenskap": "+ Lägg till egenskap",
+    "Relaterade studieobjekt": "Relaterade studieobjekt",
+    "KÄLLOR": "KÄLLOR",
+    "+ Lägg till källa": "+ Lägg till källa",
+    "Ange kort sammanfattning:": "Ange kort sammanfattning:",
+    "Källa": "Källa",
+    "Ange titel på källan:": "Ange titel på källan:",
+    "Ange sidor (t.ex. 42-45):": "Ange sidor (t.ex. 42-45):",
+    "Ange nytt namn på egenskapen:": "Ange nytt namn på egenskapen:",
+    "Egenskapen finns redan.": "Egenskapen finns redan.",
+    "inga örter": "inga örter",
+    "Underkategori:": "Underkategori:",
+    "inga egenskaper": "inga egenskaper",
+    "Övriga egenskaper:": "Övriga egenskaper:",
+    "Generellt": "Generellt",
+    "Egenskaper och ingående örter": "Egenskaper och ingående örter",
+    "Inga egenskaper i kategorin.": "Inga egenskaper i kategorin.",
+    "(+ Skapa ny egenskap)": "(+ Skapa ny egenskap)",
+    "Ange nytt namn på kategorin:": "Ange nytt namn på kategorin:",
+    "Ange namn på ny egenskap:": "Ange namn på ny egenskap:",
+    "Systemet hittades inte.": "Systemet hittades inte.",
+    "Inga källor kopplade.": "Inga källor kopplade.",
+    "Ingen beskrivning skriven.": "Ingen beskrivning skriven.",
+    "Kategorier och egenskaper": "Kategorier och egenskaper",
+    "Inga kategorier i systemet.": "Inga kategorier i systemet.",
+    "Källor": "Källor",
+    "+ Lägg till studieobjekt": "+ Lägg till studieobjekt",
+    "Ört": "Ört",
+    "Studieobjekt": "Studieobjekt",
+    "Skriv och lägg till egenskaper ovan för att filtrera fram profiler.": "Skriv och lägg till egenskaper ovan för att filtrera fram profiler.",
+    "Inga profiler matchade sökningen.": "Inga profiler matchade sökningen.",
+    "match": "träff",
+    "Filtersök profil": "Filtersök profil",
+    "[återställ filter]": "[återställ filter]",
+    "Skriv in egenskap:": "Skriv in egenskap:",
+    "Skriv egenskap (tryck Enter)...": "Skriv egenskap (tryck Enter)...",
+    "Lägg till": "Lägg till",
+    "Aktiva egenskaper:": "Aktiva egenskaper:",
+    "Inga egenskaper tillagda än.": "Inga egenskaper tillagda än.",
+    "Matchade profiler (": "Matchade profiler (",
+    "egenskaper": "egenskaper",
+    "Formelarkiv": "Formelarkiv",
+    "[+ Ny formel]": "[+ Ny formel]",
+    "Sammansatta örtrecept och beredningar.": "Sammansatta örtrecept och beredningar.",
+    "Inga formler sparade än.": "Inga formler sparade än.",
+    "Ange formelnamn:": "Ange formelnamn:",
+    "Formeln hittades inte.": "Formeln hittades inte.",
+    "[radera formel]": "[radera formel]",
+    "Ingen beskrivning skriven än.": "Ingen beskrivning skriven än.",
+    "Källbibliotek": "Källbibliotek",
+    "Inga källor.": "Inga källor.",
+    "Papperskorg": "Papperskorg",
+    "Papperskorgen är tom.": "Papperskorgen är tom.",
+    "Återställ": "Återställ",
+    "Radera": "Radera",
+    "Trash changed. Reopen Trash before trying again.": "Papperskorgen har ändrats. Öppna papperskorgen igen och försök på nytt.",
+    "Cannot restore this record: its data format is invalid.": "Posten kan inte återställas eftersom dataformatet är ogiltigt.",
+    "This Trash record cannot be restored.": "Den här posten i papperskorgen kan inte återställas.",
+    "Restoration blocked: the destination identity is already occupied.": "Återställning blockerad: målidentiteten är redan upptagen.",
+    "Radera permanent?": "Radera permanent?",
+    "text": "text",
+    "ett objekt": "ett objekt",
+    "en lista med text": "en lista med text",
+    "en lista i ett biblioteksobjekt": "en lista i ett biblioteksobjekt",
+    "en lista med poster": "en lista med poster",
+    "ett objekt med namngivna poster": "ett objekt med namngivna poster",
+    "en post för återställning": "en post för återställning",
+    "kategorier": "kategorier",
+    "system": "system",
+    "studieobjekt": "studieobjekt",
+    "källor": "källor",
+    "formler": "formler",
+    "papperskorg": "papperskorg",
+    "inga andra fyllda samlingar": "inga andra fyllda samlingar",
+    "Filen kunde inte läsas. Biblioteket har inte ändrats.": "Filen kunde inte läsas. Biblioteket har inte ändrats.",
+    "Filläsningen avbröts. Biblioteket har inte ändrats.": "Filläsningen avbröts. Biblioteket har inte ändrats.",
+    "Ogiltig JSON. Biblioteket har inte ändrats.": "Ogiltig JSON. Biblioteket har inte ändrats.",
+    "Spara en säkerhetskopia av det nuvarande biblioteket före ersättning. OK startar Exportera JSON; Avbryt hoppar över exporten och går till bekräftelsen. Vill du exportera nu?": "Spara en säkerhetskopia av det nuvarande biblioteket före ersättning. OK startar Exportera JSON; Avbryt hoppar över exporten och går till bekräftelsen. Vill du exportera nu?",
+    "Exporten kunde inte startas. Importen avbröts; biblioteket har inte ändrats.": "Exporten kunde inte startas. Importen avbröts; biblioteket har inte ändrats.",
+    "Importen misslyckades. Det tidigare biblioteket har återställts i minnet. Eventuella redan påbörjade sparningar kan inte garanteras återställda.": "Importen misslyckades. Det tidigare biblioteket har återställts i minnet. Eventuella redan påbörjade sparningar kan inte garanteras återställda.",
+    "Biblioteket har ersatts i minnet och den vanliga sparrutinen har anropats. Molnsparning är inte bekräftad.": "Biblioteket har ersatts i minnet och den vanliga sparrutinen har anropats. Molnsparning är inte bekräftad.",
+    "Redigera {0}": "Redigera {0}",
+    "Egenskapen \"{0}\" finns inte i biblioteket.": "Egenskapen \"{0}\" finns inte i biblioteket.",
+    "Radera formeln '{0}'?": "Radera formeln '{0}'?",
+    "Taggobjektet '{0}' har {1} kopplingar. Vill du slänga det i papperskorgen?": "Flytta '{0}' till papperskorgen? Antal kopplingar: {1}.",
+    "Vill du slänga '{0}' i papperskorgen?": "Vill du slänga '{0}' i papperskorgen?",
+    "{0}: förväntar {1}.": "{0}: förväntar {1}.",
+    "Ogiltigt bibliotek: {0} Biblioteket har inte ändrats.": "Ogiltigt bibliotek: {0} Biblioteket har inte ändrats.",
+    "Filen: {0}\nImporten ERSÄTTER hela det inlästa biblioteket; innehållet slås inte ihop.\nObjekt nu: {1}; i filen: {2}.\nÖvrigt nu: {3}.\nÖvrigt i filen: {4}.\nOsparade eller osynkroniserade ändringar kan gå förlorade.\nSpara säkerhetskopian innan du fortsätter. En startad nedladdning betyder inte att filen har sparats; detta kan inte verifieras här.\nOK ersätter biblioteket. Avbryt behåller det nuvarande biblioteket.": "Filen: {0}\nImporten ERSÄTTER hela det inlästa biblioteket; innehållet slås inte ihop.\nObjekt nu: {1}; i filen: {2}.\nÖvrigt nu: {3}.\nÖvrigt i filen: {4}.\nOsparade eller osynkroniserade ändringar kan gå förlorade.\nSpara säkerhetskopian innan du fortsätter. En startad nedladdning betyder inte att filen har sparats; detta kan inte verifieras här.\nOK ersätter biblioteket. Avbryt behåller det nuvarande biblioteket.",
+    "Inga träffar hittades.": "Inga träffar hittades.",
+    "Välj egenskap att länka relaterad koppling (Two-way):\n": "Välj en relaterad egenskap för dubbelriktad koppling:\n",
+    "Välj underkategori:\n": "Välj underkategori:\n",
+    "Ange örtens namn att koppla till {0}:\n": "Ange örtens namn att koppla till {0}:\n",
+    "Botanical Name": "Botaniskt namn",
+    "Swedish Name": "Svenskt namn",
+    "English Name": "Engelskt namn",
+    "\n0. Ingen": "\n0. Ingen",
+    "Stäng": "Stäng",
+    "Redigera": "Redigera",
+    "Egenskap": "Egenskap",
+    "Kategori": "Kategori",
+    "komponenter": "komponenter",
+    "egenskap": "egenskap",
+    "komponent": "komponent"
   }
 };
 
-function t(key) {
-  return (i18n[currentLang] && i18n[currentLang][key]) ? i18n[currentLang][key] : (i18n["sv"][key] || key);
+function t(key, params = {}) {
+  const message = i18n[currentLang]?.[key] ?? i18n.sv[key] ?? key;
+  return message.replace(/\{(\w+)\}/g, (token, name) => Object.hasOwn(params, name) ? String(params[name]) : token);
 }
 
 function updateUILabels() {
+  document.title = t("brand");
+  document.querySelectorAll("[data-i18n]").forEach(node => { node.textContent = t(node.dataset.i18n); });
+  for (const attr of ["placeholder", "title", "aria-label"]) {
+    document.querySelectorAll("[data-i18n-" + attr + "]").forEach(node => node.setAttribute(attr, t(node.getAttribute("data-i18n-" + attr))));
+  }
   document.documentElement.lang = currentLang;
   const brandEl = document.getElementById("brand-title");
   if (brandEl) brandEl.innerText = t("brand");
@@ -636,6 +1044,9 @@ function toggleLanguage() {
   updateUILabels();
   closePopup();
   handleRouting();
+  if (document.getElementById("header-search-bar")?.style?.display === "block") {
+    handleGlobalSearch(document.getElementById("global-search-input").value);
+  }
 }
 
 // ==================== DATABAS & DUBBLETTSLAGNING ====================
@@ -853,27 +1264,27 @@ function handleGlobalSearch(query) {
   db.objects.forEach(o => {
     const disp = getDisplayObjName(o);
     if (disp.toLowerCase().includes(q) || (o.name && o.name.toLowerCase().includes(q))) {
-      results.push({ type: "Ört", title: disp, link: `#herb-id/${encodeURIComponent(o.id)}`, desc: o.desc });
+      results.push({ type: t("Ört"), title: disp, link: `#herb-id/${encodeURIComponent(o.id)}`, desc: o.desc });
     }
   });
   Object.keys(db.properties).forEach(p => {
     if (p.toLowerCase().includes(q)) {
-      results.push({ type: "Egenskap", title: p, link: `#property/${encodeURIComponent(p)}`, desc: db.properties[p]?.summary || db.properties[p]?.desc });
+      results.push({ type: t("Egenskap"), title: p, link: `#property/${encodeURIComponent(p)}`, desc: db.properties[p]?.summary || db.properties[p]?.desc });
     }
   });
   Object.keys(db.categories).forEach(c => {
     if (c.toLowerCase().includes(q)) {
-      results.push({ type: "Kategori", title: c, link: `#category/${encodeURIComponent(c)}`, desc: db.categories[c]?.desc });
+      results.push({ type: t("Kategori"), title: c, link: `#category/${encodeURIComponent(c)}`, desc: db.categories[c]?.desc });
     }
   });
   Object.keys(db.systems).forEach(s => {
     if (s.toLowerCase().includes(q)) {
-      results.push({ type: "System", title: s, link: `#system/${encodeURIComponent(s)}`, desc: db.systems[s]?.desc });
+      results.push({ type: t("System"), title: s, link: `#system/${encodeURIComponent(s)}`, desc: db.systems[s]?.desc });
     }
   });
 
   if (results.length === 0) {
-    dd.innerHTML = `<div class="suggest-item" style="color:var(--text-muted);"><i>Inga träffar hittades.</i></div>`;
+    dd.innerHTML = `<div class="suggest-item" style="color:var(--text-muted);"><i>${t("Inga träffar hittades.")}</i></div>`;
     dd.style.display = "block";
     return;
   }
@@ -917,7 +1328,7 @@ function handleRouting(propagateErrors = false) {
     if (route === "herb" && id) renderHerbPage(id);
     else if (route === "herb-id") {
       // Canonical IDs have one encoded component; legacy herb routes stay literal.
-      if (!id || hash.split("/").length !== 2) throw new Error("Ogiltig objektadress.");
+      if (!id || hash.split("/").length !== 2) throw new Error(t("Ogiltig objektadress."));
       renderHerbPage(decodeURIComponent(id));
     }
     else if (route === "study") {
@@ -950,8 +1361,8 @@ function renderStudyPage(studyId) {
   const app = document.getElementById("wiki-app");
   const study = typeof studyId === "string" && (db.studyObjects || []).find(record => record.id === studyId);
   if (!study) {
-    app.innerHTML = `<h1 class="wiki-title"><span>Studieobjekt hittades inte</span></h1>
-      <p>Adressen är ogiltig eller studieobjektet saknas.</p><a href="#search" class="wiki-link">Till filtersök</a>`;
+    app.innerHTML = `<h1 class="wiki-title"><span>${escapeCoreText(t("Studieobjekt hittades inte"))}</span></h1>
+      <p>${escapeCoreText(t("Adressen är ogiltig eller studieobjektet saknas."))}</p><a href="#search" class="wiki-link">${escapeCoreText(t("Till filtersök"))}</a>`;
     return;
   }
   const properties = getPropKeys(study).map(name =>
@@ -960,11 +1371,11 @@ function renderStudyPage(studyId) {
     study.system === name || (study.systems && study.systems.includes(name))).map(name =>
     `<li><a class="wiki-link" href="#system/${escapeCoreText(encodeURIComponent(name))}">${escapeCoreText(name)}</a></li>`).join("");
   app.innerHTML = `<h1 class="wiki-title"><span>${escapeCoreText(study.name)}</span></h1>
-    <p><b>Typ:</b> ${escapeCoreText(study.type)}</p>
+    <p><b>${escapeCoreText(t("Typ:"))}</b> ${escapeCoreText(study.type)}</p>
     <div style="white-space:pre-wrap;">${escapeCoreText(study.desc)}</div>
-    <h2>Egenskaper</h2><ul class="wiki-list">${properties}</ul>
-    <h2>System</h2><ul class="wiki-list">${systems}</ul>
-    <a href="#search" class="wiki-link">Till filtersök</a>`;
+    <h2>${escapeCoreText(t("Egenskaper"))}</h2><ul class="wiki-list">${properties}</ul>
+    <h2>${escapeCoreText(t("System"))}</h2><ul class="wiki-list">${systems}</ul>
+    <a href="#search" class="wiki-link">${escapeCoreText(t("Till filtersök"))}</a>`;
 }
 
 // ==================== SIDA D: INDEX A–Ö ====================
@@ -992,7 +1403,7 @@ function renderIndexPage() {
         <h2 class="wiki-section" style="margin-top:20px;">
           <a href="#system/${encodeURIComponent(sysName)}" class="wiki-link">${escapeCoreText(sysName)}</a>
         </h2>
-        <ul class="wiki-list">${herbItems || '<li><i>none</i></li>'}</ul>
+        <ul class="wiki-list">${herbItems || `<li><i>${escapeCoreText(t("none"))}</i></li>`}</ul>
       `;
     });
     contentHtml = sysSectionsHtml;
@@ -1017,7 +1428,7 @@ function renderIndexPage() {
       listHtml += `
         <li>
           <a href="#herb-id/${encodeURIComponent(obj.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(disp)}</a>
-          <span style="color:var(--text-muted); font-size:13px; font-family:monospace;"> [${tagCount} ${t("propsCountLabel")}]</span>
+          <span style="color:var(--text-muted); font-size:13px; font-family:monospace;"> [${tagCount} ${tagCount === 1 ? t("egenskap") : t("propsCountLabel")}]</span>
         </li>
       `;
     });
@@ -1044,12 +1455,12 @@ function renderIndexPage() {
       <div style="display:flex; align-items:center; gap:6px;">
         <span style="font-size:13px; font-weight:700;">${t("nameDisplayLabel")}</span>
         <select onchange="switchIndexNameDisplay(this.value)" style="width:auto; padding:2px 6px; font-size:13px;">
-          <option value="auto" ${indexNameDisplayMode === 'auto' ? 'selected' : ''}>Automatiskt (Språk)</option>
-          <option value="sv_bot" ${indexNameDisplayMode === 'sv_bot' ? 'selected' : ''}>Svenska (Botaniskt)</option>
-          <option value="en_bot" ${indexNameDisplayMode === 'en_bot' ? 'selected' : ''}>Engelska (Botaniskt)</option>
-          <option value="botanical" ${indexNameDisplayMode === 'botanical' ? 'selected' : ''}>Endast Botaniskt</option>
-          <option value="swedish" ${indexNameDisplayMode === 'swedish' ? 'selected' : ''}>Endast Svenska</option>
-          <option value="english" ${indexNameDisplayMode === 'english' ? 'selected' : ''}>Endast Engelska</option>
+          <option value="auto" ${indexNameDisplayMode === 'auto' ? 'selected' : ''}>${escapeCoreText(t("Automatiskt (Språk)"))}</option>
+          <option value="sv_bot" ${indexNameDisplayMode === 'sv_bot' ? 'selected' : ''}>${escapeCoreText(t("Svenska (Botaniskt)"))}</option>
+          <option value="en_bot" ${indexNameDisplayMode === 'en_bot' ? 'selected' : ''}>${escapeCoreText(t("Engelska (Botaniskt)"))}</option>
+          <option value="botanical" ${indexNameDisplayMode === 'botanical' ? 'selected' : ''}>${escapeCoreText(t("Endast Botaniskt"))}</option>
+          <option value="swedish" ${indexNameDisplayMode === 'swedish' ? 'selected' : ''}>${escapeCoreText(t("Endast Svenska"))}</option>
+          <option value="english" ${indexNameDisplayMode === 'english' ? 'selected' : ''}>${escapeCoreText(t("Endast Engelska"))}</option>
         </select>
       </div>
     </div>
@@ -1068,7 +1479,7 @@ function switchIndexNameDisplay(mode) {
 function handleAlphaBarClick(letter) {
   const exists = db.objects.some(o => getDisplayObjName(o).trim().toUpperCase().startsWith(letter));
   if (!exists) {
-    const alertMsg = t("emptyLetterAlert").replace("{L}", letter);
+    const alertMsg = t("emptyLetterAlert", {L: letter});
     const newName = prompt(alertMsg);
     if (newName && newName.trim()) {
       const id = "herb_" + Date.now();
@@ -1133,7 +1544,7 @@ function renderGlossaryPage() {
       rowsHtml += `
         <tr>
           <td style="width:45%;">
-            <input type="text" class="glossary-input-cell" placeholder="[Ange synonymer/botaniskt namn...]" data-glossary-edit="herb" data-glossary-args="${escapeCoreText(JSON.stringify([h.id]))}">
+            <input type="text" class="glossary-input-cell" placeholder="${escapeCoreText(t("[Ange synonymer/botaniskt namn...]"))}" data-glossary-edit="herb" data-glossary-args="${escapeCoreText(JSON.stringify([h.id]))}">
           </td>
           <td><a href="#herb-id/${encodeURIComponent(h.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(getDisplayObjName(h))}</a></td>
         </tr>
@@ -1143,26 +1554,26 @@ function renderGlossaryPage() {
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>Synonymer & Glossary</span>
-      <a class="wiki-action-link" ${coreAction("glossaryCreate")}>[➕ Ny rad / Ört]</a>
+      <span>${escapeCoreText(t("Synonymer & Glossary"))}</span>
+      <a class="wiki-action-link" ${coreAction("glossaryCreate")}>${escapeCoreText(t("[➕ Ny rad / Ört]"))}</a>
     </h1>
-    <div class="wiki-paragraph">Korsreferens mellan latinska namn/synonymer och örtbiblioteket. Klicka i cellen för att redigera direkt.</div>
+    <div class="wiki-paragraph">${escapeCoreText(t("Korsreferens mellan latinska namn/synonymer och örtbiblioteket. Klicka i cellen för att redigera direkt."))}</div>
 
     <div style="font-size:13px; display:flex; gap:14px; margin-bottom:12px; background:#f8f9fa; border:1px solid var(--border-subtle); padding:6px 10px;">
-      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='all'?'checked':''} value="all"> Visa alla</label>
-      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='with_bot'?'checked':''} value="with_bot"> Endast med synonymer</label>
-      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='no_bot'?'checked':''} value="no_bot"> Endast utan synonymer</label>
+      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='all'?'checked':''} value="all"> ${escapeCoreText(t("Visa alla"))}</label>
+      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='with_bot'?'checked':''} value="with_bot"> ${escapeCoreText(t("Endast med synonymer"))}</label>
+      <label style="cursor:pointer;"><input type="radio" name="gloss_filter" ${glossaryFilterMode==='no_bot'?'checked':''} value="no_bot"> ${escapeCoreText(t("Endast utan synonymer"))}</label>
     </div>
 
     <table class="glossary-table">
       <thead>
         <tr>
-          <th>Synonyms / Botanical Name*</th>
-          <th>Referred Herb(s)</th>
+          <th>${escapeCoreText(t("Synonyms / Botanical Name*"))}</th>
+          <th>${escapeCoreText(t("Referred Herb(s)"))}</th>
         </tr>
       </thead>
       <tbody>
-        ${rowsHtml || '<tr><td colspan="2"><i>Inga poster matchade filtret.</i></td></tr>'}
+        ${rowsHtml || `<tr><td colspan="2"><i>${escapeCoreText(t("Inga poster matchade filtret."))}</i></td></tr>`}
       </tbody>
     </table>
   `;
@@ -1210,9 +1621,9 @@ function setHerbBotanicalFromGlossary(herbId, val) {
 }
 
 function promptCreateHerbFromGlossary() {
-  const bot = prompt("Ange Synonymer / Botaniskt namn:");
+  const bot = prompt(t("Ange Synonymer / Botaniskt namn:"));
   if (!bot || !bot.trim()) return;
-  const herbName = prompt("Ange örtens namn i biblioteket:");
+  const herbName = prompt(t("Ange örtens namn i biblioteket:"));
   if (!herbName || !herbName.trim()) return;
 
   const id = "herb_" + Date.now();
@@ -1231,7 +1642,7 @@ function promptCreateHerbFromGlossary() {
 function renderHerbPage(herbId) {
   const app = document.getElementById("wiki-app");
   const obj = db.objects.find(o => o.id === herbId);
-  if (!obj) { app.innerHTML = `<h2>${t("noDesc")}</h2><a href="#index" class="wiki-link">Tillbaka</a>`; return; }
+  if (!obj) { app.innerHTML = `<h2>${t("noDesc")}</h2><a href="#index" class="wiki-link">${escapeCoreText(t("Tillbaka"))}</a>`; return; }
 
   const botName = (obj.taxonomies && obj.taxonomies["Botanical Name"]) ? obj.taxonomies["Botanical Name"] : "";
 
@@ -1256,8 +1667,8 @@ function renderHerbPage(herbId) {
         <div class="wiki-data-row">
           <a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${escapeCoreText(cat)}:</a>
           <div class="wiki-row-content">
-            ${tagsList || '<i>none</i>'}
-            <button class="btn-wiki-add" ${coreAction("assign", obj.id, cat)} aria-label="Redigera ${escapeCoreText(cat)}">[+]</button>
+            ${tagsList || `<i>${escapeCoreText(t("none"))}</i>`}
+            <button class="btn-wiki-add" ${coreAction("assign", obj.id, cat)} aria-label="${escapeCoreText(t("Redigera {0}", {0: cat}))}">[+]</button>
           </div>
         </div>
       `;
@@ -1274,7 +1685,7 @@ function renderHerbPage(herbId) {
   const taxEntries = Object.entries(obj.taxonomies || {}).filter(([k, v]) => Boolean(v));
   let taxRows = taxEntries.map(([k, v]) => `
     <div class="wiki-data-row">
-      <span class="wiki-row-label" style="color:var(--text);">${escapeCoreText(k)}:</span>
+      <span class="wiki-row-label" style="color:var(--text);">${escapeCoreText(["Botanical Name", "Swedish Name", "English Name"].includes(k) ? t(k) : k)}:</span>
       <div class="wiki-row-content"><b>${escapeCoreText(v)}</b></div>
     </div>
   `).join("");
@@ -1283,35 +1694,35 @@ function renderHerbPage(herbId) {
     <h1 class="wiki-title">
       <span>${escapeCoreText(getDisplayObjName(obj))}</span>
       <div style="display:flex; align-items:center; gap:8px;">
-        <a class="wiki-action-link" ${coreAction("renameHerb", obj.id)} title="Ändra primärnamn">🖋</a>
-        <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("delete", "object", obj.id)}>[radera]</a>
+        <a class="wiki-action-link" ${coreAction("renameHerb", obj.id)} title="${escapeCoreText(t("Ändra primärnamn"))}">🖋</a>
+        <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("delete", "object", obj.id)}>${escapeCoreText(t("[radera]"))}</a>
       </div>
     </h1>
 
     <div class="wiki-subtitle">
-      <span>${escapeCoreText(botName ? botName : 'Inga synonymer tillskrivna')}</span>
+      <span>${escapeCoreText(botName ? botName : t("Inga synonymer tillskrivna"))}</span>
       <a class="wiki-action-link" ${coreAction("botanical", obj.id)} style="margin-left:6px;">🖋</a>
     </div>
     <hr class="wiki-divider">
 
     <div class="wiki-paragraph">
-      <span style="float:right;"><a class="wiki-action-link" ${coreAction("editor", "herb", obj.id)}>🖋</a></span>
+      <span style="float:right;"><a class="wiki-action-link" title="${t("Redigera")}" ${coreAction("editor", "herb", obj.id)}>🖋</a></span>
       ${obj.desc ? escapeCoreText(obj.desc) : `<i>${t("noDesc")}</i>`}
     </div>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">Egenskaper</h2>
-    <button class="wiki-btn" ${coreAction("chooseCategory", obj.id)}>Lägg till befintlig kategori / egenskap</button>
+    <h2 class="wiki-section">${escapeCoreText(t("Egenskaper"))}</h2>
+    <button class="wiki-btn" ${coreAction("chooseCategory", obj.id)}>${escapeCoreText(t("Lägg till befintlig kategori / egenskap"))}</button>
     <div style="margin-bottom:6px;">
-      <a class="wiki-action-link" onclick="promptCreateCategoryForHerb()">[+ Skapa ny kategori]</a>
+      <a class="wiki-action-link" onclick="promptCreateCategoryForHerb()">${escapeCoreText(t("[+ Skapa ny kategori]"))}</a>
     </div>
     <hr class="wiki-divider-subtle">
-    <div>${systemsHtml || '<i>Inga egenskaper tilldelade än.</i>'}</div>
+    <div>${systemsHtml || `<i>${escapeCoreText(t("Inga egenskaper tilldelade än."))}</i>`}</div>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">Synonymer</h2>
+    <h2 class="wiki-section">${escapeCoreText(t("Synonymer"))}</h2>
     <hr class="wiki-divider-subtle">
-    <div class="wiki-data-table">${taxRows || '<i>Inga synonymer fyllda.</i>'}</div>
+    <div class="wiki-data-table">${taxRows || `<i>${escapeCoreText(t("Inga synonymer fyllda."))}</i>`}</div>
   `;
   bindCoreActions(app);
 }
@@ -1320,7 +1731,7 @@ function promptEditHerbBotanical(herbId) {
   const o = db.objects.find(x => x.id === herbId);
   if (!o) return;
   const cur = (o.taxonomies && o.taxonomies["Botanical Name"]) ? o.taxonomies["Botanical Name"] : "";
-  const val = prompt("Ange synonymer / botaniskt namn:", cur);
+  const val = prompt(t("Ange synonymer / botaniskt namn:"), cur);
   if (val !== null) {
     if (!o.taxonomies) o.taxonomies = {};
     o.taxonomies["Botanical Name"] = val.trim();
@@ -1332,11 +1743,11 @@ function promptEditHerbBotanical(herbId) {
 function promptRenameHerb(id) {
   const herb = db.objects.find(o => o.id === id);
   if (!herb) return;
-  const newName = prompt("Ange nytt primärnamn på örten:", herb.name);
+  const newName = prompt(t("Ange nytt primärnamn på örten:"), herb.name);
   if (!newName || !newName.trim() || newName.trim() === herb.name) return;
   const clean = newName.trim();
   if (db.objects.some(o => o.id !== id && o.name.toLowerCase() === clean.toLowerCase())) {
-    alert("Ett objekt med det namnet existerar redan."); return;
+    alert(t("Ett objekt med det namnet existerar redan.")); return;
   }
   herb.name = clean;
   persist();
@@ -1344,10 +1755,10 @@ function promptRenameHerb(id) {
 }
 
 function promptCreateCategoryForHerb() {
-  const name = prompt("Ange namn på ny kategori:");
+  const name = prompt(t("Ange namn på ny kategori:"));
   if (!name || !name.trim()) return;
   const clean = name.trim();
-  if (db.categories[clean]) { alert("Kategorin finns redan."); return; }
+  if (db.categories[clean]) { alert(t("Kategorin finns redan.")); return; }
 
   db.categories[clean] = { system: "Ospecifierade kategorier", desc: "", subcategories: [], sources: [] };
   if (!db.systems["Ospecifierade kategorier"].categories.includes(clean)) {
@@ -1386,7 +1797,7 @@ function equalAssignValue(a, b) {
 
 function rejectAssignDraft() {
   closePopup();
-  alert("Data changed. Reopen the assignment dialog to use current values.");
+  alert(t("Data changed. Reopen the assignment dialog to use current values."));
 }
 
 function assignmentFocusables() {
@@ -1455,7 +1866,7 @@ function renderAssignCategoryList() {
     };
     cont.appendChild(button);
   });
-  if (!cont.childElementCount) cont.textContent = "Inga kategorier hittades.";
+  if (!cont.childElementCount) cont.textContent = t("Inga kategorier hittades.");
 }
 
 function openAssignPropsModal(entityId, categoryName) {
@@ -1471,7 +1882,7 @@ function openAssignPropsModal(entityId, categoryName) {
   activeAssignCategory = categoryName;
   pendingSelectedProps = new Set(getPropKeys(activeAssignEntity));
 
-  document.getElementById("assign-prop-modal-title").innerText = `Koppla [${categoryName}]`;
+  document.getElementById("assign-prop-modal-title").innerText = t("Koppla [{0}]", {0: categoryName});
   document.getElementById("assign-prop-filter").value = "";
   renderAssignPropsList();
   showAssignmentDialog("popup-assign-prop", "assign-prop-filter", invoker);
@@ -1484,7 +1895,7 @@ function renderAssignPropsList() {
 
   const available = Object.keys(db.properties).filter(p => db.properties[p].category === activeAssignCategory);
   const filtered = available.filter(p => p.toLowerCase().includes(q));
-  if (!filtered.length) cont.textContent = "Inga egenskaper hittades. Inga kopplingar skapas utan en egenskap.";
+  if (!filtered.length) cont.textContent = t("Inga egenskaper hittades. Inga kopplingar skapas utan en egenskap.");
 
   filtered.forEach(p => {
     const isChecked = pendingSelectedProps.has(p);
@@ -1543,27 +1954,27 @@ let activeEditSourceId = "";
 function renderPropertyPage(propName) {
   const app = document.getElementById("wiki-app");
   const prop = db.properties[propName];
-  if (!prop) { app.innerHTML = `<h2>Egenskapen hittades inte.</h2><a href="#index" class="wiki-link">Tillbaka</a>`; return; }
+  if (!prop) { app.innerHTML = `<h2>${escapeCoreText(t("Egenskapen hittades inte."))}</h2><a href="#index" class="wiki-link">${escapeCoreText(t("Tillbaka"))}</a>`; return; }
 
   const cat = prop.category;
   const sys = db.categories[cat]?.system || "Universal";
 
   const herbsWith = db.objects.filter(o => hasProp(o, propName)).sort((a,b) => getDisplayObjName(a).localeCompare(getDisplayObjName(b), currentLang));
   let herbsListHtml = herbsWith.length === 0
-    ? `<li><i>Inga örter kopplade än.</i></li>`
+    ? `<li><i>${escapeCoreText(t("Inga örter kopplade än."))}</i></li>`
     : herbsWith.map(o => `<li><a href="#herb-id/${encodeURIComponent(o.id)}" class="wiki-link" style="font-weight:700;">${escapeCoreText(getDisplayObjName(o))}</a></li>`).join("");
 
   const relatedProps = prop.related || [];
   let relPropsHtml = relatedProps.length === 0
-    ? `<i>Inga relaterade egenskaper än.</i>`
+    ? `<i>${escapeCoreText(t("Inga relaterade egenskaper än."))}</i>`
     : relatedProps.map(rp => {
-        const rc = db.properties[rp]?.category || "Övrigt";
+        const rc = db.properties[rp]?.category || t("Övrigt");
         return `<div style="margin-bottom:4px;"><b>${escapeCoreText(rc)}:</b> <a href="#property/${encodeURIComponent(rp)}" class="wiki-link">${escapeCoreText(rp)}</a></div>`;
       }).join("");
 
   const linkedStudy = (db.studyObjects || []).filter(so => hasProp(so, propName));
   let studyHtml = linkedStudy.length === 0
-    ? `<li><i>Inga studieobjekt kopplade.</i></li>`
+    ? `<li><i>${escapeCoreText(t("Inga studieobjekt kopplade."))}</i></li>`
     : linkedStudy.map(so => `<li>${escapeCoreText(so.name)} (${escapeCoreText(so.type || 'Ref')})</li>`).join("");
 
   const linkedSources = [];
@@ -1579,13 +1990,13 @@ function renderPropertyPage(propName) {
   `;
 
   let sourcesListHtml = linkedSources.length === 0
-    ? `<li><i>Inga källor kopplade än.</i></li>`
+    ? `<li><i>${escapeCoreText(t("Inga källor kopplade än."))}</i></li>`
     : linkedSources.map(item => `
       <li style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <div>
-          <b>${escapeCoreText(item.src.author || 'Okänd')}</b> (${escapeCoreText(item.src.year || 'u.å.')}) <i>${escapeCoreText(item.src.title)}</i>${item.pages ? ` (s. ${escapeCoreText(item.pages)})` : ''}
+          <b>${escapeCoreText(item.src.author || t("Okänd"))}</b> (${escapeCoreText(item.src.year || t("u.å."))}) <i>${escapeCoreText(item.src.title)}</i>${item.pages ? ` (${t("s.")} ${escapeCoreText(item.pages)})` : ''}
         </div>
-        <span ${coreAction("propertySource", propName, item.src.id, item.pages)} title="Redigera källa/sidor">${svgEditIcon}</span>
+        <span ${coreAction("propertySource", propName, item.src.id, item.pages)} title="${escapeCoreText(t("Redigera källa/sidor"))}">${svgEditIcon}</span>
       </li>
     `).join("");
 
@@ -1593,13 +2004,13 @@ function renderPropertyPage(propName) {
     <h1 class="wiki-title">
       <span>${escapeCoreText(propName)}</span>
       <div style="display:flex; align-items:center; gap:8px;">
-        <a class="wiki-action-link" ${coreAction("renameProperty", propName)} title="Ändra namn">🖋</a>
-        <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("delete", "property", propName)}>[radera]</a>
+        <a class="wiki-action-link" ${coreAction("renameProperty", propName)} title="${escapeCoreText(t("Ändra namn"))}">🖋</a>
+        <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("delete", "property", propName)}>${escapeCoreText(t("[radera]"))}</a>
       </div>
     </h1>
 
     <div style="font-size:13px; color:var(--text-muted); margin-bottom:4px;">
-      ${prop.summary ? escapeCoreText(prop.summary) : `<i>Kort sammanfattning saknas.</i>`}
+      ${prop.summary ? escapeCoreText(prop.summary) : `<i>${escapeCoreText(t("Kort sammanfattning saknas."))}</i>`}
       <a class="wiki-action-link" ${coreAction("propertySummary", propName)}>🖋</a>
     </div>
 
@@ -1610,7 +2021,7 @@ function renderPropertyPage(propName) {
     <hr class="wiki-divider">
 
     <div class="wiki-paragraph">
-      <span style="float:right;"><a class="wiki-action-link" ${coreAction("editor", "prop", propName)}>🖋</a></span>
+      <span style="float:right;"><a class="wiki-action-link" title="${t("Redigera")}" ${coreAction("editor", "prop", propName)}>🖋</a></span>
       ${prop.desc ? escapeCoreText(prop.desc) : `<i>${t("noDesc")}</i>`}
     </div>
     <hr class="wiki-divider">
@@ -1620,25 +2031,25 @@ function renderPropertyPage(propName) {
     </h2>
     <ul class="wiki-list">${herbsListHtml}</ul>
     <div style="margin-top:-4px; margin-bottom:12px;">
-      <a class="wiki-action-link" ${coreAction("connectHerb", propName)}>+ Lägg till ört</a>
+      <a class="wiki-action-link" ${coreAction("connectHerb", propName)}>${escapeCoreText(t("+ Lägg till ört"))}</a>
     </div>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">Relaterade Egenskaper</h2>
+    <h2 class="wiki-section">${escapeCoreText(t("Relaterade Egenskaper"))}</h2>
     <div style="margin-top:6px; font-size:15px;">${relPropsHtml}</div>
     <div style="margin-top:6px; margin-bottom:12px;">
-      <a class="wiki-action-link" ${coreAction("relatedProperty", propName)}>+ Lägg till egenskap</a>
+      <a class="wiki-action-link" ${coreAction("relatedProperty", propName)}>${escapeCoreText(t("+ Lägg till egenskap"))}</a>
     </div>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">Relaterade studieobjekt</h2>
+    <h2 class="wiki-section">${escapeCoreText(t("Relaterade studieobjekt"))}</h2>
     <ul class="wiki-list">${studyHtml}</ul>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">KÄLLOR</h2>
+    <h2 class="wiki-section">${escapeCoreText(t("KÄLLOR"))}</h2>
     <ul class="wiki-list">${sourcesListHtml}</ul>
     <div style="margin-top:-4px; margin-bottom:12px;">
-      <a class="wiki-action-link" ${coreAction("addPropertySource", propName)}>+ Lägg till källa</a>
+      <a class="wiki-action-link" ${coreAction("addPropertySource", propName)}>${escapeCoreText(t("+ Lägg till källa"))}</a>
     </div>
   `;
   bindCoreActions(app);
@@ -1647,7 +2058,7 @@ function renderPropertyPage(propName) {
 function promptEditPropertySummary(pName) {
   const p = db.properties[pName];
   if (!p) return;
-  const val = prompt("Ange kort sammanfattning:", p.summary || "");
+  const val = prompt(t("Ange kort sammanfattning:"), p.summary || "");
   if (val !== null) {
     p.summary = val.trim();
     persist();
@@ -1659,7 +2070,7 @@ function openEditPropSourceModal(pName, sourceId, currentPages) {
   activeEditSourcePropName = pName;
   activeEditSourceId = sourceId;
   const src = db.sources.find(s => s.id === sourceId);
-  document.getElementById("edit-source-title-display").innerText = src ? `${src.title} (${src.year || 'u.å.'})` : "Källa";
+  document.getElementById("edit-source-title-display").innerText = src ? `${src.title} (${src.year || t("u.å.")})` : t("Källa");
   document.getElementById("edit-source-pages-input").value = currentPages || "";
   document.getElementById("popup-edit-prop-source").style.display = "flex";
 }
@@ -1687,9 +2098,9 @@ function removeSourceFromProperty() {
 }
 
 function openAddSourceToPropertyDirect(propName) {
-  const srcTitle = prompt("Ange titel på källan:");
+  const srcTitle = prompt(t("Ange titel på källan:"));
   if (!srcTitle || !srcTitle.trim()) return;
-  const pages = prompt("Ange sidor (t.ex. 42-45):") || "";
+  const pages = prompt(t("Ange sidor (t.ex. 42-45):")) || "";
 
   let src = db.sources.find(s => s.title.toLowerCase() === srcTitle.trim().toLowerCase());
   if (!src) {
@@ -1704,7 +2115,7 @@ function openAddSourceToPropertyDirect(propName) {
 
 function openRelatedPropertiesTwoWayPopup(propName) {
   const available = Object.keys(db.properties).filter(p => p !== propName);
-  const choice = prompt("Välj egenskap att länka relaterad koppling (Two-way):\n" + available.map((p, i) => `${i+1}. ${p} (${db.properties[p]?.category})`).join("\n"));
+  const choice = prompt(t("Välj egenskap att länka relaterad koppling (Two-way):\n") + available.map((p, i) => `${i+1}. ${p} (${db.properties[p]?.category})`).join("\n"));
   if (!choice) return;
   const idx = parseInt(choice) - 1;
   const targetProp = available[idx];
@@ -1721,10 +2132,10 @@ function openRelatedPropertiesTwoWayPopup(propName) {
 }
 
 function promptRenameProperty(oldName) {
-  const newName = prompt("Ange nytt namn på egenskapen:", oldName);
+  const newName = prompt(t("Ange nytt namn på egenskapen:"), oldName);
   if (!newName || !newName.trim() || newName.trim() === oldName) return;
   const cleanNew = newName.trim();
-  if (db.properties[cleanNew]) { alert("Egenskapen finns redan."); return; }
+  if (db.properties[cleanNew]) { alert(t("Egenskapen finns redan.")); return; }
 
   db.properties[cleanNew] = db.properties[oldName];
   delete db.properties[oldName];
@@ -1785,15 +2196,15 @@ function renderCategoryPage(catName) {
             <a href="#property/${encodeURIComponent(p)}">${escapeCoreText(p)}:</a>
             ${summary}
           </div>
-          <div class="wiki-row-content">${herbLinks || '<i>inga örter</i>'}</div>
+          <div class="wiki-row-content">${herbLinks || `<i>${escapeCoreText(t("inga örter"))}</i>`}</div>
         </div>
       `;
     }).join("");
 
     contentSectionsHtml += `
       <div style="margin-top:12px;" id="subcat-${encodeURIComponent(sc)}">
-        <div style="font-weight:800; font-size:15px; color:var(--text); border-bottom:1px solid var(--border-subtle); padding-bottom:2px;">Underkategori: ${escapeCoreText(sc)}</div>
-        <div class="wiki-data-table">${items || '<i>inga egenskaper</i>'}</div>
+        <div style="font-weight:800; font-size:15px; color:var(--text); border-bottom:1px solid var(--border-subtle); padding-bottom:2px;">${escapeCoreText(t("Underkategori:"))} ${escapeCoreText(sc)}</div>
+        <div class="wiki-data-table">${items || `<i>${escapeCoreText(t("inga egenskaper"))}</i>`}</div>
       </div>
     `;
   });
@@ -1809,14 +2220,14 @@ function renderCategoryPage(catName) {
             <a href="#property/${encodeURIComponent(p)}">${escapeCoreText(p)}:</a>
             ${summary}
           </div>
-          <div class="wiki-row-content">${herbLinks || '<i>inga örter</i>'}</div>
+          <div class="wiki-row-content">${herbLinks || `<i>${escapeCoreText(t("inga örter"))}</i>`}</div>
         </div>
       `;
     }).join("");
 
     contentSectionsHtml += `
       <div style="margin-top:12px;">
-        ${subcats.length > 0 ? '<div style="font-weight:700; font-size:14px; color:var(--text-muted);">Övriga egenskaper:</div>' : ''}
+        ${subcats.length > 0 ? `<div style="font-weight:700; font-size:14px; color:var(--text-muted);">${escapeCoreText(t("Övriga egenskaper:"))}</div>` : ''}
         <div class="wiki-data-table">${uncatItems}</div>
       </div>
     `;
@@ -1826,36 +2237,36 @@ function renderCategoryPage(catName) {
     <h1 class="wiki-title">
       <span>${escapeCoreText(catName)}</span>
       <div style="display:flex; align-items:center; gap:8px;">
-        <a class="wiki-action-link" ${coreAction("renameCategory", catName)} title="Ändra namn">🖋</a>
+        <a class="wiki-action-link" ${coreAction("renameCategory", catName)} title="${escapeCoreText(t("Ändra namn"))}">🖋</a>
         <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("delete", "category", catName)}>${t("delete")}</a>
-        <a href="#system/${encodeURIComponent(cat.system || 'Universal')}" class="wiki-action-link">[System: ${escapeCoreText(cat.system || 'Generellt')}]</a>
+        <a href="#system/${encodeURIComponent(cat.system || 'Universal')}" class="wiki-action-link">[System: ${escapeCoreText(cat.system || t("Generellt"))}]</a>
       </div>
     </h1>
     <hr class="wiki-divider">
 
     <div class="wiki-paragraph">
-      <span style="float:right;"><a class="wiki-action-link" ${coreAction("editor", "cat", catName)}>🖋</a></span>
+      <span style="float:right;"><a class="wiki-action-link" title="${t("Redigera")}" ${coreAction("editor", "cat", catName)}>🖋</a></span>
       ${cat.desc ? escapeCoreText(cat.desc) : `<i>${t("noDesc")}</i>`}
     </div>
     <hr class="wiki-divider">
 
     <h2 class="wiki-section">
-      <span>Egenskaper och ingående örter</span>
+      <span>${escapeCoreText(t("Egenskaper och ingående örter"))}</span>
     </h2>
-    <div style="margin-top:6px;">${contentSectionsHtml || '<i>Inga egenskaper i kategorin.</i>'}</div>
+    <div style="margin-top:6px;">${contentSectionsHtml || `<i>${escapeCoreText(t("Inga egenskaper i kategorin."))}</i>`}</div>
 
     <div style="margin-top:10px;">
-      <a class="wiki-action-link" ${coreAction("createProperty", catName)}>(+ Skapa ny egenskap)</a>
+      <a class="wiki-action-link" ${coreAction("createProperty", catName)}>${escapeCoreText(t("(+ Skapa ny egenskap)"))}</a>
     </div>
   `;
   bindCoreActions(app);
 }
 
 function promptRenameCategory(oldName) {
-  const newName = prompt("Ange nytt namn på kategorin:", oldName);
+  const newName = prompt(t("Ange nytt namn på kategorin:"), oldName);
   if (!newName || !newName.trim() || newName.trim() === oldName) return;
   const cleanNew = newName.trim();
-  if (db.categories[cleanNew]) { alert("Kategorin finns redan."); return; }
+  if (db.categories[cleanNew]) { alert(t("Kategorin finns redan.")); return; }
 
   db.categories[cleanNew] = db.categories[oldName];
   delete db.categories[oldName];
@@ -1872,7 +2283,7 @@ function promptRenameCategory(oldName) {
 }
 
 function promptCreatePropertyWithSubcat(catName) {
-  const name = prompt("Ange namn på ny egenskap:");
+  const name = prompt(t("Ange namn på ny egenskap:"));
   if (!name || !name.trim()) return;
 
   const cat = db.categories[catName];
@@ -1880,7 +2291,7 @@ function promptCreatePropertyWithSubcat(catName) {
   let chosenSubcat = "";
 
   if (subcats.length > 0) {
-    const choice = prompt("Välj underkategori:\n" + subcats.map((s, i) => `${i+1}. ${s}`).join("\n") + "\n0. Ingen");
+    const choice = prompt(t("Välj underkategori:\n") + subcats.map((s, i) => `${i+1}. ${s}`).join("\n") + t("\n0. Ingen"));
     if (choice && choice !== "0") {
       const idx = parseInt(choice) - 1;
       if (subcats[idx]) chosenSubcat = subcats[idx];
@@ -1903,7 +2314,7 @@ function renderSystemPage(sysName) {
   activeSystemForAdd = sysName;
   const app = document.getElementById("wiki-app");
   const sys = db.systems[sysName];
-  if (!sys) { app.innerHTML = `<h2>Systemet hittades inte.</h2><a href="#index" class="wiki-link">Tillbaka</a>`; return; }
+  if (!sys) { app.innerHTML = `<h2>${escapeCoreText(t("Systemet hittades inte."))}</h2><a href="#index" class="wiki-link">${escapeCoreText(t("Tillbaka"))}</a>`; return; }
 
   let catSectionsHtml = (sys.categories || []).map((catName, idx) => {
     const props = Object.keys(db.properties).filter(p => db.properties[p]?.category === catName);
@@ -1919,42 +2330,42 @@ function renderSystemPage(sysName) {
           <a href="#category/${encodeURIComponent(catName)}" class="wiki-link" data-system-category-link>${escapeCoreText(catName)}</a>
           <span style="font-size:13px; color:var(--text-muted); font-weight:400; margin-left: auto;">(${props.length})</span>
         </div>
-        <ul class="wiki-list" id="cat-list-${idx}" style="padding: 0 10px 8px 30px; margin: 0; display: block;">${propListItems || '<li><i>inga egenskaper</i></li>'}</ul>
+        <ul class="wiki-list" id="cat-list-${idx}" style="padding: 0 10px 8px 30px; margin: 0; display: block;">${propListItems || `<li><i>${escapeCoreText(t("inga egenskaper"))}</i></li>`}</ul>
       </div>
     `;
   }).join("");
 
   const linkedStudy = (db.studyObjects || []).filter(so => so.system === sysName || (so.systems && so.systems.includes(sysName)));
   let studyHtml = linkedStudy.length === 0
-    ? `<li><i>Inga studieobjekt kopplade.</i></li>`
+    ? `<li><i>${escapeCoreText(t("Inga studieobjekt kopplade."))}</i></li>`
     : linkedStudy.map(so => `<li><b>${escapeCoreText(so.name)}</b> (${escapeCoreText(so.type || 'Ref')})</li>`).join("");
 
   const linkedSources = (db.sources || []).filter(src => (src.tags || []).some(tg => tg.type === "system" && tg.id === sysName));
   let sourcesHtml = linkedSources.length === 0
-    ? `<li><i>Inga källor kopplade.</i></li>`
-    : linkedSources.map(src => `<li><b>${escapeCoreText(src.author || 'Okänd')}</b> (${escapeCoreText(src.year || 'u.å.')}) <i>${escapeCoreText(src.title)}</i></li>`).join("");
+    ? `<li><i>${escapeCoreText(t("Inga källor kopplade."))}</i></li>`
+    : linkedSources.map(src => `<li><b>${escapeCoreText(src.author || t("Okänd"))}</b> (${escapeCoreText(src.year || t("u.å."))}) <i>${escapeCoreText(src.title)}</i></li>`).join("");
 
   app.innerHTML = `
     <h1 class="wiki-title"><span>${escapeCoreText(sysName)}</span></h1>
     <hr class="wiki-divider">
-    <div class="wiki-paragraph">${sys.desc ? escapeCoreText(sys.desc) : `<i>Ingen beskrivning skriven.</i>`}</div>
+    <div class="wiki-paragraph">${sys.desc ? escapeCoreText(sys.desc) : `<i>${escapeCoreText(t("Ingen beskrivning skriven."))}</i>`}</div>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">Kategorier och egenskaper</h2>
-    <div style="margin-top:8px;">${catSectionsHtml || '<i>Inga kategorier i systemet.</i>'}</div>
+    <h2 class="wiki-section">${escapeCoreText(t("Kategorier och egenskaper"))}</h2>
+    <div style="margin-top:8px;">${catSectionsHtml || `<i>${escapeCoreText(t("Inga kategorier i systemet."))}</i>`}</div>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">Relaterade studieobjekt</h2>
+    <h2 class="wiki-section">${escapeCoreText(t("Relaterade studieobjekt"))}</h2>
     <ul class="wiki-list">${studyHtml}</ul>
     <div style="margin-top:-4px; margin-bottom:12px;">
-      <a class="wiki-action-link" ${coreAction("systemStudy", sysName)}>+ Lägg till studieobjekt</a>
+      <a class="wiki-action-link" ${coreAction("systemStudy", sysName)}>${escapeCoreText(t("+ Lägg till studieobjekt"))}</a>
     </div>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">Källor</h2>
+    <h2 class="wiki-section">${escapeCoreText(t("Källor"))}</h2>
     <ul class="wiki-list">${sourcesHtml}</ul>
     <div style="margin-top:-4px; margin-bottom:12px;">
-      <a class="wiki-action-link" ${coreAction("systemSource", sysName)}>+ Lägg till källa</a>
+      <a class="wiki-action-link" ${coreAction("systemSource", sysName)}>${escapeCoreText(t("+ Lägg till källa"))}</a>
     </div>
   `;
   app.querySelectorAll("[data-system-category-link]").forEach(link => {
@@ -2075,7 +2486,7 @@ function renderSysSourceList() {
       toggleSysSourceLink(src.id, checkbox.checked);
     });
     const caption = document.createElement("span");
-    caption.textContent = `${src.title} (${src.year || 'u.å.'})`;
+    caption.textContent = `${src.title} (${src.year || t("u.å.")})`;
     lbl.appendChild(checkbox);
     lbl.appendChild(caption);
     cont.appendChild(lbl);
@@ -2130,52 +2541,52 @@ function renderSearchPage() {
       const matchCount = activeFilterProps.filter(p => hasProp(obj, p)).length;
       if (matchCount > 0) {
         const pct = Math.round((matchCount / activeFilterProps.length) * 100);
-        hits.push({ id: obj.id, name: getDisplayObjName(obj), pct, matchCount, type: "Ört" });
+        hits.push({ id: obj.id, name: getDisplayObjName(obj), pct, matchCount, type: t("Ört") });
       }
     });
     (db.studyObjects || []).forEach(so => {
       const matchCount = activeFilterProps.filter(p => hasProp(so, p)).length;
       if (matchCount > 0) {
         const pct = Math.round((matchCount / activeFilterProps.length) * 100);
-        hits.push({ id: so.id, name: so.name, pct, matchCount, type: so.type || "Studieobjekt", isStudy: true });
+        hits.push({ id: so.id, name: so.name, pct, matchCount, type: so.type || t("Studieobjekt"), isStudy: true });
       }
     });
     hits.sort((a,b) => b.pct - a.pct);
   }
 
   let matchesHtml = activeFilterProps.length === 0
-    ? `<li><i>Skriv och lägg till egenskaper ovan för att filtrera fram profiler.</i></li>`
-    : (hits.length === 0 ? `<li><i>Inga profiler matchade sökningen.</i></li>` : hits.map(h => `
+    ? `<li><i>${escapeCoreText(t("Skriv och lägg till egenskaper ovan för att filtrera fram profiler."))}</i></li>`
+    : (hits.length === 0 ? `<li><i>${escapeCoreText(t("Inga profiler matchade sökningen."))}</i></li>` : hits.map(h => `
       <li>
         <a href="${escapeCoreText(h.isStudy ? '#study/' + encodeURIComponent(h.id) : '#herb-id/' + encodeURIComponent(h.id))}" class="wiki-link" style="font-weight:700;">${escapeCoreText(h.name)}</a>
         <span style="font-size:12px; color:var(--text-muted);">[${escapeCoreText(h.type)}]</span>
-        — <b style="color:var(--accent-gold); font-family:monospace;">${h.pct}% match</b> (${h.matchCount}/${activeFilterProps.length} egenskaper)
+        — <b style="color:var(--accent-gold); font-family:monospace;">${h.pct}% ${t("match")}</b> (${h.matchCount}/${activeFilterProps.length} ${t("egenskaper")})
       </li>
     `).join(""));
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>Filtersök profil</span>
-      <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("filterReset")}>[återställ filter]</a>
+      <span>${escapeCoreText(t("Filtersök profil"))}</span>
+      <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("filterReset")}>${escapeCoreText(t("[återställ filter]"))}</a>
     </h1>
     <hr class="wiki-divider">
 
     <div style="margin-bottom: 14px; position:relative;">
-      <label style="font-weight:700; font-size:14px; display:block; margin-bottom:4px;">Skriv in egenskap:</label>
+      <label style="font-weight:700; font-size:14px; display:block; margin-bottom:4px;">${escapeCoreText(t("Skriv in egenskap:"))}</label>
       <div style="display:flex; gap:6px;">
-        <input type="text" id="search-prop-input" placeholder="Skriv egenskap (tryck Enter)..." autocomplete="off">
-        <button class="wiki-btn primary" ${coreAction("filterAdd")}>Lägg till</button>
+        <input type="text" id="search-prop-input" placeholder="${escapeCoreText(t("Skriv egenskap (tryck Enter)..."))}" autocomplete="off">
+        <button class="wiki-btn primary" ${coreAction("filterAdd")}>${escapeCoreText(t("Lägg till"))}</button>
       </div>
       <div class="suggest-dropdown" id="search-prop-dropdown"></div>
     </div>
 
     <div style="margin-bottom: 14px; display:flex; flex-wrap:wrap; gap:6px; min-height:36px; background:#f8f9fa; border:1px solid var(--border-subtle); padding:8px; border-radius:3px; align-items:center;">
-      <span style="font-size:13px; color:var(--text-muted); font-weight:700;">Aktiva egenskaper:</span>
-      ${tagsHtml || '<i style="font-size:13px; color:var(--text-muted);">Inga egenskaper tillagda än.</i>'}
+      <span style="font-size:13px; color:var(--text-muted); font-weight:700;">${escapeCoreText(t("Aktiva egenskaper:"))}</span>
+      ${tagsHtml || `<i style="font-size:13px; color:var(--text-muted);">${escapeCoreText(t("Inga egenskaper tillagda än."))}</i>`}
     </div>
     <hr class="wiki-divider">
 
-    <h2 class="wiki-section">Matchade profiler (${hits.length})</h2>
+    <h2 class="wiki-section">${escapeCoreText(t("Matchade profiler ("))}${hits.length})</h2>
     <ul class="wiki-list">${matchesHtml}</ul>
   `;
   bindCoreActions(app);
@@ -2228,7 +2639,7 @@ function addTypedSearchProp() {
     document.getElementById("search-prop-dropdown").style.display = "none";
     renderSearchPage();
   } else if (!found) {
-    alert(`Egenskapen "${val}" finns inte i biblioteket.`);
+    alert(t("Egenskapen \"{0}\" finns inte i biblioteket.", {0: val}));
   }
 }
 
@@ -2248,24 +2659,24 @@ function renderFormulasIndexPage() {
   const listHtml = Object.entries(db.formulas || {}).map(([fName, fData]) => `
     <li>
       <a href="#formula/${encodeURIComponent(fName)}" class="wiki-link" style="font-weight:700;">⚗ ${escapeCoreText(fName)}</a>
-      <span style="color:var(--text-muted); font-size:13px;"> — ${Array.isArray(fData?.components) ? fData.components.length : 0} komponenter</span>
+      <span style="color:var(--text-muted); font-size:13px;"> — ${Array.isArray(fData?.components) ? fData.components.length : 0} ${Array.isArray(fData?.components) && fData.components.length === 1 ? t("komponent") : t("komponenter")}</span>
     </li>
   `).join("");
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>Formelarkiv</span>
-      <a class="wiki-action-link" ${coreAction("formulaCreate")}>[+ Ny formel]</a>
+      <span>${escapeCoreText(t("Formelarkiv"))}</span>
+      <a class="wiki-action-link" ${coreAction("formulaCreate")}>${escapeCoreText(t("[+ Ny formel]"))}</a>
     </h1>
     <hr class="wiki-divider">
-    <div class="wiki-paragraph">Sammansatta örtrecept och beredningar.</div>
-    <ul class="wiki-list">${listHtml || '<i>Inga formler sparade än.</i>'}</ul>
+    <div class="wiki-paragraph">${escapeCoreText(t("Sammansatta örtrecept och beredningar."))}</div>
+    <ul class="wiki-list">${listHtml || `<i>${escapeCoreText(t("Inga formler sparade än."))}</i>`}</ul>
   `;
   bindCoreActions(app);
 }
 
 function promptCreateFormula() {
-  const name = prompt("Ange formelnamn:");
+  const name = prompt(t("Ange formelnamn:"));
   if (!name || !name.trim()) return;
   if (!db.formulas) db.formulas = {};
   if (!db.formulas[name.trim()]) {
@@ -2278,30 +2689,30 @@ function promptCreateFormula() {
 function renderFormulaDetailPage(fName) {
   const app = document.getElementById("wiki-app");
   const formula = db.formulas ? db.formulas[fName] : null;
-  if (!formula) { app.innerHTML = `<h2>Formeln hittades inte.</h2><a href="#formulas" class="wiki-link">Tillbaka</a>`; return; }
+  if (!formula) { app.innerHTML = `<h2>${escapeCoreText(t("Formeln hittades inte."))}</h2><a href="#formulas" class="wiki-link">${escapeCoreText(t("Tillbaka"))}</a>`; return; }
 
   app.innerHTML = `
     <h1 class="wiki-title">
       <span>⚗ ${escapeCoreText(fName)}</span>
-      <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("formulaDelete", fName)}>[radera formel]</a>
+      <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("formulaDelete", fName)}>${escapeCoreText(t("[radera formel]"))}</a>
     </h1>
     <hr class="wiki-divider">
-    <div class="wiki-paragraph">${formula.desc ? escapeCoreText(formula.desc) : `<i>Ingen beskrivning skriven än.</i>`}</div>
+    <div class="wiki-paragraph">${formula.desc ? escapeCoreText(formula.desc) : `<i>${escapeCoreText(t("Ingen beskrivning skriven än."))}</i>`}</div>
   `;
   bindCoreActions(app);
 }
 
-function deleteFormula(fName) { if (!confirm(`Radera formeln '${fName}'?`)) return; delete db.formulas[fName]; persist(); window.location.hash = "#formulas"; }
+function deleteFormula(fName) { if (!confirm(t("Radera formeln '{0}'?", {0: fName}))) return; delete db.formulas[fName]; persist(); window.location.hash = "#formulas"; }
 
 // ==================== KÄLLOR ====================
 function renderSourcesLibraryPage() {
   const app = document.getElementById("wiki-app");
   let sourcesListHtml = (db.sources || []).map(src => `
     <div style="margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border-subtle);">
-      <b>${escapeCoreText(src.author || 'Okänd')}</b> (${escapeCoreText(src.year || 'u.å.')}) <i>${escapeCoreText(src.title)}</i>
+      <b>${escapeCoreText(src.author || t("Okänd"))}</b> (${escapeCoreText(src.year || t("u.å."))}) <i>${escapeCoreText(src.title)}</i>
     </div>
   `).join("");
-  app.innerHTML = `<h1 class="wiki-title"><span>Källbibliotek</span></h1><hr class="wiki-divider"><div>${sourcesListHtml || '<i>Inga källor.</i>'}</div>`;
+  app.innerHTML = `<h1 class="wiki-title"><span>${escapeCoreText(t("Källbibliotek"))}</span></h1><hr class="wiki-divider"><div>${sourcesListHtml || `<i>${escapeCoreText(t("Inga källor."))}</i>`}</div>`;
 }
 
 // ==================== PAPPERSKORG ====================
@@ -2320,8 +2731,8 @@ function deleteTagWithWarning(type, id) {
   }
 
   const promptText = count > 0 
-    ? `Taggobjektet '${name}' har ${count} kopplingar. Vill du slänga det i papperskorgen?`
-    : `Vill du slänga '${name}' i papperskorgen?`;
+    ? t("Taggobjektet '{0}' har {1} kopplingar. Vill du slänga det i papperskorgen?", {0: name, 1: count})
+    : t("Vill du slänga '{0}' i papperskorgen?", {0: name});
 
   if (!confirm(promptText)) return;
 
@@ -2357,19 +2768,19 @@ function renderTrashPage() {
   trashView = { library: db, list: db.trash, generation, entries: trashItems.map(item => ({ item, id: item.id, type: item.type, data: item.data, objectId: item.data?.id })) };
 
   let listHtml = trashItems.length === 0 
-    ? `<i>Papperskorgen är tom.</i>` 
+    ? `<i>${escapeCoreText(t("Papperskorgen är tom."))}</i>`
     : trashItems.map((item, idx) => `
       <li style="display:flex; flex-wrap:wrap; gap:8px; overflow-wrap:anywhere; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #eee;">
         <div><b>${escapeCoreText(item.name)}</b> <span style="font-size:12px; color:var(--text-muted);">[${escapeCoreText(item.type)}]</span></div>
         <div style="display:flex; gap:8px;">
-          <button class="wiki-btn" ${coreAction("trashRestore", idx, generation)}>Återställ</button>
-          <button class="wiki-btn" style="color:var(--danger);" ${coreAction("trashDelete", idx, generation)}>Radera</button>
+          <button class="wiki-btn" ${coreAction("trashRestore", idx, generation)}>${escapeCoreText(t("Återställ"))}</button>
+          <button class="wiki-btn" style="color:var(--danger);" ${coreAction("trashDelete", idx, generation)}>${escapeCoreText(t("Radera"))}</button>
         </div>
       </li>
     `).join("");
 
   app.innerHTML = `
-    <h1 class="wiki-title"><span>Papperskorg</span></h1>
+    <h1 class="wiki-title"><span>${escapeCoreText(t("Papperskorg"))}</span></h1>
     <hr class="wiki-divider">
     <ul class="wiki-list">${listHtml}</ul>
   `;
@@ -2382,7 +2793,7 @@ function currentTrashTarget(idx, generation) {
       db !== trashView.library || db.trash !== trashView.list || db.trash[idx] !== expected.item ||
       expected.item.id !== expected.id || expected.item.type !== expected.type ||
       expected.item.data !== expected.data || expected.item.data?.id !== expected.objectId) {
-    alert("Trash changed. Reopen Trash before trying again.");
+    alert(t("Trash changed. Reopen Trash before trying again."));
     return null;
   }
   return expected.item;
@@ -2399,14 +2810,14 @@ function restoreFromTrash(idx, generation) {
   if (!item) return;
   if (item.type === "property" || item.type === "category") {
     try { validateTrashRestoreData(item.type, item.data); }
-    catch { alert("Cannot restore this record: its data format is invalid."); return; }
+    catch { alert(t("Cannot restore this record: its data format is invalid.")); return; }
   }
   let occupied;
   if (item.type === "object" && item.data && item.data.id != null) occupied = db.objects.some(object => object.id === item.data.id);
   else if (item.type === "property" && typeof item.id === "string" && item.data) occupied = Object.hasOwn(db.properties, item.id);
   else if (item.type === "category" && typeof item.id === "string" && item.data) occupied = Object.hasOwn(db.categories, item.id);
-  else { alert("This Trash record cannot be restored."); return; }
-  if (occupied) { alert("Restoration blocked: the destination identity is already occupied."); return; }
+  else { alert(t("This Trash record cannot be restored.")); return; }
+  if (occupied) { alert(t("Restoration blocked: the destination identity is already occupied.")); return; }
   if (item.type === "object") db.objects.push(item.data);
   else Object.defineProperty(item.type === "property" ? db.properties : db.categories, item.id,
     { value: item.data, enumerable: true, writable: true, configurable: true });
@@ -2417,7 +2828,7 @@ function restoreFromTrash(idx, generation) {
 
 function permanentDeleteTrash(idx, generation) {
   if (!currentTrashTarget(idx, generation)) return;
-  if (!confirm("Radera permanent?")) return;
+  if (!confirm(t("Radera permanent?"))) return;
   if (!currentTrashTarget(idx, generation)) return;
   db.trash.splice(idx, 1);
   persist();
@@ -2427,7 +2838,7 @@ function permanentDeleteTrash(idx, generation) {
 // ==================== ALLMÄNNA HJÄLPFUNKTIONER ====================
 function openConnectHerbsToPropertyPopup(propName) {
   const allHerbs = db.objects;
-  const choice = prompt("Ange örtens namn att koppla till " + propName + ":\n" + allHerbs.map((h, i) => `${i+1}. ${getDisplayObjName(h)}`).join("\n"));
+  const choice = prompt(t("Ange örtens namn att koppla till {0}:\n", {0: propName}) + allHerbs.map((h, i) => `${i+1}. ${getDisplayObjName(h)}`).join("\n"));
   if (!choice) return;
   const idx = parseInt(choice) - 1;
   if (allHerbs[idx]) {
@@ -2505,22 +2916,22 @@ function downloadBackupFile() {
 
 function validateImportLibrary(data) {
   const isRecord = value => value !== null && typeof value === "object" && !Array.isArray(value);
-  const invalid = (path, expected) => { throw new Error(`${path}: förväntar ${expected}.`); };
+  const invalid = (path, expected) => { throw new Error(t("{0}: förväntar {1}.", {0: path, 1: expected})); };
   const text = (record, key, path, required = false) => {
     const value = record[key];
     if ((!required && (value === undefined || value === null)) || typeof value === "string") return;
-    invalid(`${path}.${key}`, "text");
+    invalid(`${path}.${key}`, t("text"));
   };
   const list = (record, key, path) => {
     const value = record[key];
     if (value === undefined || value === null) return;
-    if (!Array.isArray(value) || !value.every(item => typeof item === "string")) invalid(`${path}.${key}`, "en lista med text");
+    if (!Array.isArray(value) || !value.every(item => typeof item === "string")) invalid(`${path}.${key}`, t("en lista med text"));
   };
   const objectFields = (record, path, study = false) => {
     text(record, "name", path, study);
     text(record, "desc", path);
     for (const key of ["props", "taxonomies"]) {
-      if (record[key] != null && !isRecord(record[key])) invalid(`${path}.${key}`, "ett objekt");
+      if (record[key] != null && !isRecord(record[key])) invalid(`${path}.${key}`, t("ett objekt"));
     }
     if (record.taxonomies) {
       for (const key of ["Swedish Name", "English Name", "Botanical Name"]) text(record.taxonomies, key, `${path}.taxonomies`);
@@ -2537,16 +2948,16 @@ function validateImportLibrary(data) {
     text(record, "system", path);
     list(record, "subcategories", path);
   };
-  if (!isRecord(data) || !Array.isArray(data.objects)) invalid("objects", "en lista i ett biblioteksobjekt");
+  if (!isRecord(data) || !Array.isArray(data.objects)) invalid("objects", t("en lista i ett biblioteksobjekt"));
   for (const key of ["objects", "studyObjects", "sources", "trash"]) {
-    if (Object.hasOwn(data, key) && (!Array.isArray(data[key]) || !data[key].every(isRecord))) invalid(key, "en lista med poster");
+    if (Object.hasOwn(data, key) && (!Array.isArray(data[key]) || !data[key].every(isRecord))) invalid(key, t("en lista med poster"));
   }
   for (const key of ["categories", "properties", "systems", "formulas"]) {
-    if (Object.hasOwn(data, key) && (!isRecord(data[key]) || !Object.values(data[key]).every(isRecord))) invalid(key, "ett objekt med namngivna poster");
+    if (Object.hasOwn(data, key) && (!isRecord(data[key]) || !Object.values(data[key]).every(isRecord))) invalid(key, t("ett objekt med namngivna poster"));
   }
   // Known consumers call string/array methods on these fields. Missing optional
   // legacy fields and unknown metadata are retained; no coercion or cleanup.
-  if (Object.hasOwn(data, "systemOrder") && (!Array.isArray(data.systemOrder) || !data.systemOrder.every(name => typeof name === "string"))) invalid("systemOrder", "en lista med text");
+  if (Object.hasOwn(data, "systemOrder") && (!Array.isArray(data.systemOrder) || !data.systemOrder.every(name => typeof name === "string"))) invalid("systemOrder", t("en lista med text"));
   data.objects.forEach((record, index) => objectFields(record, `objects[${index}]`));
   (data.studyObjects || []).forEach((record, index) => objectFields(record, `studyObjects[${index}]`, true));
   Object.entries(data.properties || {}).forEach(([key, record]) => propertyFields(record, `properties[${JSON.stringify(key)}]`));
@@ -2560,7 +2971,7 @@ function validateImportLibrary(data) {
     const path = `sources[${index}]`;
     text(record, "title", path, true);
     if (record.tags != null) {
-      if (!Array.isArray(record.tags) || !record.tags.every(isRecord)) invalid(`${path}.tags`, "en lista med poster");
+      if (!Array.isArray(record.tags) || !record.tags.every(isRecord)) invalid(`${path}.tags`, t("en lista med poster"));
       record.tags.forEach((tag, tagIndex) => {
         text(tag, "type", `${path}.tags[${tagIndex}]`);
         text(tag, "id", `${path}.tags[${tagIndex}]`);
@@ -2570,7 +2981,7 @@ function validateImportLibrary(data) {
   (data.trash || []).forEach((record, index) => {
     const path = `trash[${index}].data`;
     if (["object", "property", "category"].includes(record.type)) {
-      if (!isRecord(record.data)) invalid(path, "en post för återställning");
+      if (!isRecord(record.data)) invalid(path, t("en post för återställning"));
       if (record.type === "object") objectFields(record.data, path);
       if (record.type === "property") propertyFields(record.data, path);
       if (record.type === "category") categoryFields(record.data, path);
@@ -2579,13 +2990,13 @@ function validateImportLibrary(data) {
 }
 
 function summarizeImportLibrary(data) {
-  const labels = { categories: "kategorier", properties: "egenskaper", systems: "system", studyObjects: "studieobjekt", sources: "källor", formulas: "formler", trash: "papperskorg" };
+  const labels = { categories: t("kategorier"), properties: t("egenskaper"), systems: t("system"), studyObjects: t("studieobjekt"), sources: t("källor"), formulas: t("formler"), trash: t("papperskorg") };
   const populated = Object.entries(labels).map(([key, label]) => {
     const collection = data[key];
     const count = collection && typeof collection === "object" ? Object.keys(collection).length : 0;
     return count ? `${label}: ${count}` : "";
   }).filter(Boolean);
-  return populated.join(", ") || "inga andra fyllda samlingar";
+  return populated.join(", ") || t("inga andra fyllda samlingar");
 }
 
 function importBackupFile(e) {
@@ -2593,32 +3004,32 @@ function importBackupFile(e) {
   if (!file) return;
   e.target.value = "";
   const reader = new FileReader();
-  reader.onerror = () => alert("Filen kunde inte läsas. Biblioteket har inte ändrats.");
-  reader.onabort = () => alert("Filläsningen avbröts. Biblioteket har inte ändrats.");
+  reader.onerror = () => alert(t("Filen kunde inte läsas. Biblioteket har inte ändrats."));
+  reader.onabort = () => alert(t("Filläsningen avbröts. Biblioteket har inte ändrats."));
   reader.onload = (event) => {
     let parsed;
     try {
       parsed = JSON.parse(event.target.result);
     } catch (err) {
-      alert("Ogiltig JSON. Biblioteket har inte ändrats.");
+      alert(t("Ogiltig JSON. Biblioteket har inte ändrats."));
       return;
     }
     try {
       validateImportLibrary(parsed);
     } catch (err) {
-      alert(`Ogiltigt bibliotek: ${err.message} Biblioteket har inte ändrats.`);
+      alert(t("Ogiltigt bibliotek: {0} Biblioteket har inte ändrats.", {0: err.message}));
       return;
     }
 
-    if (confirm("Spara en säkerhetskopia av det nuvarande biblioteket före ersättning. OK startar Exportera JSON; Avbryt hoppar över exporten och går till bekräftelsen. Vill du exportera nu?")) {
+    if (confirm(t("Spara en säkerhetskopia av det nuvarande biblioteket före ersättning. OK startar Exportera JSON; Avbryt hoppar över exporten och går till bekräftelsen. Vill du exportera nu?"))) {
       try {
         downloadBackupFile();
       } catch (err) {
-        alert("Exporten kunde inte startas. Importen avbröts; biblioteket har inte ändrats.");
+        alert(t("Exporten kunde inte startas. Importen avbröts; biblioteket har inte ändrats."));
         return;
       }
     }
-    const preview = `Filen: ${file.name}\nImporten ERSÄTTER hela det inlästa biblioteket; innehållet slås inte ihop.\nObjekt nu: ${db.objects.length}; i filen: ${parsed.objects.length}.\nÖvrigt nu: ${summarizeImportLibrary(db)}.\nÖvrigt i filen: ${summarizeImportLibrary(parsed)}.\nOsparade eller osynkroniserade ändringar kan gå förlorade.\nSpara säkerhetskopian innan du fortsätter. En startad nedladdning betyder inte att filen har sparats; detta kan inte verifieras här.\nOK ersätter biblioteket. Avbryt behåller det nuvarande biblioteket.`;
+    const preview = t("Filen: {0}\nImporten ERSÄTTER hela det inlästa biblioteket; innehållet slås inte ihop.\nObjekt nu: {1}; i filen: {2}.\nÖvrigt nu: {3}.\nÖvrigt i filen: {4}.\nOsparade eller osynkroniserade ändringar kan gå förlorade.\nSpara säkerhetskopian innan du fortsätter. En startad nedladdning betyder inte att filen har sparats; detta kan inte verifieras här.\nOK ersätter biblioteket. Avbryt behåller det nuvarande biblioteket.", {0: file.name, 1: db.objects.length, 2: parsed.objects.length, 3: summarizeImportLibrary(db), 4: summarizeImportLibrary(parsed)});
     if (!confirm(preview)) return;
 
     // Retain the previous library untouched; defaults are applied only to incoming data.
@@ -2631,15 +3042,15 @@ function importBackupFile(e) {
     } catch (err) {
       db = previousDb;
       try { handleRouting(); } catch (renderError) {}
-      alert("Importen misslyckades. Det tidigare biblioteket har återställts i minnet. Eventuella redan påbörjade sparningar kan inte garanteras återställda.");
+      alert(t("Importen misslyckades. Det tidigare biblioteket har återställts i minnet. Eventuella redan påbörjade sparningar kan inte garanteras återställda."));
       return;
     }
-    alert("Biblioteket har ersatts i minnet och den vanliga sparrutinen har anropats. Molnsparning är inte bekräftad.");
+    alert(t("Biblioteket har ersatts i minnet och den vanliga sparrutinen har anropats. Molnsparning är inte bekräftad."));
   };
   try {
     reader.readAsText(file);
   } catch (err) {
-    alert("Filen kunde inte läsas. Biblioteket har inte ändrats.");
+    alert(t("Filen kunde inte läsas. Biblioteket har inte ändrats."));
   }
 }
 </script>

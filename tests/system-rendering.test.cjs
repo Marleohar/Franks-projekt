@@ -9,6 +9,7 @@ const f=JSON.parse(input),db=f.library;let activeSystemForAdd='',writes=0;
 class Node {constructor(){this.style={};this.children=[];this.value='';this.handlers={};this.checked=false;this.textContent='';}set innerHTML(v){this.html=v;this.children=[];}get innerHTML(){return this.html||'';}appendChild(n){this.children.push(n);}addEventListener(n,fn){this.handlers[n]=fn;}querySelectorAll(){return [];}}
 const nodes=Object.create(null),document={getElementById(id){return nodes[id]||=new Node()},createElement(){return new Node()}};
 function persist(){writes++}function closePopup(){for(const n of Object.values(nodes))n.style.display='none'}
+function t(key, params = {}) { return key.replace(/\\{(\\w+)\\}/g, (token, name) => Object.hasOwn(params, name) ? String(params[name]) : token); }
 ${functions}
 const before=JSON.stringify(db);let result;
 ${code}

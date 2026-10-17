@@ -8,6 +8,7 @@ function run(code){const c=vm.createContext(Object.create(null),{codeGeneration:
 const f=JSON.parse(inputJSON),db=f.library,nodes=Object.create(null),window={location:{hash:'#formulas'},scrollTo(){}};
 const document={getElementById(id){return nodes[id]||={innerHTML:'',value:'',style:{},focus(){},querySelectorAll(){return []}}},querySelectorAll(){return Object.values(nodes)}};
 let assignModal=null;let writes=0,answers=[],approval=false,editorMode='',editorTargetId='';function persist(){writes++}function prompt(){return answers.shift()??null}function confirm(){return approval}function renderIndexPage(){throw Error('Unexpected route fallback')}
+function t(key, params = {}) { return key.replace(/\\{(\\w+)\\}/g, (token, name) => Object.hasOwn(params, name) ? String(params[name]) : token); }
 ${functions}
 const before=JSON.stringify(db);let result;
 ${code}
@@ -16,7 +17,7 @@ JSON.stringify({result,library:db,writes,hash:window.location.hash,unchanged:bef
 function unchanged(r){assert.equal(r.writes,0);assert.equal(r.unchanged,true);assert.deepEqual(r.library,formulaLibrary().library)}
 test('formula archive safely renders ordered names and array counts; malformed counts fall back without changing records',()=>{
   const r=run('renderFormulasIndexPage();');unchanged(r);assert.doesNotMatch(r.html,/<img|onclick=|onerror="/);assert(r.html.includes('O&#39;Brien &quot; &amp; &amp;amp; &amp;#39;'));
-  assert.deepEqual([...r.html.matchAll(/(\d+) komponenter/g)].map(m=>+m[1]),[1,0,2,0,0,0,0]);
+  assert.deepEqual([...r.html.matchAll(/(\d+) komponent(?:er)?/g)].map(m=>+m[1]),[1,0,2,0,0,0,0]);
   assert.deepEqual([...r.html.matchAll(/href="#formula\/([^\"]+)"/g)].map(m=>decodeURIComponent(m[1])),Object.keys(formulaLibrary().library.formulas));
 });
 test('formula detail safely displays full long text and literal entities without encoding stored values',()=>{

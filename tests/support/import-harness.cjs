@@ -43,7 +43,7 @@ function runImport(current, text, options = {}) {
     const indexViewMode = 'alpha';
     const indexNameDisplayMode = 'auto';
     const herbSwedishDictionary = {};
-    const t = key => key;
+    const t=(key,params={})=>key.replace(/\\{(\\w+)\\}/g,(token,name)=>Object.hasOwn(params,name)?String(params[name]):token);
     const app = { innerHTML: '', querySelectorAll() { return []; } };
     const window = { location: { hash: input.options.route || '#index' }, scrollTo() {} };
     const confirm = message => {

@@ -18,7 +18,7 @@ function run(routes, search = false, fixture = studyLibrary()) {
   context.inputJSON = JSON.stringify({fixture, routes, search});
   return JSON.parse(new vm.Script(`
     const input=JSON.parse(inputJSON), f=input.fixture, db=f.library;
-    const currentLang='sv',indexNameDisplayMode='auto',indexViewMode='alpha',herbSwedishDictionary={},t=k=>k;
+    const currentLang='sv',indexNameDisplayMode='auto',indexViewMode='alpha',herbSwedishDictionary={},t=(key,params={})=>key.replace(/\\{(\\w+)\\}/g,(token,name)=>Object.hasOwn(params,name)?String(params[name]):token);
     let activeFilterProps=[f.first], persistenceCalls=0, storageWrites=0;
     const localStorage={setItem(){storageWrites++},removeItem(){storageWrites++},clear(){storageWrites++}};
     function persist(){persistenceCalls++}

@@ -18,7 +18,7 @@ function render(library, action, value, native = false) {
   return JSON.parse(new vm.Script(`
     const input = JSON.parse(inputJSON), db = input.library;
     const currentLang = 'sv', indexViewMode = input.native ? 'native_system' : 'alpha', indexNameDisplayMode = 'auto';
-    const herbSwedishDictionary = {}, t = key => key;
+    const herbSwedishDictionary = {}, t=(key,params={})=>key.replace(/\\{(\\w+)\\}/g,(token,name)=>Object.hasOwn(params,name)?String(params[name]):token);
     const nodes = Object.create(null);
     const window = { location: { hash: input.value || '#index' }, scrollTo() {} };
     const document = { getElementById(id) { return nodes[id] ||= { innerHTML: '', style: {}, querySelectorAll() { return []; } }; } };
