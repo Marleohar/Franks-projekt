@@ -2,12 +2,12 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {formulaLibrary}=require('./fixtures/formula-library.cjs');
 const source=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
-const names=['escapeCoreText','coreAction','bindCoreActions','renderFormulasIndexPage','renderFormulaDetailPage','promptCreateFormula','deleteFormula','handleRouting','openEditor','saveDescription','closePopup'];
+const names=['escapeCoreText','coreAction','bindCoreActions','renderFormulasIndexPage','renderFormulaDetailPage','promptCreateFormula','deleteFormula','handleRouting','openEditor','saveDescription','closePopup','releaseAssignmentDialog'];
 const functions=names.map(name=>{const pattern=name==='deleteFormula'?/^function deleteFormula\([^\r\n]*$/gm:new RegExp(`^function ${name}\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}`,'gm');const m=[...source.matchAll(pattern)];assert.equal(m.length,1,name);return m[0][0]}).join('\n');
 function run(code){const c=vm.createContext(Object.create(null),{codeGeneration:{strings:false,wasm:false}});c.inputJSON=JSON.stringify(formulaLibrary());return JSON.parse(new vm.Script(`
 const f=JSON.parse(inputJSON),db=f.library,nodes=Object.create(null),window={location:{hash:'#formulas'},scrollTo(){}};
 const document={getElementById(id){return nodes[id]||={innerHTML:'',value:'',style:{},focus(){},querySelectorAll(){return []}}},querySelectorAll(){return Object.values(nodes)}};
-let writes=0,answers=[],approval=false,editorMode='',editorTargetId='';function persist(){writes++}function prompt(){return answers.shift()??null}function confirm(){return approval}function renderIndexPage(){throw Error('Unexpected route fallback')}
+let assignModal=null;let writes=0,answers=[],approval=false,editorMode='',editorTargetId='';function persist(){writes++}function prompt(){return answers.shift()??null}function confirm(){return approval}function renderIndexPage(){throw Error('Unexpected route fallback')}
 ${functions}
 const before=JSON.stringify(db);let result;
 ${code}
