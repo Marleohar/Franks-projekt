@@ -1,6 +1,6 @@
 # TASK 015 — Persistent empty category associations
 
-READY FOR INDEPENDENT QA — NOT MERGED.
+READY FOR INDEPENDENT RE-QA — NOT MERGED.
 
 Verified main baseline: `6ac5d8099d6c7a157d66a200e1f749e77bc43f98` (remote main checked before development and before delivery).
 Branch: `task-015-empty-category-associations`. The final immutable delivery HEAD is supplied in the PR and delivery response; this document does not embed its own commit hash.
@@ -92,6 +92,56 @@ Reviewed readable controls and literal category names (including quotes/Unicode/
 Development: `C:\dev\Franks projekt\Ort-Wiki\task-015\development` (task-specific spelling as requested).
 Evidence/TEMP/TMP: `C:\dev\Franks projekt\Ort-Wiki\task-015\evidence` and its `tmp` subfolder. Synthetic disposable Chromium contexts only; Firebase scripts/config/initialization stripped before browser startup, external requests blocked, service workers blocked. Digital GM is an external Playwright dependency only; neither Digital GM nor StudyWiki was changed. No live data, credentials, paid services or cloud writes used.
 
-This is development validation, not independent QA. Chromium/local persistence are tested; live cloud synchronization and screen readers were not exercised. Inherited beforeunload persistence and import normalization remain unchanged. No merge, deployment or auto-merge. Independent QA must review the deletion restriction and run against the final immutable HEAD.
+This is development validation, not independent QA. Chromium/local persistence are tested; live cloud synchronization and screen readers were not exercised. Import normalization remains unchanged. The navigation correction below adds a narrow beforeunload exception for blocked reserved-category routes; other routes retain the existing save behavior. No merge, deployment or auto-merge. Independent QA must review the deletion restriction and run against the final immutable HEAD.
 
-**READY FOR INDEPENDENT QA — NOT MERGED.**
+**READY FOR INDEPENDENT RE-QA — NOT MERGED.**
+
+
+## Blocking navigation correction — independent re-QA required
+
+Rejected HEAD: `23acbaa7f3620357f1cbe8f86c9b158d4886deb7`.
+New immutable correction implementation/test HEAD: `09328c79ff70e7536c16d3cd9532a62c46c52755`.
+Main remains `6ac5d8099d6c7a157d66a200e1f749e77bc43f98`.
+The following report-only commit records this immutable code/test HEAD. The exact final PR delivery HEAD is recorded in the PR body and delivery response, avoiding a self-referential document hash; production/test content is identical to this tested correction HEAD.
+
+### Root cause and independent reproduction
+
+Before editing the rejected implementation, an isolated Chromium reproduction loaded its exact HTML via `git show 23acbaa7f3620357f1cbe8f86c9b158d4886deb7:index.html`. Firebase scripts/config/init were stripped, external traffic blocked and the cloud replaced by a local spy. A synthetic imported-shaped herb linked to missing `Saknad Å kategori 50%`. Its unavailable profile row still contained an active category anchor. Clicking it called renderCategoryPage(), whose legacy missing-category branch created a category, appended the system entry and saved.
+
+Observed rejected behavior: **1 persist call, 1 localStorage write, 1 synthetic cloud write**, with a changed complete graph. Evidence `../evidence/navigation-rejected.txt` contains the complete before/after graphs and counters; reproduction source is `../evidence/reproduce-rejected.cjs`. No real cloud service was contacted.
+
+### Narrow correction
+
+- Explicit missing-category profile labels are escaped non-link spans with aria-disabled, preserving the unavailable marker, disabled property editor and safe unlink button.
+- A shared isReservedMissingCategory() predicate checks absence of an own category definition and explicit links from both active and trashed herbs. renderCategoryPage() returns an escaped, localized unavailable state before its legacy creation path for those reserved names.
+- Reloading a blocked URL would otherwise invoke the pre-existing unconditional unload save. persistBeforeUnload() skips that save only while the current encoded category route is reserved and missing. Valid category routes, unrelated routes, malformed route fallback and unreserved legacy missing-category navigation retain existing behavior.
+- No dangling association is deleted, rewritten or converted into a placeholder. Valid definitions continue to navigate normally.
+
+### Corrected evidence and counters
+
+Node coverage adds 13 tests. Chromium coverage extends the existing browser-category-links suite, keeping the total at twelve browser scripts. The new disposable browser context performs actual JSON file import, label clicks, encoded direct navigation and browser reload. Counters live in the Node process and survive document reload, so an unload write cannot disappear when the page's own instrumentation resets. persist(), Storage.setItem and the synthetic cloud set() are counted independently.
+
+Tested names: `Saknad Å kategori 50%`, `Å ä Ö space %2F`, and `__proto__`; each with active-herb and Trash-only reservations. The percent-containing name is encoded/decode-tested once by the real router. All six direct-route/reload cases preserve complete database snapshots, including false/null values, unknown metadata, associations and source-array order.
+
+| Corrected blocked operation | persist calls | localStorage writes | synthetic cloud writes |
+| --- | ---: | ---: | ---: |
+| Click unavailable active-herb category label | 0 | 0 | 0 |
+| Direct encoded missing-category navigation | 0 | 0 | 0 |
+| Reload blocked category URL, including beforeunload | 0 | 0 | 0 |
+| Name reserved only by trashed herb: direct/reload | 0 | 0 | 0 |
+
+Explicit unlink of an unavailable active-herb association still changes only that relationship and produces exactly **1 persist call, 1 storage write, 1 synthetic cloud write**. Existing valid category navigation is read-only. Normal property assignment, rename, export/import and Trash guards pass all prior regressions. The unreserved missing-route legacy creation path and unrelated/valid-route unload save are explicitly tested as unchanged.
+
+### Actual final validation
+
+- `node --test tests/*.test.cjs`: **245 PASS**, zero failures/skips/cancellations (all previous 232 retained; 13 added).
+- All **twelve Chromium suites PASS**: category-links (including new imported navigation/reload probes), core-rendering, filter-search, formula-rendering, glossary-rendering, herb-assignment, import-smoke, localization, property-rendering, sources-trash, study-routing and system-rendering.
+- Focused browser result: six reservation/identity cases, exact snapshots, blocked counters all zero, explicit unlink counters exactly one, no page errors or external requests. Original 1280/375/320 px feature scenarios still pass.
+- `git diff --check`: PASS. Screenshot suites produced no unexpected tracked changes.
+- Existing assertions were not weakened. Isolated import/render/study harnesses only gain the production helpers required by the category renderer.
+
+Correction files: index.html; tests/category-navigation.test.cjs; tests/browser-category-links.cjs; tests/support/import-harness.cjs; tests/support/rendering-harness.cjs; tests/study-routing.test.cjs; TASK015-QA.md. All evidence and disposable profiles remain under the Task015 Frank workspace. Digital GM/StudyWiki untouched; no production libraries, secrets, paid services or live cloud accessed.
+
+This remains development validation. Independent re-QA must test the final PR HEAD. No merge, deployment or auto-merge.
+
+**READY FOR INDEPENDENT RE-QA — NOT MERGED.**
