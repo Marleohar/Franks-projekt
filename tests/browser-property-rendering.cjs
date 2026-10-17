@@ -95,6 +95,7 @@ async function main() {
     await unchanged();
     for (const action of ['renameProperty', 'delete', 'propertySummary', 'connectHerb', 'relatedProperty', 'addPropertySource']) {
       await page.locator(`[data-core-action="${action}"]`).click();
+      if (action === 'connectHerb') await page.keyboard.press('Escape');
       await unchanged();
     }
     assert.ok(dialogs.some(dialog => dialog.value === fixture.property));
@@ -172,8 +173,9 @@ async function main() {
     assert.equal(await page.evaluate(() => window.qaPersistCalls), 1);
     await safe();
     await reset();
-    answers = ['3'];
     await page.locator('[data-core-action="connectHerb"]').click();
+    await page.locator('#direct-link-results input').evaluateAll((inputs,id)=>inputs.find(input=>input.dataset.linkKey===id).click(),fixture.library.objects[2].id);
+    await page.locator('#direct-link-confirm').click();
     const connected = structuredClone(fixture.library); connected.objects[2].props[fixture.property] = true;
     assert.deepEqual(await page.evaluate(() => db), connected);
     assert.equal(await page.evaluate(() => window.qaPersistCalls), 1);

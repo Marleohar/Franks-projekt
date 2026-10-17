@@ -1,0 +1,2073 @@
+[
+  {
+    "label": "property existing herb",
+    "before": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "after": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null,
+            "Blomma": true
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "outcome": {
+      "status": "saved",
+      "herbId": "two",
+      "propertyName": "Blomma"
+    },
+    "counts": {
+      "persist": 1,
+      "storage": 1,
+      "cloud": 1
+    }
+  },
+  {
+    "label": "property new herb",
+    "before": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "after": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        },
+        {
+          "id": "herb_fixed_3",
+          "name": "New Å",
+          "desc": "",
+          "props": {
+            "Blomma": true
+          },
+          "taxonomies": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "outcome": {
+      "status": "saved",
+      "herbId": "herb_fixed_3",
+      "propertyName": "Blomma"
+    },
+    "counts": {
+      "persist": 1,
+      "storage": 1,
+      "cloud": 1
+    }
+  },
+  {
+    "label": "category existing herb",
+    "before": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "after": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null,
+            "Blomma": true
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "outcome": {
+      "status": "saved",
+      "herbId": "two",
+      "propertyName": "Blomma"
+    },
+    "counts": {
+      "persist": 1,
+      "storage": 1,
+      "cloud": 1
+    }
+  },
+  {
+    "label": "category new herb",
+    "before": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "after": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        },
+        {
+          "id": "herb_fixed_3",
+          "name": "Same Ω",
+          "desc": "",
+          "props": {
+            "Blomma": true
+          },
+          "taxonomies": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "outcome": {
+      "status": "saved",
+      "herbId": "herb_fixed_3",
+      "propertyName": "Blomma"
+    },
+    "counts": {
+      "persist": 1,
+      "storage": 1,
+      "cloud": 1
+    }
+  },
+  {
+    "label": "herb direct property keeps explicit links",
+    "before": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "after": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null,
+            "Blomma": true
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "outcome": {
+      "status": "saved",
+      "herbId": "one",
+      "propertyName": "Blomma"
+    },
+    "counts": {
+      "persist": 1,
+      "storage": 1,
+      "cloud": 1
+    }
+  },
+  {
+    "label": "already assigned structured value preserved",
+    "before": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "after": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "outcome": {
+      "status": "unchanged"
+    },
+    "counts": {
+      "persist": 0,
+      "storage": 0,
+      "cloud": 0
+    }
+  },
+  {
+    "label": "stale property reassign rejected",
+    "before": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Empty"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "after": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Empty"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "outcome": {
+      "status": "stale"
+    },
+    "counts": {
+      "persist": 0,
+      "storage": 0,
+      "cloud": 0
+    }
+  },
+  {
+    "label": "cancelled draft",
+    "before": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "after": {
+      "objects": [
+        {
+          "id": "one",
+          "name": "Same Ω",
+          "desc": "One",
+          "props": {
+            "Zero": 0,
+            "Data": {
+              "dose": 2,
+              "metadata": {
+                "nested": [
+                  false,
+                  0
+                ]
+              }
+            },
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {
+            "custom": "unchanged"
+          },
+          "categoryLinks": [
+            "Empty",
+            "Växtdelar"
+          ],
+          "unknown": {
+            "keep": 1
+          }
+        },
+        {
+          "id": "two",
+          "name": "Same Ω",
+          "desc": "Two",
+          "props": {
+            "False": false,
+            "Null": null
+          },
+          "taxonomies": {},
+          "unknown": {
+            "keep": 2
+          }
+        },
+        {
+          "id": "herb_fixed_2",
+          "name": "Reserved",
+          "props": {}
+        }
+      ],
+      "categories": {
+        "Växtdelar": {
+          "system": "S",
+          "subcategories": []
+        },
+        "Empty": {
+          "system": "T",
+          "subcategories": []
+        }
+      },
+      "properties": {
+        "Blomma": {
+          "category": "Växtdelar"
+        },
+        "Zero": {
+          "category": "Växtdelar"
+        },
+        "Data": {
+          "category": "Växtdelar"
+        },
+        "False": {
+          "category": "Växtdelar"
+        },
+        "Null": {
+          "category": "Växtdelar"
+        }
+      },
+      "systems": {
+        "S": {
+          "categories": [
+            "Växtdelar"
+          ]
+        },
+        "T": {
+          "categories": [
+            "Empty"
+          ]
+        }
+      },
+      "systemOrder": [
+        "S",
+        "T"
+      ],
+      "sources": [
+        {
+          "id": "z"
+        },
+        {
+          "id": "a"
+        }
+      ],
+      "trash": [
+        {
+          "type": "object",
+          "id": "herb_fixed",
+          "data": {
+            "id": "herb_fixed_1",
+            "name": "Gone",
+            "metadata": {
+              "keep": 3
+            }
+          }
+        }
+      ],
+      "unknown": {
+        "graph": [
+          false,
+          0,
+          null
+        ]
+      }
+    },
+    "outcome": {
+      "status": "inactive"
+    },
+    "counts": {
+      "persist": 0,
+      "storage": 0,
+      "cloud": 0
+    }
+  }
+]
