@@ -13,7 +13,7 @@ function extract(pattern, name) {
 }
 const declarations = [
   extract(/^let db = \{[\s\S]*?^\};/gm, 'db'),
-  ...['deduplicateAndSanitizeDB', 'ensureDbStructure', 'validateImportLibrary',
+  ...['isReservedMissingCategory', 'categoryLinkedHerbs', 'deduplicateAndSanitizeDB', 'ensureDbStructure', 'validateImportLibrary',
     'summarizeImportLibrary', 'downloadBackupFile', 'importBackupFile',
     'getDisplayObjName', 'getPropKeys', 'hasProp', 'renderIndexPage',
     'handleRouting', 'renderCategoryPage', 'escapeCoreText', 'coreAction', 'bindCoreActions'].map(name =>

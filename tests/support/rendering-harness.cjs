@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../../index.html'), 'utf8');
-const names = ['escapeCoreText', 'coreAction', 'bindCoreActions', 'getDisplayObjName', 'getPropKeys',
+const names = ['isReservedMissingCategory', 'categoryLinkedHerbs', 'escapeCoreText', 'coreAction', 'bindCoreActions', 'getDisplayObjName', 'getPropKeys',
   'hasProp', 'renderIndexPage', 'handleGlobalSearch', 'renderHerbPage', 'renderCategoryPage',
   'handleRouting', 'renderPropertyPage'];
 const functions = names.map(name => {

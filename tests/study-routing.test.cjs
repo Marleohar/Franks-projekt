@@ -6,7 +6,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const {studyLibrary} = require('./fixtures/study-library.cjs');
 const source = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-const names = ['escapeCoreText','coreAction','bindCoreActions','getDisplayObjName','getPropKeys','hasProp',
+const names = ['isReservedMissingCategory','categoryLinkedHerbs','escapeCoreText','coreAction','bindCoreActions','getDisplayObjName','getPropKeys','hasProp',
   'handleSearchPropKeydown','renderStudyPage','renderHerbPage','renderIndexPage','renderCategoryPage','renderSearchPage','handleRouting'];
 const functions = names.map(name => {
   const matches = [...source.matchAll(new RegExp(`^function ${name}\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}`, 'gm'))];
