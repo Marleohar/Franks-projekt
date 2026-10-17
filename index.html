@@ -1154,7 +1154,16 @@ function persist(preserveStructure = false) {
     }, 400);
   }
 }
-window.addEventListener("beforeunload", persist);
+function persistBeforeUnload() {
+  // A blocked category route is read-only, including reloading that route.
+  if (window.location.hash.startsWith("#category/")) {
+    try {
+      if (isReservedMissingCategory(decodeURIComponent(window.location.hash.slice(10)))) return;
+    } catch (error) { /* Preserve the existing unload save for other routes. */ }
+  }
+  persist();
+}
+window.addEventListener("beforeunload", persistBeforeUnload);
 
 function getDisplayObjName(obj) {
   if (!obj) return "";
@@ -1203,6 +1212,10 @@ function setProp(obj, propName, isChecked) {
 }
 
 // Explicit links are optional; absent legacy fields are never materialized on read.
+function isReservedMissingCategory(name) {
+  return !Object.hasOwn(db.categories, name) && categoryLinkedHerbs(name).length > 0;
+}
+
 function categoryLinkedHerbs(name) {
   return [...(db.objects || []), ...(db.trash || []).filter(item => item.type === "object").map(item => item.data)]
     .filter(herb => Array.isArray(herb?.categoryLinks) && herb.categoryLinks.includes(name));
@@ -1708,7 +1721,7 @@ function renderHerbPage(herbId) {
 
       catRowsInSys += `
         <div class="wiki-data-row">
-          <a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${escapeCoreText(cat)}:</a>
+          ${linked.includes(cat) && !Object.hasOwn(db.categories, cat) ? `<span class="wiki-row-label" aria-disabled="true">${escapeCoreText(cat)}:</span>` : `<a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${escapeCoreText(cat)}:</a>`}
           <div class="wiki-row-content">
             ${tagsList || `<i>${escapeCoreText(t("inga egenskaper"))}</i>`}
             ${!Object.hasOwn(db.categories, cat) ? `<i>${escapeCoreText(t("Kategorin saknas"))}</i>` : ""}
@@ -2231,6 +2244,12 @@ function promptRenameProperty(oldName) {
 // ==================== KATEGORIPROFIL ====================
 function renderCategoryPage(catName) {
   const app = document.getElementById("wiki-app");
+  if (isReservedMissingCategory(catName)) {
+    app.innerHTML = `<h1 class="wiki-title"><span>${escapeCoreText(catName)}</span></h1>
+      <p role="status">${escapeCoreText(t("Kategorin saknas"))}</p>
+      <a href="#index" class="wiki-link">${escapeCoreText(t("Tillbaka"))}</a>`;
+    return;
+  }
 
   if (!db.categories[catName]) {
     db.categories[catName] = { system: "Ospecifierade kategorier", desc: "", subcategories: [], sources: [] };
