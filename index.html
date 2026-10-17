@@ -717,8 +717,8 @@ function initFirestoreSync() {
   }, () => updateCloudIndicator("⚠️"));
 }
 
-function persist() {
-  ensureDbStructure();
+function persist(preserveStructure = false) {
+  if (preserveStructure !== true) ensureDbStructure();
   try { localStorage.setItem(MASTER_STORAGE_KEY, JSON.stringify(db)); } catch(e) {}
   if (firestoreDb && isCloudReady) {
     updateCloudIndicator("☁️⏳");
@@ -2388,9 +2388,19 @@ function currentTrashTarget(idx, generation) {
   return expected.item;
 }
 
+function validateTrashRestoreData(type, data) {
+  // Reuse import field rules against this payload only, never the live database.
+  const collection = type === "property" ? "properties" : "categories";
+  validateImportLibrary({ objects: [], [collection]: { record: data } });
+}
+
 function restoreFromTrash(idx, generation) {
   const item = currentTrashTarget(idx, generation);
   if (!item) return;
+  if (item.type === "property" || item.type === "category") {
+    try { validateTrashRestoreData(item.type, item.data); }
+    catch { alert("Cannot restore this record: its data format is invalid."); return; }
+  }
   let occupied;
   if (item.type === "object" && item.data && item.data.id != null) occupied = db.objects.some(object => object.id === item.data.id);
   else if (item.type === "property" && typeof item.id === "string" && item.data) occupied = Object.hasOwn(db.properties, item.id);
@@ -2401,7 +2411,7 @@ function restoreFromTrash(idx, generation) {
   else Object.defineProperty(item.type === "property" ? db.properties : db.categories, item.id,
     { value: item.data, enumerable: true, writable: true, configurable: true });
   db.trash.splice(idx, 1);
-  persist();
+  persist(true); // Preserve validated sparse records and unrelated legacy fields exactly.
   renderTrashPage();
 }
 

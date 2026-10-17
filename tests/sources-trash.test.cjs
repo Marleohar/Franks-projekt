@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {library,hostile}=require('./fixtures/sources-trash-library.cjs');
 const source=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
-const names=['escapeCoreText','coreAction','bindCoreActions','renderSourcesLibraryPage','renderTrashPage','currentTrashTarget','restoreFromTrash','permanentDeleteTrash','deleteTagWithWarning','getPropKeys','hasProp','setProp','getDisplayObjName'];
+const names=['escapeCoreText','coreAction','bindCoreActions','renderSourcesLibraryPage','renderTrashPage','currentTrashTarget','restoreFromTrash','validateTrashRestoreData','validateImportLibrary','permanentDeleteTrash','deleteTagWithWarning','getPropKeys','hasProp','setProp','getDisplayObjName'];
 const functions=names.map(name=>source.match(new RegExp('^function '+name+'\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}','m'))[0]).join('\n');
 function run(code){const context={input:library(),result:null};vm.runInNewContext(`
 const db=input,before=JSON.stringify(db),nodes={};let trashView=null,trashViewGeneration=0,writes=0,answer=false,alerts=[],onConfirm=()=>{};
@@ -28,3 +28,29 @@ test('numeric publication year retains display without writes',()=>{const r=run(
 test('reserved property key restored as own data without prototype change',()=>{const r=run("db.trash[1].id='__proto__';renderTrashPage();restoreFromTrash(1,trashViewGeneration);");assert.equal(r.writes,1);assert.ok(Object.hasOwn(r.db.properties,'__proto__'));assert.deepEqual(r.db.properties.__proto__,library().trash[1].data);});
 test('occupied false-valued property key is still occupied',()=>{const r=run('db.properties[db.trash[1].id]=false;const snapshot=JSON.stringify(db);restoreFromTrash(1,trashViewGeneration);if(JSON.stringify(db)!==snapshot)throw Error("changed");');assert.equal(r.writes,0);assert.match(r.alerts[0],/occupied/);});
 test('unknown legacy type permanently deletes only selected entry',()=>{const r=run('answer=true;permanentDeleteTrash(3,trashViewGeneration);'),expected=library();expected.trash.splice(3,1);assert.deepEqual(r.db,expected);assert.equal(r.writes,1);});
+
+const invalidPayloads = [42,'invalid',[],null,false];
+for (const type of ['property','category']) {
+  const fields=type==='property'?['desc','summary','category','subcategory']:['desc','system'];
+  const arrayField=type==='property'?'related':'subcategories';
+  const cases=[...invalidPayloads,...fields.map(field=>({[field]:42})),{[arrayField]:'invalid'},{[arrayField]:[1]},{[arrayField]:['valid',null]}];
+  for(const [index,data] of cases.entries())test(type+' rejects invalid payload '+index,()=>{
+    const idx=type==='property'?1:2;
+    const r=run(`db.trash[${idx}].data=${JSON.stringify(data)};renderTrashPage();const snapshot=JSON.stringify(db);restoreFromTrash(${idx},trashViewGeneration);if(JSON.stringify(db)!==snapshot)throw Error('mutated');`);
+    assert.equal(r.writes,0);assert.match(r.alerts[0],/data format is invalid/);assert.deepEqual(r.db.trash[idx].data,data);
+    const deleted=run(`db.trash[${idx}].data=${JSON.stringify(data)};renderTrashPage();answer=true;permanentDeleteTrash(${idx},trashViewGeneration);`);
+    const expected=library();expected.trash.splice(idx,1);assert.deepEqual(deleted.db,expected);assert.equal(deleted.writes,1);
+  });
+  for(const [index,data] of [{},{metadata:{nested:[null,false,0,{keep:'all'}]}},{desc:null,[arrayField]:null},{desc:'text',[arrayField]:['one','two']}].entries())test(type+' accepts sparse/metadata '+index,()=>{
+    const idx=type==='property'?1:2,collection=type==='property'?'properties':'categories';
+    const r=run(`db.trash[${idx}].data=${JSON.stringify(data)};renderTrashPage();restoreFromTrash(${idx},trashViewGeneration);`);
+    const expected=library(),item=expected.trash.splice(idx,1)[0];expected[collection][item.id]=data;assert.deepEqual(r.db,expected);assert.equal(r.writes,1);
+  });
+}
+
+for(const mode of ['default','event','restore'])test('persistence normalization opt-in '+mode,()=>{
+  const persistFunction=source.match(/^function persist\([^\r\n]*\) \{[\s\S]*?^\}/m)[0];
+  const context={mode,result:null};
+  vm.runInNewContext(`const db={keep:1},firestoreDb=null,MASTER_STORAGE_KEY='synthetic';let ensured=0,writes=0;const localStorage={setItem(){writes++;}};function ensureDbStructure(){ensured++;}${persistFunction}\npersist(mode==='restore'?true:mode==='event'?{type:'beforeunload'}:undefined);result={ensured,writes};`,context);
+  assert.deepEqual(JSON.parse(JSON.stringify(context.result)),{ensured:mode==='restore'?0:1,writes:1});
+});

@@ -55,7 +55,7 @@ async function main() {
     await page.goto(origin);
 
     const {library,hostile}=require('./fixtures/sources-trash-library.cjs');
-    await page.evaluate(()=>{window.payloads=0;window.calls=0;const original=persist;persist=function(){calls++;return original();};});
+    await page.evaluate(()=>{window.payloads=0;window.calls=0;const original=persist;persist=function(...args){calls++;return original(...args);};});
     async function reset(){await page.evaluate(data=>{db=data;location.hash='#trash';renderTrashPage();calls=0;qaWrites=[];},library());}
     const state=()=>page.evaluate(()=>({db,calls,writes:qaWrites.length}));
     const action=(name,idx)=>page.locator('[data-core-action="'+name+'"]').nth(idx);
@@ -76,6 +76,25 @@ async function main() {
     await reset();const invalidBefore=await state();
     await page.evaluate(()=>{for(const index of [-1,0.5,999,'0',null]){restoreFromTrash(index,trashViewGeneration);permanentDeleteTrash(index,trashViewGeneration);}});
     await unchanged(invalidBefore);
+
+    const malformedResults=[];
+    for(const type of ['property','category']){
+      const idx=type==='property'?1:2,collection=type==='property'?'properties':'categories';
+      const fields=type==='property'?['desc','summary','category','subcategory']:['desc','system'];
+      const arrayField=type==='property'?'related':'subcategories';
+      const cases=[42,'invalid',[],null,false,...fields.map(field=>({[field]:42})),{[arrayField]:'invalid'},{[arrayField]:[1]},{[arrayField]:['valid',null]}];
+      for(const data of cases){
+        await reset();await page.evaluate(({idx,data})=>{db.trash[idx].data=data;renderTrashPage();},{idx,data});
+        const before=await state();await action('trashRestore',idx).click();await unchanged(before);assert.match(dialogs.at(-1).message,/data format is invalid/);
+        answers=[true];await action('trashDelete',idx).click();const expected=structuredClone(before.db);expected.trash.splice(idx,1);assert.deepEqual(await state(),{db:expected,calls:1,writes:1});
+        malformedResults.push({type,data,rejectedCalls:0,rejectedWrites:0,confirmedDeleteWrites:1});
+      }
+      for(const data of [{},{metadata:{nested:[null,false,0,{keep:'all'}]}},{desc:null,[arrayField]:null},{desc:'text',[arrayField]:['one','two']}]){
+        await reset();await page.evaluate(({idx,data})=>{db.trash[idx].data=data;db.categories.UnrelatedSparse={unknown:{keep:[1]}};renderTrashPage();},{idx,data});const before=await state();
+        await action('trashRestore',idx).click();const expected=structuredClone(before.db),item=expected.trash.splice(idx,1)[0];expected[collection][item.id]=data;
+        assert.deepEqual(await state(),{db:expected,calls:1,writes:1});
+      }
+    }
     await reset();let before=await state();await action('trashDelete',0).click();await unchanged(before);
     answers=[true];await action('trashDelete',1).focus();await page.keyboard.press('Enter');const removed=library();removed.trash.splice(1,1);assert.deepEqual(await state(),{db:removed,calls:1,writes:1});
     for(const mutation of ['shift','list','library','record','id','rerender'])for(const name of ['trashRestore','trashDelete']){
@@ -94,7 +113,7 @@ async function main() {
     await page.evaluate(()=>{db.sources=[];renderSourcesLibraryPage();});assert.ok((await page.locator('#wiki-app').innerText()).includes('Inga'));
     await page.evaluate(()=>{db.trash=[];renderTrashPage();});assert.ok((await page.locator('#wiki-app').innerText()).includes('tom'));
     assert.deepEqual(errors,[]);assert.deepEqual(externalRequests,[]);
-    console.log(JSON.stringify({status:'PASS',browser:await browser.version(),payloads:await page.evaluate(()=>payloads),errors,externalRequests,completeSnapshots:true,successWrites:1,rejectionCancelRenderWrites:0,keyboard:true,mobile320:true}));
+    console.log(JSON.stringify({status:'PASS',browser:await browser.version(),payloads:await page.evaluate(()=>payloads),errors,externalRequests,completeSnapshots:true,successWrites:1,rejectionCancelRenderWrites:0,keyboard:true,mobile320:true,malformedResults}));
     await context.close();
   }finally{if(browser)await browser.close();}
 }
