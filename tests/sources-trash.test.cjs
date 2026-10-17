@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {library,hostile}=require('./fixtures/sources-trash-library.cjs');
 const source=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
-const names=['escapeCoreText','coreAction','bindCoreActions','renderSourcesLibraryPage','renderTrashPage','currentTrashTarget','restoreFromTrash','validateTrashRestoreData','validateImportLibrary','permanentDeleteTrash','deleteTagWithWarning','getPropKeys','hasProp','setProp','getDisplayObjName'];
+const names=['categoryLinkedHerbs','escapeCoreText','coreAction','bindCoreActions','renderSourcesLibraryPage','renderTrashPage','currentTrashTarget','restoreFromTrash','validateTrashRestoreData','validateImportLibrary','permanentDeleteTrash','deleteTagWithWarning','getPropKeys','hasProp','setProp','getDisplayObjName'];
 const functions=names.map(name=>source.match(new RegExp('^function '+name+'\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}','m'))[0]).join('\n');
 function run(code){const context={input:library(),result:null};vm.runInNewContext(`
 const db=input,before=JSON.stringify(db),nodes={};let trashView=null,trashViewGeneration=0,writes=0,answer=false,alerts=[],onConfirm=()=>{};

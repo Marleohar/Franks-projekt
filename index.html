@@ -418,7 +418,7 @@
       <div class="popup-body">
         <input id="assign-category-filter" aria-label="Sök kategori" data-i18n-aria-label="Sök kategori" placeholder="Sök kategori..." data-i18n-placeholder="Sök kategori..." oninput="renderAssignCategoryList()">
         <div class="checklist-container" id="assign-category-list"></div>
-        <p data-i18n="Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.">Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.</p>
+        <p data-i18n="Markera Behåll kategorikopplingen och spara för att koppla kategorin även utan egenskaper.">Markera Behåll kategorikopplingen och spara för att koppla kategorin även utan egenskaper.</p>
         <button class="wiki-btn" onclick="closePopup()" data-i18n="Avbryt">Avbryt</button>
       </div>
     </div>
@@ -434,6 +434,7 @@
       <div class="popup-body">
         <input type="text" id="assign-prop-filter" placeholder="🔍 Sök egenskap..." data-i18n-placeholder="🔍 Sök egenskap..." oninput="renderAssignPropsList()">
         <div class="checklist-container" id="assign-props-checklist"></div>
+        <label class="check-label"><input id="assign-keep-category" type="checkbox" onchange="assignValueSnapshot.linked = this.checked"> <span data-i18n="Behåll kategorikopplingen även utan egenskaper">Behåll kategorikopplingen även utan egenskaper</span></label>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
           <span style="font-size:12px; color:var(--text-muted);" data-i18n="Bocka i och klicka Spara.">Bocka i och klicka Spara.</span>
           <div style="display:flex; gap:6px;">
@@ -611,7 +612,7 @@ const i18n = {
     "Lägg till befintlig kategori / egenskap": "Add existing category / property",
     "Sök kategori": "Search categories",
     "Sök kategori...": "Search categories...",
-    "Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.": "Categories without properties appear here, but are linked to the herb only when a property is assigned.",
+    "Markera Behåll kategorikopplingen och spara för att koppla kategorin även utan egenskaper.": "Select Keep category linked and save to link a category even without properties.",
     "Avbryt": "Cancel",
     "Koppla egenskaper": "Assign properties",
     "🔍 Sök egenskap...": "🔍 Search properties...",
@@ -676,7 +677,7 @@ const i18n = {
     "Data changed. Reopen the assignment dialog to use current values.": "Data changed. Reopen the assignment dialog to use current values.",
     "Inga kategorier hittades.": "No categories found.",
     "Koppla [{0}]": "Assign [{0}]",
-    "Inga egenskaper hittades. Inga kopplingar skapas utan en egenskap.": "No properties found. No links are created without a property.",
+    "Inga egenskaper hittades. Du kan ändå spara kategorikopplingen.": "No properties found. You can still save the category link.",
     "Egenskapen hittades inte.": "Property not found.",
     "Inga örter kopplade än.": "No herbs linked yet.",
     "Inga relaterade egenskaper än.": "No related properties yet.",
@@ -793,7 +794,13 @@ const i18n = {
     "Kategori": "Category",
     "komponenter": "components",
     "egenskap": "property",
-    "komponent": "component"
+    "komponent": "component",
+    "Behåll kategorikopplingen även utan egenskaper": "Keep category linked even without properties",
+    "Ta bort kategorikoppling": "Remove category link",
+    "Kategorin har tilldelade egenskaper. Ta bort dem med [+] innan du tar bort kategorikopplingen.": "This category has assigned properties. Remove them with [+] before removing the category link.",
+    "Kategorin är kopplad till en ört, även i papperskorgen. Ta bort kopplingen först.": "This category is linked to a herb, possibly in Trash. Remove the link first.",
+    "Namnet är reserverat av en kategorikoppling. Ta bort den gamla kopplingen först.": "This name is reserved by a category link. Remove the old link first.",
+    "Kategorin saknas": "Category unavailable"
   },
   "sv": {
     "brand": "Ört-Wiki",
@@ -830,7 +837,7 @@ const i18n = {
     "Lägg till befintlig kategori / egenskap": "Lägg till befintlig kategori / egenskap",
     "Sök kategori": "Sök kategori",
     "Sök kategori...": "Sök kategori...",
-    "Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.": "Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.",
+    "Markera Behåll kategorikopplingen och spara för att koppla kategorin även utan egenskaper.": "Markera Behåll kategorikopplingen och spara för att koppla kategorin även utan egenskaper.",
     "Avbryt": "Avbryt",
     "Koppla egenskaper": "Koppla egenskaper",
     "🔍 Sök egenskap...": "🔍 Sök egenskap...",
@@ -895,7 +902,7 @@ const i18n = {
     "Data changed. Reopen the assignment dialog to use current values.": "Data har ändrats. Öppna tilldelningen igen för att använda aktuella värden.",
     "Inga kategorier hittades.": "Inga kategorier hittades.",
     "Koppla [{0}]": "Koppla [{0}]",
-    "Inga egenskaper hittades. Inga kopplingar skapas utan en egenskap.": "Inga egenskaper hittades. Inga kopplingar skapas utan en egenskap.",
+    "Inga egenskaper hittades. Du kan ändå spara kategorikopplingen.": "Inga egenskaper hittades. Du kan ändå spara kategorikopplingen.",
     "Egenskapen hittades inte.": "Egenskapen hittades inte.",
     "Inga örter kopplade än.": "Inga örter kopplade än.",
     "Inga relaterade egenskaper än.": "Inga relaterade egenskaper än.",
@@ -1012,7 +1019,13 @@ const i18n = {
     "Kategori": "Kategori",
     "komponenter": "komponenter",
     "egenskap": "egenskap",
-    "komponent": "komponent"
+    "komponent": "komponent",
+    "Behåll kategorikopplingen även utan egenskaper": "Behåll kategorikopplingen även utan egenskaper",
+    "Ta bort kategorikoppling": "Ta bort kategorikoppling",
+    "Kategorin har tilldelade egenskaper. Ta bort dem med [+] innan du tar bort kategorikopplingen.": "Kategorin har tilldelade egenskaper. Ta bort dem med [+] innan du tar bort kategorikopplingen.",
+    "Kategorin är kopplad till en ört, även i papperskorgen. Ta bort kopplingen först.": "Kategorin är kopplad till en ört, även i papperskorgen. Ta bort kopplingen först.",
+    "Namnet är reserverat av en kategorikoppling. Ta bort den gamla kopplingen först.": "Namnet är reserverat av en kategorikoppling. Ta bort den gamla kopplingen först.",
+    "Kategorin saknas": "Kategorin saknas"
   }
 };
 
@@ -1189,6 +1202,26 @@ function setProp(obj, propName, isChecked) {
   else delete obj.props[propName];
 }
 
+// Explicit links are optional; absent legacy fields are never materialized on read.
+function categoryLinkedHerbs(name) {
+  return [...(db.objects || []), ...(db.trash || []).filter(item => item.type === "object").map(item => item.data)]
+    .filter(herb => Array.isArray(herb?.categoryLinks) && herb.categoryLinks.includes(name));
+}
+
+function unlinkHerbCategory(entityId, name, view) {
+  const herb = db.objects.find(o => o.id === entityId);
+  if (!view || view.library !== db || view.herb !== herb || view.category !== db.categories[name] ||
+      !equalAssignValue(view.links, herb?.categoryLinks)) { rejectAssignDraft(); return; }
+  if (!Array.isArray(herb.categoryLinks) || !herb.categoryLinks.includes(name)) return;
+  if (getPropKeys(herb).some(p => db.properties[p]?.category === name)) {
+    alert(t("Kategorin har tilldelade egenskaper. Ta bort dem med [+] innan du tar bort kategorikopplingen.")); return;
+  }
+  herb.categoryLinks = herb.categoryLinks.filter(cat => cat !== name);
+  persist(true);
+  renderHerbPage(entityId);
+  document.querySelector('[data-core-action="chooseCategory"]')?.focus();
+}
+
 // ==================== GLOBALT SÖKFÄLT (ENBART MATCHNINGAR) ====================
 function openHeaderSearch() {
   document.getElementById("header-brand-box").style.display = "none";
@@ -1217,11 +1250,15 @@ function coreAction(name, ...args) {
 
 function bindCoreActions(root) {
   root.querySelectorAll("[data-core-action]").forEach(element => {
+    const unlinkArgs = element.dataset.coreAction === "unlinkCategory" ? JSON.parse(element.dataset.coreArgs) : null;
+    const unlinkHerb = unlinkArgs && db.objects.find(o => o.id === unlinkArgs[0]);
+    const unlinkView = unlinkHerb && { library: db, herb: unlinkHerb, category: db.categories[unlinkArgs[1]], links: structuredClone(unlinkHerb.categoryLinks) };
     element.addEventListener("click", event => {
       event.preventDefault();
       const args = JSON.parse(element.dataset.coreArgs);
       // Fixed action names select functions, never executable library content.
       switch (element.dataset.coreAction) {
+        case "unlinkCategory": unlinkHerbCategory(...args, unlinkView); break;
         case "formulaCreate": promptCreateFormula(); break;
         case "formulaDelete": deleteFormula(...args); break;
         case "glossaryCreate": promptCreateHerbFromGlossary(); break;
@@ -1646,16 +1683,22 @@ function renderHerbPage(herbId) {
 
   const botName = (obj.taxonomies && obj.taxonomies["Botanical Name"]) ? obj.taxonomies["Botanical Name"] : "";
 
-  const sysOrder = [...(db.systemOrder || Object.keys(db.systems))];
+  const linked = Array.isArray(obj.categoryLinks) ? obj.categoryLinks : [];
+  const visibleCategories = new Set([...getPropKeys(obj).map(p => db.properties[p]?.category).filter(Boolean), ...linked]);
+  const grouped = new Map();
+  visibleCategories.forEach(cat => {
+    const system = Object.hasOwn(db.categories, cat) ? db.categories[cat].system || "Universal" : "Ospecifierade kategorier";
+    if (!grouped.has(system)) grouped.set(system, []);
+    grouped.get(system).push(cat);
+  });
+  const sysOrder = [...new Set([...(db.systemOrder || Object.keys(db.systems)), ...grouped.keys()])];
   let systemsHtml = "";
   sysOrder.forEach(sysName => {
-    const sysData = db.systems[sysName];
-    if (!sysData || !sysData.categories || sysData.categories.length === 0) return;
-
     let catRowsInSys = "";
-    sysData.categories.forEach(cat => {
-      let assigned = getPropKeys(obj).filter(p => db.properties[p]?.category === cat);
-      if (assigned.length === 0) return;
+    const categories = grouped.get(sysName) || [];
+    const ordered = [...new Set([...(db.systems[sysName]?.categories || []).filter(cat => categories.includes(cat)), ...categories])];
+    ordered.forEach(cat => {
+      const assigned = getPropKeys(obj).filter(p => db.properties[p]?.category === cat);
 
       let tagsList = assigned.map(p => {
         const subcat = db.properties[p]?.subcategory;
@@ -1667,8 +1710,10 @@ function renderHerbPage(herbId) {
         <div class="wiki-data-row">
           <a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${escapeCoreText(cat)}:</a>
           <div class="wiki-row-content">
-            ${tagsList || `<i>${escapeCoreText(t("none"))}</i>`}
-            <button class="btn-wiki-add" ${coreAction("assign", obj.id, cat)} aria-label="${escapeCoreText(t("Redigera {0}", {0: cat}))}">[+]</button>
+            ${tagsList || `<i>${escapeCoreText(t("inga egenskaper"))}</i>`}
+            ${!Object.hasOwn(db.categories, cat) ? `<i>${escapeCoreText(t("Kategorin saknas"))}</i>` : ""}
+            <button class="btn-wiki-add" ${coreAction("assign", obj.id, cat)} aria-label="${escapeCoreText(t("Redigera {0}", {0: cat}))}" ${!Object.hasOwn(db.categories, cat) ? "disabled" : ""}>[+]</button>
+            ${linked.includes(cat) ? `<button class="wiki-btn" ${coreAction("unlinkCategory", obj.id, cat)}>${escapeCoreText(t("Ta bort kategorikoppling"))}</button>` : ""}
           </div>
         </div>
       `;
@@ -1755,17 +1800,26 @@ function promptRenameHerb(id) {
 }
 
 function promptCreateCategoryForHerb() {
+  const library = db;
+  const route = window.location.hash;
+  const herbId = route.startsWith("#herb-id/") ? decodeURIComponent(route.slice(9)) : route.startsWith("#herb/") ? route.slice(6) : null;
+  const herb = db.objects.find(o => o.id === herbId);
   const name = prompt(t("Ange namn på ny kategori:"));
   if (!name || !name.trim()) return;
   const clean = name.trim();
   if (db.categories[clean]) { alert(t("Kategorin finns redan.")); return; }
 
-  db.categories[clean] = { system: "Ospecifierade kategorier", desc: "", subcategories: [], sources: [] };
+  if (!herb) return;
+  if (db !== library || !db.objects.includes(herb)) { rejectAssignDraft(); return; }
+  if (categoryLinkedHerbs(clean).length) { alert(t("Namnet är reserverat av en kategorikoppling. Ta bort den gamla kopplingen först.")); return; }
+  Object.defineProperty(db.categories, clean, { value: { system: "Ospecifierade kategorier", desc: "", subcategories: [], sources: [] }, enumerable: true, writable: true, configurable: true });
+  if (!db.systems["Ospecifierade kategorier"]) db.systems["Ospecifierade kategorier"] = { categories: [] };
   if (!db.systems["Ospecifierade kategorier"].categories.includes(clean)) {
     db.systems["Ospecifierade kategorier"].categories.push(clean);
   }
-  persist();
-  window.location.hash = `#category/${encodeURIComponent(clean)}`;
+  herb.categoryLinks = [...(herb.categoryLinks || []), clean];
+  persist(true);
+  renderHerbPage(herb.id);
 }
 
 // ==================== KOPPLA EGENSKAPER MODAL ====================
@@ -1781,10 +1835,13 @@ let assignModal = null;
 let assignModalReturn = null;
 
 function snapshotAssignValues(entity, properties) {
-  return new Map([...properties.keys()].map(name => [name, {
+  const snapshot = new Map([...properties.keys()].map(name => [name, {
     present: Object.hasOwn(entity.props || {}, name),
     value: structuredClone(entity.props?.[name])
   }]));
+  snapshot.categoryLinks = structuredClone(entity.categoryLinks);
+  snapshot.linked = false;
+  return snapshot;
 }
 
 function equalAssignValue(a, b) {
@@ -1861,8 +1918,10 @@ function renderAssignCategoryList() {
     button.className = "wiki-btn";
     button.style.cssText = "display:block; width:100%; margin-bottom:6px; white-space:normal;";
     button.textContent = name + " — " + (db.categories[name].system || "Universal");
+    const categoryRecord = db.categories[name];
     button.onclick = () => {
-      if (db === assignLibrary && db.objects.includes(activeAssignEntity)) openAssignPropsModal(activeAssignEntity.id, name);
+      if (db !== assignLibrary || !db.objects.includes(activeAssignEntity) || db.categories[name] !== categoryRecord) { rejectAssignDraft(); return; }
+      openAssignPropsModal(activeAssignEntity.id, name);
     };
     cont.appendChild(button);
   });
@@ -1874,6 +1933,7 @@ function openAssignPropsModal(entityId, categoryName) {
   closePopup();
   activeAssignEntity = db.objects.find(o => o.id === entityId);
   if (!activeAssignEntity || !Object.hasOwn(db.categories, categoryName)) return;
+  if (Object.hasOwn(activeAssignEntity, "categoryLinks") && (!Array.isArray(activeAssignEntity.categoryLinks) || !activeAssignEntity.categoryLinks.every(name => typeof name === "string"))) { rejectAssignDraft(); return; }
   assignLibrary = db;
   assignCategoryRecord = db.categories[categoryName];
   assignPropertyRecords = new Map(Object.entries(db.properties).filter(([, value]) => value?.category === categoryName));
@@ -1881,6 +1941,8 @@ function openAssignPropsModal(entityId, categoryName) {
   assignValueSnapshot = snapshotAssignValues(activeAssignEntity, assignPropertyRecords);
   activeAssignCategory = categoryName;
   pendingSelectedProps = new Set(getPropKeys(activeAssignEntity));
+  assignValueSnapshot.linked = Array.isArray(activeAssignEntity.categoryLinks) && activeAssignEntity.categoryLinks.includes(categoryName);
+  document.getElementById("assign-keep-category").checked = assignValueSnapshot.linked;
 
   document.getElementById("assign-prop-modal-title").innerText = t("Koppla [{0}]", {0: categoryName});
   document.getElementById("assign-prop-filter").value = "";
@@ -1895,7 +1957,7 @@ function renderAssignPropsList() {
 
   const available = Object.keys(db.properties).filter(p => db.properties[p].category === activeAssignCategory);
   const filtered = available.filter(p => p.toLowerCase().includes(q));
-  if (!filtered.length) cont.textContent = t("Inga egenskaper hittades. Inga kopplingar skapas utan en egenskap.");
+  if (!filtered.length) cont.textContent = t("Inga egenskaper hittades. Du kan ändå spara kategorikopplingen.");
 
   filtered.forEach(p => {
     const isChecked = pendingSelectedProps.has(p);
@@ -1913,7 +1975,8 @@ function renderAssignPropsList() {
 function submitAssignProps() {
   // A replaced library/entity/category invalidates the draft, including reload/import.
   if (db !== assignLibrary || !db.objects.includes(activeAssignEntity) ||
-      db.categories[activeAssignCategory] !== assignCategoryRecord) { rejectAssignDraft(); return; }
+      db.categories[activeAssignCategory] !== assignCategoryRecord ||
+      !equalAssignValue(assignValueSnapshot.categoryLinks, activeAssignEntity.categoryLinks)) { rejectAssignDraft(); return; }
   const changes = [...assignPropertyRecords].filter(([name]) => pendingSelectedProps.has(name) !== assignInitialProps.has(name));
   // Validate the entire draft before applying any changes.
   if (changes.some(([name, record]) => {
@@ -1923,6 +1986,11 @@ function submitAssignProps() {
       !equalAssignValue(original.value, activeAssignEntity.props?.[name]);
   })) {
     rejectAssignDraft(); return;
+  }
+  const links = Array.isArray(activeAssignEntity.categoryLinks) ? activeAssignEntity.categoryLinks : [];
+  if (!assignValueSnapshot.linked && links.includes(activeAssignCategory) &&
+      [...pendingSelectedProps].some(p => db.properties[p]?.category === activeAssignCategory)) {
+    alert(t("Kategorin har tilldelade egenskaper. Ta bort dem med [+] innan du tar bort kategorikopplingen.")); return;
   }
   let changed = false;
   changes.forEach(([name]) => {
@@ -1937,7 +2005,11 @@ function submitAssignProps() {
       changed = true;
     }
   });
-  if (changed) persist();
+  if (assignValueSnapshot.linked !== links.includes(activeAssignCategory)) {
+    activeAssignEntity.categoryLinks = assignValueSnapshot.linked ? [...links, activeAssignCategory] : links.filter(cat => cat !== activeAssignCategory);
+    changed = true;
+  }
+  if (changed) persist(true);
   closePopup();
   if (window.location.hash.startsWith("#herb")) {
     const focusedAction = document.activeElement?.dataset?.coreAction;
@@ -2263,12 +2335,16 @@ function renderCategoryPage(catName) {
 }
 
 function promptRenameCategory(oldName) {
+  const library = db, original = db.categories[oldName];
   const newName = prompt(t("Ange nytt namn på kategorin:"), oldName);
   if (!newName || !newName.trim() || newName.trim() === oldName) return;
+  if (db !== library || !original || db.categories[oldName] !== original) { rejectAssignDraft(); return; }
   const cleanNew = newName.trim();
   if (db.categories[cleanNew]) { alert(t("Kategorin finns redan.")); return; }
 
-  db.categories[cleanNew] = db.categories[oldName];
+  if (categoryLinkedHerbs(cleanNew).length) { alert(t("Namnet är reserverat av en kategorikoppling. Ta bort den gamla kopplingen först.")); return; }
+  Object.defineProperty(db.categories, cleanNew, { value: db.categories[oldName], enumerable: true, writable: true, configurable: true });
+  categoryLinkedHerbs(oldName).forEach(herb => { herb.categoryLinks = herb.categoryLinks.map(name => name === oldName ? cleanNew : name); });
   delete db.categories[oldName];
 
   Object.values(db.systems).forEach(s => {
@@ -2278,7 +2354,7 @@ function promptRenameCategory(oldName) {
     if (p.category === oldName) p.category = cleanNew;
   });
 
-  persist();
+  persist(true);
   window.location.hash = `#category/${encodeURIComponent(cleanNew)}`;
 }
 
@@ -2717,6 +2793,9 @@ function renderSourcesLibraryPage() {
 
 // ==================== PAPPERSKORG ====================
 function deleteTagWithWarning(type, id) {
+  if (type === "category" && categoryLinkedHerbs(id).length) {
+    alert(t("Kategorin är kopplad till en ört, även i papperskorgen. Ta bort kopplingen först.")); return;
+  }
   let count = 0;
   let name = id;
 
@@ -2735,6 +2814,9 @@ function deleteTagWithWarning(type, id) {
     : t("Vill du slänga '{0}' i papperskorgen?", {0: name});
 
   if (!confirm(promptText)) return;
+  if (type === "category" && categoryLinkedHerbs(id).length) {
+    alert(t("Kategorin är kopplad till en ört, även i papperskorgen. Ta bort kopplingen först.")); return;
+  }
 
   if (type === "object") {
     const idx = db.objects.findIndex(x => x.id === id);
@@ -2753,7 +2835,7 @@ function deleteTagWithWarning(type, id) {
   } else if (type === "category") {
     db.trash.push({ type, id, name, data: db.categories[id], deletedAt: new Date().toLocaleDateString('sv-SE') });
     delete db.categories[id];
-    persist();
+    persist(true);
     window.location.hash = "#index";
   }
 }
@@ -2817,6 +2899,9 @@ function restoreFromTrash(idx, generation) {
   else if (item.type === "property" && typeof item.id === "string" && item.data) occupied = Object.hasOwn(db.properties, item.id);
   else if (item.type === "category" && typeof item.id === "string" && item.data) occupied = Object.hasOwn(db.categories, item.id);
   else { alert(t("This Trash record cannot be restored.")); return; }
+  if (item.type === "category" && !occupied && categoryLinkedHerbs(item.id).length) {
+    alert(t("Namnet är reserverat av en kategorikoppling. Ta bort den gamla kopplingen först.")); return;
+  }
   if (occupied) { alert(t("Restoration blocked: the destination identity is already occupied.")); return; }
   if (item.type === "object") db.objects.push(item.data);
   else Object.defineProperty(item.type === "property" ? db.properties : db.categories, item.id,
@@ -2928,6 +3013,7 @@ function validateImportLibrary(data) {
     if (!Array.isArray(value) || !value.every(item => typeof item === "string")) invalid(`${path}.${key}`, t("en lista med text"));
   };
   const objectFields = (record, path, study = false) => {
+    if (Object.hasOwn(record, "categoryLinks") && (!Array.isArray(record.categoryLinks) || !record.categoryLinks.every(name => typeof name === "string"))) invalid(`${path}.categoryLinks`, t("en lista med text"));
     text(record, "name", path, study);
     text(record, "desc", path);
     for (const key of ["props", "taxonomies"]) {
