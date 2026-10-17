@@ -412,6 +412,18 @@
     </div>
   </div>
 
+  <div class="popup-overlay" id="popup-assign-category" onclick="closeOnOverlayClick(event, 'popup-assign-category')">
+    <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="assign-category-title">
+      <div class="popup-header"><span id="assign-category-title">Lägg till befintlig kategori / egenskap</span></div>
+      <div class="popup-body">
+        <input id="assign-category-filter" aria-label="Sök kategori" placeholder="Sök kategori..." oninput="renderAssignCategoryList()">
+        <div class="checklist-container" id="assign-category-list"></div>
+        <p>Kategorier utan egenskaper kan visas här men kopplas till örten först när en egenskap tilldelas.</p>
+        <button class="wiki-btn" onclick="closePopup()">Avbryt</button>
+      </div>
+    </div>
+  </div>
+
   <!-- POPUP: KOPPLA EGENSKAPER MED SPARA-KNAPP -->
   <div class="popup-overlay" id="popup-assign-prop" onclick="closeOnOverlayClick(event, 'popup-assign-prop')">
     <div class="popup-box">
@@ -821,6 +833,7 @@ function bindCoreActions(root) {
         case "botanical": promptEditHerbBotanical(...args); break;
         case "editor": openEditor(...args); break;
         case "assign": openAssignPropsModal(...args); break;
+        case "chooseCategory": openAssignCategoryModal(...args); break;
         case "renameCategory": promptRenameCategory(...args); break;
         case "createProperty": promptCreatePropertyWithSubcat(...args); break;
       }
@@ -1242,7 +1255,7 @@ function renderHerbPage(herbId) {
           <a href="#category/${encodeURIComponent(cat)}" class="wiki-row-label">${escapeCoreText(cat)}:</a>
           <div class="wiki-row-content">
             ${tagsList || '<i>none</i>'}
-            <a class="btn-wiki-add" ${coreAction("assign", obj.id, cat)}>[+]</a>
+            <button class="btn-wiki-add" ${coreAction("assign", obj.id, cat)} aria-label="Redigera ${escapeCoreText(cat)}">[+]</button>
           </div>
         </div>
       `;
@@ -1286,6 +1299,7 @@ function renderHerbPage(herbId) {
     <hr class="wiki-divider">
 
     <h2 class="wiki-section">Egenskaper</h2>
+    <button class="wiki-btn" ${coreAction("chooseCategory", obj.id)}>Lägg till befintlig kategori / egenskap</button>
     <div style="margin-bottom:6px;">
       <a class="wiki-action-link" onclick="promptCreateCategoryForHerb()">[+ Skapa ny kategori]</a>
     </div>
@@ -1345,9 +1359,48 @@ function promptCreateCategoryForHerb() {
 let activeAssignEntity = null;
 let activeAssignCategory = "";
 let pendingSelectedProps = new Set();
+let assignLibrary = null;
+let assignCategoryRecord = null;
+let assignPropertyRecords = new Map();
+let assignInitialProps = new Set();
+
+function openAssignCategoryModal(entityId) {
+  closePopup();
+  activeAssignEntity = db.objects.find(o => o.id === entityId);
+  if (!activeAssignEntity) return;
+  assignLibrary = db;
+  document.getElementById("assign-category-filter").value = "";
+  document.getElementById("popup-assign-category").style.display = "flex";
+  renderAssignCategoryList();
+  document.getElementById("assign-category-filter").focus();
+}
+
+function renderAssignCategoryList() {
+  const cont = document.getElementById("assign-category-list");
+  cont.replaceChildren();
+  const q = document.getElementById("assign-category-filter").value.trim().toLowerCase();
+  if (db !== assignLibrary || !db.objects.includes(activeAssignEntity)) return;
+  Object.keys(db.categories).filter(name => name.toLowerCase().includes(q)).forEach(name => {
+    const button = document.createElement("button");
+    button.className = "wiki-btn";
+    button.style.cssText = "display:block; width:100%; margin-bottom:6px; white-space:normal;";
+    button.textContent = name + " — " + (db.categories[name].system || "Universal");
+    button.onclick = () => {
+      if (db === assignLibrary && db.objects.includes(activeAssignEntity)) openAssignPropsModal(activeAssignEntity.id, name);
+    };
+    cont.appendChild(button);
+  });
+  if (!cont.childElementCount) cont.textContent = "Inga kategorier hittades.";
+}
 
 function openAssignPropsModal(entityId, categoryName) {
+  closePopup();
   activeAssignEntity = db.objects.find(o => o.id === entityId);
+  if (!activeAssignEntity || !Object.hasOwn(db.categories, categoryName)) return;
+  assignLibrary = db;
+  assignCategoryRecord = db.categories[categoryName];
+  assignPropertyRecords = new Map(Object.entries(db.properties).filter(([, value]) => value?.category === categoryName));
+  assignInitialProps = new Set(getPropKeys(activeAssignEntity));
   activeAssignCategory = categoryName;
   pendingSelectedProps = new Set(getPropKeys(activeAssignEntity));
 
@@ -1355,6 +1408,7 @@ function openAssignPropsModal(entityId, categoryName) {
   document.getElementById("assign-prop-filter").value = "";
   document.getElementById("popup-assign-prop").style.display = "flex";
   renderAssignPropsList();
+  document.getElementById("assign-prop-filter").focus();
 }
 
 function renderAssignPropsList() {
@@ -1364,6 +1418,7 @@ function renderAssignPropsList() {
 
   const available = Object.keys(db.properties).filter(p => db.properties[p].category === activeAssignCategory);
   const filtered = available.filter(p => p.toLowerCase().includes(q));
+  if (!filtered.length) cont.textContent = "Inga egenskaper hittades. Inga kopplingar skapas utan en egenskap.";
 
   filtered.forEach(p => {
     const isChecked = pendingSelectedProps.has(p);
@@ -1379,14 +1434,28 @@ function renderAssignPropsList() {
 }
 
 function submitAssignProps() {
-  if (!activeAssignEntity) return;
-  const catProps = Object.keys(db.properties).filter(p => db.properties[p].category === activeAssignCategory);
-  catProps.forEach(cp => {
-    if (pendingSelectedProps.has(cp)) setProp(activeAssignEntity, cp, true);
-    else setProp(activeAssignEntity, cp, false);
+  // A replaced library/entity/category invalidates the draft, including reload/import.
+  if (db !== assignLibrary || !db.objects.includes(activeAssignEntity) ||
+      db.categories[activeAssignCategory] !== assignCategoryRecord) { closePopup(); return; }
+  const changes = [...assignPropertyRecords].filter(([name]) => pendingSelectedProps.has(name) !== assignInitialProps.has(name));
+  // Validate the entire draft before applying any changes.
+  if (changes.some(([name, record]) => db.properties[name] !== record || record.category !== activeAssignCategory)) {
+    closePopup(); return;
+  }
+  let changed = false;
+  changes.forEach(([name]) => {
+    if (pendingSelectedProps.has(name)) {
+      if (!hasProp(activeAssignEntity, name)) {
+        if (!activeAssignEntity.props) activeAssignEntity.props = {};
+        Object.defineProperty(activeAssignEntity.props, name, { value: true, enumerable: true, writable: true, configurable: true });
+        changed = true;
+      }
+    } else if (hasProp(activeAssignEntity, name)) {
+      delete activeAssignEntity.props[name];
+      changed = true;
+    }
   });
-
-  persist();
+  if (changed) persist();
   closePopup();
   if (window.location.hash.startsWith("#herb")) renderHerbPage(activeAssignEntity.id);
 }
