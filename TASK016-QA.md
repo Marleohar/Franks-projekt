@@ -1,3 +1,79 @@
+# TASK 016 — Property-key blocking corrections
+
+**READY FOR INDEPENDENT RE-QA — NOT MERGED.**
+
+- Rejected HEAD: `c3ff49bfe7c13d7c4a2bea5d30bdb910d8bc1f67`.
+- Unchanged main baseline: `ba7e66f260c4c9511162d7da86d8a9cb85b76bf5` (remote verified before delivery).
+- Immutable corrected production/test HEAD: `16b165c73a5171edb8daac9dbd6e01e840b6e780`.
+- This following report-only commit records that immutable tested code revision; its final delivery HEAD is supplied in PR #16 and the delivery response. No production/test code changes follow the tested revision.
+- Existing feature branch and PR #16 retained; no merge, deployment or auto-merge. Independent QA must approve the corrected exact delivery HEAD.
+
+## Root causes and narrow correction
+
+An absent own property could resolve to an inherited function before structuredClone. `__proto__` could resolve to the inherited prototype and incorrectly pass hasProp. The same unconditional read occurred in category-first snapshot creation, and setProp used ordinary assignment through the prototype setter.
+
+Production changes comprise six changed lines:
+
+1. snapshotDirectValue and snapshotAssignValues clone only present own values; absence is represented by present:false and value:undefined.
+2. Both confirmation paths compare own-property presence first, and read/compare the value only when present.
+3. hasProp requires an own stored value, preserving the existing false/null/undefined rules and assigned 0/array/object values.
+4. setProp creates an enumerable, writable, configurable own value with Object.defineProperty, matching existing safe direct/category-first creation.
+
+No library normalization, coercion, unrelated navigation, category-link logic or persistence policy was added. getPropKeys already enumerates own keys; category-first application already uses safe own creation. Related call sites of setProp retain their existing behavior for ordinary keys and now safely handle literal special keys.
+
+## Before/after evidence
+
+Both original defects were rerun against the rejected immutable QA checkout before editing code. `constructor` and `toString` produced native-function DataCloneError; `__proto__` closed without creating an own assignment. Full graphs remained unchanged with 0 persist / 0 storage / 0 mock-cloud calls in these failing cases.
+
+The new focused Node cases were also executed against the rejected index.html: **94 focused tests, 59 pass, 35 fail**. This demonstrates regression sensitivity; the same focused tests pass on the corrected code.
+
+Evidence root: `C:\dev\Franks projekt\Ort-Wiki\task-016\evidence\property-key-correction`.
+
+- `rejected-browser-findings.json`: full old graphs, missing own assignments and cloning errors.
+- `rejected-import-findings.json`: actual JSON import accepted, herb-side chooser error, full before/after graphs, 0/0/0 counters.
+- `rejected-node.txt`: focused regressions against old source.
+- `property-key-snapshots.json`: all **101** corrected full before/expected/actual graphs and persistence counters, transported as JSON text to preserve literal __proto__ keys across the browser boundary.
+- `property-key-backup.json`: actual downloaded JSON with all five own literal keys and structured values.
+- `property-key-{sv,en}-{1280,375,320}.png`: six fresh responsive screenshots. English 320 px was visually inspected.
+- Each browser suite's raw stdout is saved beside these artifacts; full corrected Node output is `node.txt`.
+
+## New tests and exact counts
+
+Literal keys: `constructor`, `toString`, `__proto__`, `valueOf`, `hasOwnProperty`.
+
+`tests/direct-link.test.cjs` adds **40 Node cases**, retaining all earlier assertions. JSON.parse supplies ordinary prototypes and literal keys. Tests cover both direct directions, category-first snapshots/setProp, ownership/prototype checks, 0 and structured-value no-ops, false/null assignments, and stale own-presence changes.
+
+`tests/browser-property-keys.cjs` is a new actual-Chromium suite. It first imports the five definitions using the real JSON file input and confirmations. Each name is exercised through herb direct search, property existing-herb linking, category/subcategory existing-herb linking, and new-herb creation from both property and category pages. It also tests category-first addition/removal, preserving TASK015 explicit empty links, values 0/nested object/false/null, Escape and retained callbacks, own-null stale rejection, and full JSON export/import/reload. All successful targets are asserted as own properties, and every graph check verifies ordinary herb-property object prototypes.
+
+**101 focused browser graph/counter checks PASS:**
+
+| Observed calls: persist / localStorage / mock cloud | Checks | Meaning |
+|---|---:|---|
+| 0 / 0 / 0 | 52 | draft selections, unchanged assigned values, cancellation/retained callbacks, stale rejection, export and responsive keyboard cancellation |
+| 1 / 1 / 1 | 48 | successful assignments/creation, category-first edits, import and explicit save |
+| 1 / 1 / 0 | 1 | established real-reload beforeunload local save; delayed cloud callback does not execute before document destruction |
+
+Counters are collected through Node-side bindings outside the page, including across reload. No successful operation duplicates its logical save. The original direct-link suite also passes its **119 snapshot/counter checks and 24 stale cases**, including invalid/duplicate/already-linked/repeated confirmations and replacement/deletion/route/category/value changes.
+
+## Full validation on corrected code
+
+- `node --test tests/*.test.cjs`: **339 PASS, 0 FAIL, 0 skipped** = all 299 previous tests + 40 new cases.
+- All **13 existing Chromium suites PASS**, run individually: category-links, core-rendering, direct-link, filter-search, formula-rendering, glossary-rendering, herb-assignment, import-smoke, localization, property-rendering, sources-trash, study-routing, system-rendering.
+- New browser-property-keys suite PASS: **14 total browser suites**.
+- Real browser: Chrome/Chromium **155.0.8059.84**. Swedish and English at **1280, 375 and 320 px**. Modal search focus, Tab/Shift+Tab containment, Escape, restored useful focus and horizontal document bounds pass. Existing suite continues mouse/touch and other cancellation coverage.
+- Focused suite: **0 page errors, 0 external requests**. Firebase scripts, configuration and initialization are removed from disposable HTML before browser startup. Requests blocked; mock cloud only. Synthetic libraries and disposable browsers only; all temp/output files under the Frank workspace.
+- `git diff --check`: PASS. Existing tracked screenshot remains unchanged after regressions. Working tree clean after committing the code and this report.
+
+Changed files: `index.html`, `tests/direct-link.test.cjs`, `tests/browser-property-keys.cjs`, `TASK016-QA.md`.
+
+The browser harness initially needed two test-only corrections: JSON-text snapshot transport to retain __proto__ own keys and an exact category/property locator independent of whitespace/console encoding. The final complete focused run passed after these corrections; production assertions were not weakened. Live Firebase acknowledgment and physical mobile devices are outside this synthetic test scope.
+
+**READY FOR INDEPENDENT RE-QA — NOT MERGED.**
+
+---
+
+## Historical original implementation evidence (superseded by correction results above)
+
 # TASK 016 — Direct herb–property linking
 
 **READY FOR INDEPENDENT QA — NOT MERGED.**
