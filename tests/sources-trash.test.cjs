@@ -8,6 +8,7 @@ const db=input,before=JSON.stringify(db),nodes={};let trashView=null,trashViewGe
 const currentLang='sv',herbSwedishDictionary={},window={location:{hash:'#trash'}};
 const document={getElementById(id){return nodes[id]||={innerHTML:'',querySelectorAll(){return []}}}};
 function persist(){writes++;}function alert(message){alerts.push(message);}function confirm(){onConfirm();return answer;}
+function t(key, params = {}) { return key.replace(/\\{(\\w+)\\}/g, (token, name) => Object.hasOwn(params, name) ? String(params[name]) : token); }
 ${functions}
 renderTrashPage();${code}
 result={db,writes,alerts,html:document.getElementById('wiki-app').innerHTML,before:JSON.parse(before)};`,context);return JSON.parse(JSON.stringify(context.result));}

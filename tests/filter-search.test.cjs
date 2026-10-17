@@ -17,7 +17,8 @@ function run(code){
     const document={getElementById(id){return nodes[id]||={innerHTML:'',value:'',style:{},handlers:{},addEventListener(type,fn){this.handlers[type]=fn},querySelectorAll(){return []}}}};
     function persist(){writes++;throw new Error('Unexpected filter write')}
     function alert(message){alerts.push(message)}
-    ${functions}
+    function t(key, params = {}) { return key.replace(/\\{(\\w+)\\}/g, (token, name) => Object.hasOwn(params, name) ? String(params[name]) : token); }
+${functions}
     const before=JSON.stringify(db);let result;
     ${code}
     JSON.stringify({result,filters:activeFilterProps,library:db,writes,alerts,unchanged:before===JSON.stringify(db)});

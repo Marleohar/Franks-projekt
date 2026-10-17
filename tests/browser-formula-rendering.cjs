@@ -67,7 +67,7 @@ async function main() {
     await reset();await state(fixture.library,0);
     const rows=await page.locator('#wiki-app ul.wiki-list li').evaluateAll(nodes=>nodes.map(n=>({name:n.querySelector('a').textContent,href:n.querySelector('a').getAttribute('href'),text:n.textContent})));
     assert.deepEqual(rows.map(r=>r.href),Object.keys(fixture.library.formulas).map(n=>'#formula/'+encodeURIComponent(n)));
-    assert.deepEqual(rows.map(r=>+r.text.match(/(\d+) komponenter/)[1]),[1,0,2,0,0,0,0]);assert(rows[2].name.endsWith(fixture.special));
+    assert.deepEqual(rows.map(r=>+r.text.match(/(\d+) komponent(?:er)?/)[1]),[1,0,2,0,0,0,0]);assert(rows[2].name.endsWith(fixture.special));
     for(const name of ['Formula%20name','Formula name',fixture.special,'Empty description']){
       await open(name);const formula=fixture.library.formulas[name];const paragraph=await page.locator('#wiki-app .wiki-paragraph').textContent();if(formula.desc)assert.equal(paragraph,formula.desc);else assert(paragraph.includes('Ingen beskrivning'));
       assert.deepEqual(await page.locator('[data-core-action="formulaDelete"]').evaluate(n=>JSON.parse(n.dataset.coreArgs)),[name]);

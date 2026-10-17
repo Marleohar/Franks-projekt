@@ -71,7 +71,7 @@ async function main() {
     }
     for(const idx of [0,1,2]){
       await reset();await page.evaluate(idx=>{const item=db.trash[idx];if(idx===0)db.objects.push({id:item.data.id,keep:1});else Object.defineProperty(db[idx===1?'properties':'categories'],item.id,{value:{keep:1},enumerable:true,configurable:true});},idx);
-      const before=await state();await action('trashRestore',idx).click();await unchanged(before);assert.match(dialogs.at(-1).message,/occupied/);
+      const before=await state();await action('trashRestore',idx).click();await unchanged(before);assert.match(dialogs.at(-1).message,/redan upptagen/);
     }
     await reset();const invalidBefore=await state();
     await page.evaluate(()=>{for(const index of [-1,0.5,999,'0',null]){restoreFromTrash(index,trashViewGeneration);permanentDeleteTrash(index,trashViewGeneration);}});
@@ -85,7 +85,7 @@ async function main() {
       const cases=[42,'invalid',[],null,false,...fields.map(field=>({[field]:42})),{[arrayField]:'invalid'},{[arrayField]:[1]},{[arrayField]:['valid',null]}];
       for(const data of cases){
         await reset();await page.evaluate(({idx,data})=>{db.trash[idx].data=data;renderTrashPage();},{idx,data});
-        const before=await state();await action('trashRestore',idx).click();await unchanged(before);assert.match(dialogs.at(-1).message,/data format is invalid/);
+        const before=await state();await action('trashRestore',idx).click();await unchanged(before);assert.match(dialogs.at(-1).message,/dataformatet är ogiltigt/);
         answers=[true];await action('trashDelete',idx).click();const expected=structuredClone(before.db);expected.trash.splice(idx,1);assert.deepEqual(await state(),{db:expected,calls:1,writes:1});
         malformedResults.push({type,data,rejectedCalls:0,rejectedWrites:0,confirmedDeleteWrites:1});
       }
@@ -101,7 +101,7 @@ async function main() {
       await reset();await page.evaluate(({mutation,name})=>{
         window.saved=document.querySelector('[data-core-action="'+name+'"]');
         if(mutation==='shift')db.trash.shift();if(mutation==='list')db.trash=db.trash.slice();if(mutation==='library')db=structuredClone(db);if(mutation==='record')db.trash[0]=structuredClone(db.trash[0]);if(mutation==='id')db.trash[0].id='changed';if(mutation==='rerender')renderTrashPage();
-      },{mutation,name});before=await state();await page.evaluate(()=>saved.click());await unchanged(before);assert.match(dialogs.at(-1).message,/Reopen/);
+      },{mutation,name});before=await state();await page.evaluate(()=>saved.click());await unchanged(before);assert.match(dialogs.at(-1).message,/Öppna papperskorgen igen/);
     }
     await reset();await action('trashRestore',0).focus();await page.keyboard.press('Space');assert.equal((await state()).calls,1);
     for(const width of [1280,320]){

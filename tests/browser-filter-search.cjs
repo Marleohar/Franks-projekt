@@ -79,7 +79,7 @@ async function main() {
     const rows=page.locator('#wiki-app ul.wiki-list > li');
     const rowData=await rows.evaluateAll(items=>items.map(e=>({href:e.querySelector('a').getAttribute('href'),text:e.textContent})));
     assert.deepEqual(rowData.map(r=>r.href),['#herb-id/item%2520name','#herb-id/'+encodeURIComponent(fixture.specialId),'#herb-id/item%20name','#study/'+encodeURIComponent(fixture.library.studyObjects[0].id)]);
-    assert.deepEqual(rowData.map(r=>r.text.match(/(\d+)% match/)[1]),['100','100','50','50']);
+    assert.deepEqual(rowData.map(r=>r.text.match(/(\d+)% träff/)[1]),['100','100','50','50']);
     assert.deepEqual(rowData.map(r=>r.text.match(/\((\d+)\/(\d+) egenskaper\)/).slice(1)),[['2','2'],['2','2'],['1','2'],['1','2']]);
     assert(rowData[1].text.includes(fixture.longName.trim()));assert(rowData[3].text.includes(fixture.library.studyObjects[0].type));await preserved();
     for(const id of ['item%20name','item name',fixture.specialId]){

@@ -133,7 +133,7 @@ async function main() {
         if(kind==='present-missing')delete db.objects[0].props.Two;
       },kind);
       const before=await state(); await save(); assert.deepEqual(await state(),before);
-      assert.match(dialogs.at(-1).message,/Data changed/);
+      assert.match(dialogs.at(-1).message,/Data har ändrats/);
     }
     // Missing key becomes an explicit null after opening.
     await reset(); await choose(); await category(); await check('One').check();
