@@ -1244,7 +1244,7 @@ function getDisplayObjName(obj) {
 }
 
 function hasProp(obj, propName) {
-  if (!obj || !obj.props) return false;
+  if (!obj || !obj.props || !Object.hasOwn(obj.props, propName)) return false;
   return obj.props[propName] !== undefined && obj.props[propName] !== null && obj.props[propName] !== false;
 }
 
@@ -1255,7 +1255,7 @@ function getPropKeys(obj) {
 
 function setProp(obj, propName, isChecked) {
   if (!obj.props) obj.props = {};
-  if (isChecked) obj.props[propName] = true;
+  if (isChecked) Object.defineProperty(obj.props, propName, { value: true, enumerable: true, writable: true, configurable: true });
   else delete obj.props[propName];
 }
 
@@ -1900,7 +1900,7 @@ let assignModalReturn = null;
 function snapshotAssignValues(entity, properties) {
   const snapshot = new Map([...properties.keys()].map(name => [name, {
     present: Object.hasOwn(entity.props || {}, name),
-    value: structuredClone(entity.props?.[name])
+    value: Object.hasOwn(entity.props || {}, name) ? structuredClone(entity.props[name]) : undefined
   }]));
   snapshot.categoryLinks = structuredClone(entity.categoryLinks);
   snapshot.linked = false;
@@ -2046,7 +2046,7 @@ function submitAssignProps() {
     const original = assignValueSnapshot.get(name);
     return db.properties[name] !== record || record.category !== activeAssignCategory ||
       !original || original.present !== Object.hasOwn(activeAssignEntity.props || {}, name) ||
-      !equalAssignValue(original.value, activeAssignEntity.props?.[name]);
+      original.present && !equalAssignValue(original.value, activeAssignEntity.props[name]);
   })) {
     rejectAssignDraft(); return;
   }
@@ -3018,7 +3018,7 @@ function validDirectProperty(snapshot) {
 }
 
 function snapshotDirectValue(herb, name) {
-  return { present: Object.hasOwn(herb.props || {}, name), value: structuredClone(herb.props?.[name]) };
+  return { present: Object.hasOwn(herb.props || {}, name), value: Object.hasOwn(herb.props || {}, name) ? structuredClone(herb.props[name]) : undefined };
 }
 
 function createDirectLinkDraft(mode, key) {
@@ -3065,7 +3065,7 @@ function confirmDirectLink(draft, newName = "") {
   if (!herb) return { status: "invalid" };
   if (!validDirectHerb(herb)) return stale();
   const value = draft.values.get(draft.selection);
-  if (!value || value.present !== Object.hasOwn(herb.record.props || {}, property.name) || !equalAssignValue(value.value, herb.record.props?.[property.name])) return stale();
+  if (!value || value.present !== Object.hasOwn(herb.record.props || {}, property.name) || value.present && !equalAssignValue(value.value, herb.record.props[property.name])) return stale();
   directLinkDraft = null; // Consume before persistence: retained confirmations cannot save twice.
   if (hasProp(herb.record, property.name)) return { status: "unchanged" };
   if (!herb.record.props) herb.record.props = {};
