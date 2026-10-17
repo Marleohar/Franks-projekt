@@ -832,6 +832,8 @@ function bindCoreActions(root) {
         case "delete": deleteTagWithWarning(...args); break;
         case "botanical": promptEditHerbBotanical(...args); break;
         case "editor": openEditor(...args); break;
+        case "trashRestore": restoreFromTrash(...args); break;
+        case "trashDelete": permanentDeleteTrash(...args); break;
         case "assign": openAssignPropsModal(...args); break;
         case "chooseCategory": openAssignCategoryModal(...args); break;
         case "renameCategory": promptRenameCategory(...args); break;
@@ -2296,7 +2298,7 @@ function renderSourcesLibraryPage() {
   const app = document.getElementById("wiki-app");
   let sourcesListHtml = (db.sources || []).map(src => `
     <div style="margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border-subtle);">
-      <b>${src.author || 'Okänd'}</b> (${src.year || 'u.å.'}) <i>${src.title}</i>
+      <b>${escapeCoreText(src.author || 'Okänd')}</b> (${escapeCoreText(src.year || 'u.å.')}) <i>${escapeCoreText(src.title)}</i>
     </div>
   `).join("");
   app.innerHTML = `<h1 class="wiki-title"><span>Källbibliotek</span></h1><hr class="wiki-divider"><div>${sourcesListHtml || '<i>Inga källor.</i>'}</div>`;
@@ -2345,18 +2347,23 @@ function deleteTagWithWarning(type, id) {
   }
 }
 
+let trashView = null;
+let trashViewGeneration = 0;
+
 function renderTrashPage() {
   const app = document.getElementById("wiki-app");
   const trashItems = db.trash || [];
+  const generation = ++trashViewGeneration;
+  trashView = { library: db, list: db.trash, generation, entries: trashItems.map(item => ({ item, id: item.id, type: item.type, data: item.data, objectId: item.data?.id })) };
 
   let listHtml = trashItems.length === 0 
     ? `<i>Papperskorgen är tom.</i>` 
     : trashItems.map((item, idx) => `
-      <li style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #eee;">
-        <div><b>${item.name}</b> <span style="font-size:12px; color:var(--text-muted);">[${item.type}]</span></div>
+      <li style="display:flex; flex-wrap:wrap; gap:8px; overflow-wrap:anywhere; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #eee;">
+        <div><b>${escapeCoreText(item.name)}</b> <span style="font-size:12px; color:var(--text-muted);">[${escapeCoreText(item.type)}]</span></div>
         <div style="display:flex; gap:8px;">
-          <a class="wiki-action-link" onclick="restoreFromTrash(${idx})">[Återställ]</a>
-          <a class="wiki-action-link" style="color:var(--danger);" onclick="permanentDeleteTrash(${idx})">[Radera]</a>
+          <button class="wiki-btn" ${coreAction("trashRestore", idx, generation)}>Återställ</button>
+          <button class="wiki-btn" style="color:var(--danger);" ${coreAction("trashDelete", idx, generation)}>Radera</button>
         </div>
       </li>
     `).join("");
@@ -2366,22 +2373,42 @@ function renderTrashPage() {
     <hr class="wiki-divider">
     <ul class="wiki-list">${listHtml}</ul>
   `;
+  bindCoreActions(app);
 }
 
-function restoreFromTrash(idx) {
-  const item = db.trash[idx];
-  if (!item) return;
-  if (item.type === "object") db.objects.push(item.data);
-  else if (item.type === "property") db.properties[item.id] = item.data;
-  else if (item.type === "category") db.categories[item.id] = item.data;
+function currentTrashTarget(idx, generation) {
+  const expected = trashView?.entries[idx];
+  if (!Number.isInteger(idx) || idx < 0 || !expected || generation !== trashView.generation ||
+      db !== trashView.library || db.trash !== trashView.list || db.trash[idx] !== expected.item ||
+      expected.item.id !== expected.id || expected.item.type !== expected.type ||
+      expected.item.data !== expected.data || expected.item.data?.id !== expected.objectId) {
+    alert("Trash changed. Reopen Trash before trying again.");
+    return null;
+  }
+  return expected.item;
+}
 
+function restoreFromTrash(idx, generation) {
+  const item = currentTrashTarget(idx, generation);
+  if (!item) return;
+  let occupied;
+  if (item.type === "object" && item.data && item.data.id != null) occupied = db.objects.some(object => object.id === item.data.id);
+  else if (item.type === "property" && typeof item.id === "string" && item.data) occupied = Object.hasOwn(db.properties, item.id);
+  else if (item.type === "category" && typeof item.id === "string" && item.data) occupied = Object.hasOwn(db.categories, item.id);
+  else { alert("This Trash record cannot be restored."); return; }
+  if (occupied) { alert("Restoration blocked: the destination identity is already occupied."); return; }
+  if (item.type === "object") db.objects.push(item.data);
+  else Object.defineProperty(item.type === "property" ? db.properties : db.categories, item.id,
+    { value: item.data, enumerable: true, writable: true, configurable: true });
   db.trash.splice(idx, 1);
   persist();
   renderTrashPage();
 }
 
-function permanentDeleteTrash(idx) {
+function permanentDeleteTrash(idx, generation) {
+  if (!currentTrashTarget(idx, generation)) return;
   if (!confirm("Radera permanent?")) return;
+  if (!currentTrashTarget(idx, generation)) return;
   db.trash.splice(idx, 1);
   persist();
   renderTrashPage();
