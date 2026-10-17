@@ -426,7 +426,7 @@
 
   <!-- POPUP: KOPPLA EGENSKAPER MED SPARA-KNAPP -->
   <div class="popup-overlay" id="popup-assign-prop" onclick="closeOnOverlayClick(event, 'popup-assign-prop')">
-    <div class="popup-box">
+    <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="assign-prop-modal-title">
       <div class="popup-header">
         <span id="assign-prop-modal-title">Koppla egenskaper</span>
         <button class="wiki-btn" style="padding:1px 6px;" onclick="closePopup()">✕</button>
@@ -1363,16 +1363,79 @@ let assignLibrary = null;
 let assignCategoryRecord = null;
 let assignPropertyRecords = new Map();
 let assignInitialProps = new Set();
+let assignValueSnapshot = new Map();
+let assignModal = null;
+let assignModalReturn = null;
+
+function snapshotAssignValues(entity, properties) {
+  return new Map([...properties.keys()].map(name => [name, {
+    present: Object.hasOwn(entity.props || {}, name),
+    value: structuredClone(entity.props?.[name])
+  }]));
+}
+
+function equalAssignValue(a, b) {
+  if (Object.is(a, b)) return true;
+  if (!a || !b || typeof a !== "object" || typeof b !== "object" || Array.isArray(a) !== Array.isArray(b)) return false;
+  if (Array.isArray(a) && a.length !== b.length) return false;
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every(key => Object.hasOwn(b, key) && equalAssignValue(a[key], b[key]));
+}
+
+function rejectAssignDraft() {
+  closePopup();
+  alert("Data changed. Reopen the assignment dialog to use current values.");
+}
+
+function assignmentFocusables() {
+  return [...assignModal.querySelectorAll('button, input, [href], [tabindex="0"]')].filter(node => !node.disabled && node.getClientRects().length);
+}
+
+function containAssignmentFocus(event) {
+  if (assignModal && !assignModal.contains(event.target)) assignmentFocusables()[0]?.focus();
+}
+
+function assignmentKeydown(event) {
+  if (!assignModal) return;
+  if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closePopup(); return; }
+  if (event.key !== "Tab") return;
+  const nodes = assignmentFocusables();
+  const first = nodes[0], last = nodes[nodes.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !assignModal.contains(document.activeElement))) {
+    event.preventDefault(); last?.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !assignModal.contains(document.activeElement))) {
+    event.preventDefault(); first?.focus();
+  }
+}
+
+function showAssignmentDialog(id, inputId, invoker) {
+  assignModal = document.getElementById(id);
+  assignModalReturn = invoker;
+  assignModal.style.display = "flex";
+  document.addEventListener("keydown", assignmentKeydown, true);
+  document.addEventListener("focusin", containAssignmentFocus, true);
+  document.getElementById(inputId).focus();
+}
+
+function releaseAssignmentDialog() {
+  if (!assignModal) return;
+  const invoker = assignModalReturn;
+  assignModal = null;
+  assignModalReturn = null;
+  document.removeEventListener("keydown", assignmentKeydown, true);
+  document.removeEventListener("focusin", containAssignmentFocus, true);
+  if (invoker?.isConnected) invoker.focus();
+}
 
 function openAssignCategoryModal(entityId) {
+  const invoker = assignModalReturn || document.activeElement;
   closePopup();
   activeAssignEntity = db.objects.find(o => o.id === entityId);
   if (!activeAssignEntity) return;
   assignLibrary = db;
   document.getElementById("assign-category-filter").value = "";
-  document.getElementById("popup-assign-category").style.display = "flex";
   renderAssignCategoryList();
-  document.getElementById("assign-category-filter").focus();
+  showAssignmentDialog("popup-assign-category", "assign-category-filter", invoker);
 }
 
 function renderAssignCategoryList() {
@@ -1394,6 +1457,7 @@ function renderAssignCategoryList() {
 }
 
 function openAssignPropsModal(entityId, categoryName) {
+  const invoker = assignModalReturn || document.activeElement;
   closePopup();
   activeAssignEntity = db.objects.find(o => o.id === entityId);
   if (!activeAssignEntity || !Object.hasOwn(db.categories, categoryName)) return;
@@ -1401,14 +1465,14 @@ function openAssignPropsModal(entityId, categoryName) {
   assignCategoryRecord = db.categories[categoryName];
   assignPropertyRecords = new Map(Object.entries(db.properties).filter(([, value]) => value?.category === categoryName));
   assignInitialProps = new Set(getPropKeys(activeAssignEntity));
+  assignValueSnapshot = snapshotAssignValues(activeAssignEntity, assignPropertyRecords);
   activeAssignCategory = categoryName;
   pendingSelectedProps = new Set(getPropKeys(activeAssignEntity));
 
   document.getElementById("assign-prop-modal-title").innerText = `Koppla [${categoryName}]`;
   document.getElementById("assign-prop-filter").value = "";
-  document.getElementById("popup-assign-prop").style.display = "flex";
   renderAssignPropsList();
-  document.getElementById("assign-prop-filter").focus();
+  showAssignmentDialog("popup-assign-prop", "assign-prop-filter", invoker);
 }
 
 function renderAssignPropsList() {
@@ -1436,11 +1500,16 @@ function renderAssignPropsList() {
 function submitAssignProps() {
   // A replaced library/entity/category invalidates the draft, including reload/import.
   if (db !== assignLibrary || !db.objects.includes(activeAssignEntity) ||
-      db.categories[activeAssignCategory] !== assignCategoryRecord) { closePopup(); return; }
+      db.categories[activeAssignCategory] !== assignCategoryRecord) { rejectAssignDraft(); return; }
   const changes = [...assignPropertyRecords].filter(([name]) => pendingSelectedProps.has(name) !== assignInitialProps.has(name));
   // Validate the entire draft before applying any changes.
-  if (changes.some(([name, record]) => db.properties[name] !== record || record.category !== activeAssignCategory)) {
-    closePopup(); return;
+  if (changes.some(([name, record]) => {
+    const original = assignValueSnapshot.get(name);
+    return db.properties[name] !== record || record.category !== activeAssignCategory ||
+      !original || original.present !== Object.hasOwn(activeAssignEntity.props || {}, name) ||
+      !equalAssignValue(original.value, activeAssignEntity.props?.[name]);
+  })) {
+    rejectAssignDraft(); return;
   }
   let changed = false;
   changes.forEach(([name]) => {
@@ -1457,7 +1526,12 @@ function submitAssignProps() {
   });
   if (changed) persist();
   closePopup();
-  if (window.location.hash.startsWith("#herb")) renderHerbPage(activeAssignEntity.id);
+  if (window.location.hash.startsWith("#herb")) {
+    const focusedAction = document.activeElement?.dataset?.coreAction;
+    const focusedArgs = document.activeElement?.dataset?.coreArgs;
+    renderHerbPage(activeAssignEntity.id);
+    if (focusedAction) [...document.querySelectorAll("[data-core-action]")].find(node => node.dataset.coreAction === focusedAction && node.dataset.coreArgs === focusedArgs)?.focus();
+  }
 }
 
 // ==================== SIDA B: EGENSKAPSPROFIL ====================
@@ -2328,6 +2402,7 @@ function openConnectHerbsToPropertyPopup(propName) {
 
 function closePopup() {
   document.querySelectorAll(".popup-overlay").forEach(el => el.style.display = "none");
+  releaseAssignmentDialog();
 }
 function closeOnOverlayClick(e, overlayId) {
   if (e.target.id === overlayId) closePopup();

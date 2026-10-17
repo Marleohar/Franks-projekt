@@ -114,8 +114,62 @@ async function main() {
     await reset(); await choose(); await category(); await check('One').check();
     await page.evaluate(()=>db.objects[0].name='Renamed'); await save();
     assert.equal((await state()).db.objects[0].props.One,true);
+
+    // Independent value-conflict probes: preserve complete live snapshots, no writes.
+    for (const kind of ['string-object','false-null','nested-object','nested-array','missing-null','present-missing']) {
+      await reset({One:'old',Two:false,Three:{nested:[{dose:2}]}});
+      await choose(); await category();
+      if (['false-null','present-missing'].includes(kind)) await check('Two').check();
+      else if (kind.startsWith('nested')) await check('Three').uncheck();
+      else await check('One').uncheck();
+      // Include a second legitimate change to prove rejection is atomic.
+      if (!['false-null','present-missing'].includes(kind)) await check('Two').check();
+      await page.evaluate(kind=>{
+        if(kind==='string-object')db.objects[0].props.One={dose:99,metadata:{newer:true}};
+        if(kind==='false-null')db.objects[0].props.Two=null;
+        if(kind==='nested-object')db.objects[0].props.Three.nested[0].dose=99;
+        if(kind==='nested-array')db.objects[0].props.Three.nested.push({dose:99});
+        if(kind==='missing-null')delete db.objects[0].props.One;
+        if(kind==='present-missing')delete db.objects[0].props.Two;
+      },kind);
+      const before=await state(); await save(); assert.deepEqual(await state(),before);
+      assert.match(dialogs.at(-1).message,/Data changed/);
+    }
+    // Missing key becomes an explicit null after opening.
+    await reset(); await choose(); await category(); await check('One').check();
+    await page.evaluate(()=>db.objects[0].props.One=null);
+    const missingBefore=await state(); await save(); assert.deepEqual(await state(),missingBefore);
+    for (const width of [1280,320]) {
+      await page.setViewportSize({width,height:720}); await reset();
+      const invoker=page.locator('[data-core-action="chooseCategory"]');
+      await invoker.focus(); await page.keyboard.press('Enter');
+      await page.locator('#assign-category-filter').evaluate(el=>{if(document.activeElement!==el)throw Error('Initial chooser focus');});
+      const categoryCancel=page.locator('#popup-assign-category').getByRole('button',{name:'Avbryt',exact:true});
+      await categoryCancel.focus(); await page.keyboard.press('Tab');
+      assert.equal(await page.evaluate(()=>document.activeElement.id),'assign-category-filter');
+      await page.keyboard.press('Shift+Tab'); assert.equal(await categoryCancel.evaluate(el=>document.activeElement===el),true);
+      await invoker.evaluate(el=>el.focus());
+      assert.equal(await page.evaluate(()=>document.activeElement.id),'assign-category-filter');
+      await page.keyboard.press('Escape');assert.equal(await invoker.evaluate(el=>document.activeElement===el),true);
+      assert.equal((await state()).writes,0);
+      await choose(); await page.locator('#assign-category-filter').fill('Unused');await page.keyboard.press('Tab');await page.keyboard.press('Enter');
+      assert.equal(await page.evaluate(()=>document.activeElement.id),'assign-prop-filter');
+      const propCancel=page.locator('#popup-assign-prop').getByRole('button',{name:'Avbryt',exact:true});
+      await propCancel.focus();await page.keyboard.press('Tab');assert.equal(await page.locator('#popup-assign-prop .popup-header button').evaluate(el=>document.activeElement===el),true);
+      await page.keyboard.press('Shift+Tab');assert.equal(await propCancel.evaluate(el=>document.activeElement===el),true);
+      await page.locator('#assign-prop-filter').focus();await page.keyboard.press('Tab');await page.keyboard.press('Space');
+      await page.keyboard.press('Escape');assert.equal(await invoker.evaluate(el=>document.activeElement===el),true);
+      assert.equal((await state()).writes,0);
+      await choose();await category();assert.equal(await check('One').isChecked(),false);
+      await page.screenshot({path:path.join(process.env.TASK_EVIDENCE || tempDir, 'assignment-keyboard-'+width+'.png'),fullPage:true});
+      await check('One').check();await save();assert.equal((await state()).calls,1);assert.equal((await state()).writes,1);
+      const edit=page.locator('[data-core-action="assign"]');await edit.click();await page.keyboard.press('Escape');assert.equal(await edit.evaluate(el=>document.activeElement===el),true);
+      await choose();await category();await cancel();assert.equal(await invoker.evaluate(el=>document.activeElement===el),true);
+      await choose();await page.locator('#popup-assign-category').click({position:{x:2,y:2}});assert.equal(await invoker.evaluate(el=>document.activeElement===el),true);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    }
     assert.deepEqual(errors,[]); assert.deepEqual(externalRequests,[]);
-    console.log(JSON.stringify({status:'PASS', scenarios: 'empty herb/category, search, hostile names, multi-assign, cancel/reopen, no-op, exact snapshots and independent storage writes, non-Boolean and false preservation, removal, reload, existing editor, stale references, renamed herb', errors,externalRequests}));
+    console.log(JSON.stringify({status:'PASS', scenarios: 'empty herb/category, search, hostile names, multi-assign, cancel/reopen, no-op, exact snapshots and independent storage writes, non-Boolean and false preservation, removal, reload, existing editor, stale references, renamed herb, atomic stale-value rejection, nested snapshots, missing vs null, desktop/mobile keyboard focus and Escape', errors,externalRequests}));
     await context.close();
   } finally { if (browser) await browser.close(); }
 }
