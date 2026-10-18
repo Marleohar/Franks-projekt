@@ -2979,7 +2979,11 @@ function formulaComponentText(value) {
 function renderFormulaComponents(formula, formulaName) {
   if (!Array.isArray(formula.components)) return `<p>${escapeCoreText(t("Komponentdata saknas eller stöds inte."))}</p>`;
   if (!formula.components.length) return `<p>${escapeCoreText(t("Inga komponenter i receptet än."))}</p>`;
-  return `<ul class="wiki-list formula-components">${formula.components.map((component, index) => {
+  // Stored array metadata can shadow methods. Read indexed rows without calling it.
+  let rows = "";
+  for (let index = 0; index < formula.components.length; index++) {
+    if (!(index in formula.components)) continue;
+    const component = formula.components[index];
     const row = component && typeof component === "object" && !Array.isArray(component) ? component : {};
     const id = Object.hasOwn(row, "objId") && typeof row.objId === "string" ? row.objId : null;
     const herb = id !== null && (db.objects || []).find(object => object && object.id === id);
@@ -2987,7 +2991,7 @@ function renderFormulaComponents(formula, formulaName) {
     try { if (herb) link = "#herb-id/" + encodeURIComponent(id); } catch (error) { /* Unencodable legacy IDs stay unavailable. */ }
     const name = link ? `<a class="wiki-link" href="${link}">${escapeCoreText(getDisplayObjName(herb))}</a>`
       : escapeCoreText(id !== null ? t("Otillgängligt objekt: {0}", {0: id}) : t("Objektreferens saknas."));
-    return `<li style="overflow-wrap:anywhere; margin-bottom:16px;">${name}
+    rows += `<li style="overflow-wrap:anywhere; margin-bottom:16px;">${name}
       <dl style="display:flex; flex-wrap:wrap; gap:8px 24px; margin:4px 0;">
         <div style="min-width:0; max-width:100%;"><dt>${escapeCoreText(t("Roll"))}</dt><dd class="formula-role" style="margin:0;">${escapeCoreText(formulaComponentText(row.role))}</dd></div>
         <div style="min-width:0; max-width:100%;"><dt>${escapeCoreText(t("Mängd"))}</dt><dd class="formula-qty" style="margin:0;">${escapeCoreText(formulaComponentText(row.qty))}</dd></div>
@@ -2995,7 +2999,8 @@ function renderFormulaComponents(formula, formulaName) {
       </dl>${formulaName !== undefined ? (Object.hasOwn(row, "objId") && typeof row.objId === "string" && !Object.hasOwn(row, "formulaId")
         ? `<div style="display:flex; flex-wrap:wrap; gap:8px;"><button class="wiki-btn" ${coreAction("componentEdit", formulaName, index)}>${escapeCoreText(t("Redigera komponent"))}</button><button class="wiki-btn" ${coreAction("componentRemove", formulaName, index)}>${escapeCoreText(t("Ta bort komponent"))}</button></div>`
         : `<p>${escapeCoreText(t("Äldre komponentformat stöds inte för redigering. Data bevaras."))}</p>`) : ""}</li>`;
-  }).join("")}</ul>`;
+  }
+  return `<ul class="wiki-list formula-components">${rows}</ul>`;
 }
 
 function renderFormulaDetailPage(fName) {
