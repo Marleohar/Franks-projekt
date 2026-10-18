@@ -1372,7 +1372,7 @@ function bindCoreActions(root) {
     const formulaArgs = element.dataset.coreAction === "formulaEditor" ? JSON.parse(element.dataset.coreArgs) : null;
     const formulaView = formulaArgs && { library: db, map: db.formulas, record: db.formulas?.[formulaArgs[0]], route: window.location.hash };
     const componentArgs = ["componentAdd", "componentEdit", "componentRemove"].includes(element.dataset.coreAction) ? JSON.parse(element.dataset.coreArgs) : null;
-    const componentView = componentArgs && { library: db, map: db.formulas, formula: db.formulas?.[componentArgs[0]], components: db.formulas?.[componentArgs[0]]?.components, rows: Array.isArray(db.formulas?.[componentArgs[0]]?.components) ? [...db.formulas[componentArgs[0]].components] : [], route: window.location.hash, snapshot: structuredClone(db) };
+    const componentView = componentArgs && { library: db, map: db.formulas, formula: db.formulas?.[componentArgs[0]], components: db.formulas?.[componentArgs[0]]?.components, rows: formulaComponentArrayLayoutSupported(db.formulas?.[componentArgs[0]]?.components) ? formulaComponentRows(db.formulas[componentArgs[0]].components) : [], route: window.location.hash, snapshot: structuredClone(db) };
     element.addEventListener("click", event => {
       event.preventDefault();
       const args = JSON.parse(element.dataset.coreArgs);
@@ -3013,8 +3013,9 @@ function renderFormulaDetailPage(fName) {
     <button class="wiki-btn" ${coreAction("formulaEditor", fName)}>${escapeCoreText(t("Redigera beskrivning"))}</button>
     <hr class="wiki-divider">
     <h2 class="wiki-section">${escapeCoreText(t("Ingående komponenter"))}</h2>
-    ${Array.isArray(formula.components) ? `<button class="wiki-btn" ${coreAction("componentAdd", fName)}>${escapeCoreText(t("Lägg till komponent"))}</button>` : ""}
-    ${renderFormulaComponents(formula, fName)}
+    ${formulaComponentArrayLayoutSupported(formula.components) ? `<button class="wiki-btn" ${coreAction("componentAdd", fName)}>${escapeCoreText(t("Lägg till komponent"))}</button>` : ""}
+    ${Array.isArray(formula.components) && !formulaComponentArrayLayoutSupported(formula.components)
+      ? `<p>${escapeCoreText(t("Äldre komponentformat stöds inte för redigering. Data bevaras."))}</p>` : renderFormulaComponents(formula, fName)}
   `;
   bindCoreActions(app);
 }
@@ -3031,18 +3032,88 @@ function formulaComponentActive(draft) {
   return !!draft && openFormulaComponent.draft === draft && !draft.used;
 }
 
+function formulaComponentArrayLayoutSupported(array) {
+  // Imported JSON arrays are dense, with ordinary own data slots. Do not repair
+  // sparse/accessor/hidden-index layouts or invoke inherited indexed behavior.
+  if (!Array.isArray(array) || Object.getPrototypeOf(array) !== Array.prototype) return false;
+  const isIndex = key => typeof key === "string" && String(Number(key)) === key &&
+    Number.isInteger(Number(key)) && Number(key) >= 0 && Number(key) < 4294967295;
+  for (let proto = Object.getPrototypeOf(array); proto; proto = Object.getPrototypeOf(proto)) {
+    if (Reflect.ownKeys(proto).some(isIndex)) return false;
+  }
+  let indices = 0;
+  for (const key of Reflect.ownKeys(array)) {
+    const descriptor = Object.getOwnPropertyDescriptor(array, key);
+    if (!("value" in descriptor) || typeof key === "symbol" || key === "constructor" || typeof descriptor.value === "function") return false;
+    if (isIndex(key)) {
+      if (!descriptor.enumerable || descriptor.value === undefined) return false;
+      indices++;
+    }
+  }
+  return indices === Object.getOwnPropertyDescriptor(array, "length").value;
+}
+
+function formulaComponentRows(array) {
+  const rows = [];
+  for (let index = 0; index < array.length; index++) rows.push(Object.getOwnPropertyDescriptor(array, String(index)).value);
+  return rows;
+}
+
 function formulaComponentArrayWritable(array) {
-  return Object.isExtensible(array) && Object.getOwnPropertyDescriptor(array, "length").writable &&
-    Object.keys(array).every(key => { const d = Object.getOwnPropertyDescriptor(array, key); return "value" in d && d.writable && d.configurable; });
+  if (!formulaComponentArrayLayoutSupported(array) || !Object.isExtensible(array) ||
+      !Object.getOwnPropertyDescriptor(array, "length").writable) return false;
+  for (let index = 0; index < array.length; index++) {
+    const descriptor = Object.getOwnPropertyDescriptor(array, String(index));
+    if (!descriptor.writable || !descriptor.configurable) return false;
+  }
+  return true;
+}
+
+function prepareFormulaComponentMutation(draft, changes) {
+  const array = draft.components;
+  if (!formulaComponentArrayLayoutSupported(array)) return null;
+  if (draft.mode === "edit") {
+    const slots = [];
+    for (const [key, value] of Object.entries(changes)) {
+      const descriptor = Object.getOwnPropertyDescriptor(draft.row, key);
+      if (descriptor ? !("value" in descriptor) || (!descriptor.writable && !descriptor.configurable) : !Object.isExtensible(draft.row)) return null;
+      slots.push([key, descriptor ? {...descriptor, value} : {value, enumerable: true, configurable: true, writable: true}]);
+    }
+    return { target: draft.row, slots };
+  }
+  if (!formulaComponentArrayWritable(array)) return null;
+  const length = array.length;
+  if (draft.mode === "add") {
+    if (length === 4294967295) return null;
+    return { target: array, slots: [[String(length), {value: {objId: draft.selected.id, role: changes.role, qty: changes.qty, unit: changes.unit}, enumerable: true, configurable: true, writable: true}]] };
+  }
+  if (!Number.isInteger(draft.index) || draft.index < 0 || draft.index >= length || array[draft.index] !== draft.row) return null;
+  const slots = [];
+  for (let index = draft.index; index < length - 1; index++) {
+    slots.push([String(index), {...Object.getOwnPropertyDescriptor(array, String(index)), value: Object.getOwnPropertyDescriptor(array, String(index + 1)).value}]);
+  }
+  return { target: array, slots, remove: String(length - 1), length: length - 1 };
+}
+
+function applyFormulaComponentMutation(plan) {
+  // The complete plan is validated first. Ordinary own data-slot definitions
+  // invoke neither setters, species constructors nor user array methods.
+  for (const [key, descriptor] of plan.slots) Object.defineProperty(plan.target, key, descriptor);
+  if (plan.remove !== undefined) {
+    Reflect.deleteProperty(plan.target, plan.remove);
+    Object.defineProperty(plan.target, "length", {value: plan.length});
+  }
 }
 
 function openFormulaComponent(id, mode, index) {
   const formula = db.formulas && Object.hasOwn(db.formulas, id) ? db.formulas[id] : null;
   if (!formula || !Array.isArray(formula.components) || !["add", "edit", "remove"].includes(mode)) return;
-  const row = formula.components[index];
-  if (mode !== "add" && (!Number.isInteger(index) || !row || typeof row !== "object" || Array.isArray(row) || !Object.hasOwn(row, "objId") || typeof row.objId !== "string" || Object.hasOwn(row, "formulaId"))) return;
+  if (!formulaComponentArrayLayoutSupported(formula.components)) { alert(t("Formeln har ändrats. Öppna formeln igen innan du redigerar.")); return; }
+  if (mode !== "add" && (!Number.isInteger(index) || index < 0 || index >= formula.components.length)) return;
+  const row = mode === "add" ? null : Object.getOwnPropertyDescriptor(formula.components, String(index)).value;
+  if (mode !== "add" && (!row || typeof row !== "object" || Array.isArray(row) || !Object.hasOwn(row, "objId") || typeof row.objId !== "string" || Object.hasOwn(row, "formulaId"))) return;
   let draft;
-  try { draft = { id, mode, index, row, library: db, map: db.formulas, formula, components: formula.components, rows: [...formula.components], route: window.location.hash, snapshot: structuredClone(db), used: false, selected: null, fields: {}, originalText: {} }; }
+  try { draft = { id, mode, index, row, library: db, map: db.formulas, formula, components: formula.components, rows: formulaComponentRows(formula.components), route: window.location.hash, snapshot: structuredClone(db), used: false, selected: null, fields: {}, originalText: {} }; }
   catch (error) { return; }
   const invoker = assignModalReturn || document.activeElement;
   closePopup();
@@ -3102,7 +3173,7 @@ function openFormulaComponent(id, mode, index) {
 
 function saveFormulaComponent(draft) {
   if (!formulaComponentActive(draft)) return;
-  if (!formulaComponentContextValid(draft, draft.id)) {
+  if (!formulaComponentArrayLayoutSupported(draft.components) || !formulaComponentContextValid(draft, draft.id)) {
     closePopup(); alert(t("Formeln har ändrats. Öppna formeln igen innan du redigerar.")); return;
   }
   const fail = () => { document.getElementById("formula-component-message").textContent = t("Välj en befintlig ört och ange en giltig mängd. Data har inte ändrats."); };
@@ -3121,19 +3192,10 @@ function saveFormulaComponent(draft) {
       if (!Object.keys(changes).length) { closePopup(); return; }
     }
   }
-  // Preflight every modified slot before the first mutation, including frozen legacy data.
-  const writable = draft.mode === "edit" ? Object.keys(changes).every(key => {
-    const descriptor = Object.getOwnPropertyDescriptor(draft.row, key);
-    return descriptor ? "value" in descriptor && (descriptor.writable || descriptor.configurable) : Object.isExtensible(draft.row);
-  }) : formulaComponentArrayWritable(draft.components);
-  if (!writable) { closePopup(); alert(t("Formeln har ändrats. Öppna formeln igen innan du redigerar.")); return; }
+  const plan = prepareFormulaComponentMutation(draft, changes);
+  if (!plan) { closePopup(); alert(t("Formeln har ändrats. Öppna formeln igen innan du redigerar.")); return; }
   draft.used = true;
-  if (draft.mode === "add") draft.components.push({objId: draft.selected.id, role: changes.role, qty: changes.qty, unit: changes.unit});
-  else if (draft.mode === "remove") draft.components.splice(draft.index, 1);
-  else for (const [key, value] of Object.entries(changes)) {
-    const descriptor = Object.getOwnPropertyDescriptor(draft.row, key);
-    Object.defineProperty(draft.row, key, descriptor ? {...descriptor, value} : {value, enumerable: true, configurable: true, writable: true});
-  }
+  applyFormulaComponentMutation(plan);
   persist(true);
   closePopup();
   renderFormulaDetailPage(draft.id);
