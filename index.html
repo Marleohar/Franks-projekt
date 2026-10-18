@@ -476,7 +476,7 @@
       <div class="popup-body">
         <textarea id="popup-editor-input" rows="8" placeholder="Skriv beskrivning här..." data-i18n-placeholder="Skriv beskrivning här..."></textarea>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button class="wiki-btn primary" onclick="saveDescription()" data-i18n="Spara">Spara</button>
+          <button class="wiki-btn primary" data-i18n="Spara">Spara</button>
           <button class="wiki-btn" onclick="closePopup()" data-i18n="Avbryt">Avbryt</button>
         </div>
       </div>
@@ -648,6 +648,7 @@ const i18n = {
     "Otillgängligt objekt: {0}": "Unavailable object: {0}",
     "Objektreferens saknas.": "Object reference is missing.",
     "Formeln har ändrats. Öppna formeln igen innan du redigerar.": "Formula changed. Reopen the formula before editing.",
+    "Data har ändrats. Öppna profilen igen innan du redigerar.": "Data changed. Reopen the profile before editing.",
     "Skriv beskrivning här...": "Write a description here...",
     "Spara": "Save",
     "Lägg till studieobjekt": "Add study object",
@@ -898,6 +899,7 @@ const i18n = {
     "Otillgängligt objekt: {0}": "Otillgängligt objekt: {0}",
     "Objektreferens saknas.": "Objektreferens saknas.",
     "Formeln har ändrats. Öppna formeln igen innan du redigerar.": "Formeln har ändrats. Öppna formeln igen innan du redigerar.",
+    "Data har ändrats. Öppna profilen igen innan du redigerar.": "Data har ändrats. Öppna profilen igen innan du redigerar.",
     "Skriv beskrivning här...": "Skriv beskrivning här...",
     "Spara": "Spara",
     "Lägg till studieobjekt": "Lägg till studieobjekt",
@@ -3296,7 +3298,11 @@ function submitDirectLink(draft) {
 }
 
 function closePopup() {
-  if (typeof openEditor === "function") openEditor.formulaDraft = null;
+  if (typeof openEditor === "function") {
+    if (openEditor.session) openEditor.session.used = true;
+    openEditor.session = null;
+    openEditor.formulaDraft = null;
+  }
   const direct = directLinkDraft;
   directLinkDraft = null;
   document.querySelectorAll(".popup-overlay").forEach(el => el.style.display = "none");
@@ -3310,7 +3316,24 @@ function closeOnOverlayClick(e, overlayId) {
 let editorMode = "";
 let editorTargetId = "";
 
+function descriptionEditorTarget(library, type, id) {
+  if (!library) return null;
+  const keys = { herb: "objects", prop: "properties", cat: "categories", system: "systems", formula: "formulas" };
+  if (!Object.hasOwn(keys, type)) return null;
+  const collection = library[keys[type]];
+  const record = type === "herb" ? (Array.isArray(collection) ? collection.find(item => item && item.id === id) : null)
+    : (collection && Object.hasOwn(collection, id) ? collection[id] : null);
+  if (!record || typeof record !== "object" || Array.isArray(record)) return null;
+  return { collection, record };
+}
+
 function openEditor(type, id) {
+  const target = descriptionEditorTarget(db, type, id);
+  if (!target) return;
+  let session;
+  try {
+    session = { ...target, library: db, type, id, route: window.location.hash, snapshot: structuredClone(target.record), used: false };
+  } catch (error) { return; }
   if (type === "formula") {
     if (openEditor.formulaDraft) return;
     const record = db.formulas && Object.hasOwn(db.formulas, id) ? db.formulas[id] : null;
@@ -3320,6 +3343,7 @@ function openEditor(type, id) {
         components: record.components, rows: Array.isArray(record.components) ? [...record.components] : [], snapshot: structuredClone(db) };
     } catch (error) { return; }
   } else openEditor.formulaDraft = null;
+  openEditor.session = session;
   editorMode = type;
   editorTargetId = id;
   const input = document.getElementById("popup-editor-input");
@@ -3333,19 +3357,30 @@ function openEditor(type, id) {
   else if (type === "formula") input.value = String(db.formulas[id].desc || "");
 
   const saveButton = document.querySelector("#popup-editor .primary");
+  if (saveButton) saveButton.onclick = () => saveDescription(session);
   if (type === "formula") {
     const draft = openEditor.formulaDraft;
     draft.text = input.value;
-    if (saveButton) saveButton.onclick = () => { if (openEditor.formulaDraft === draft) saveDescription(); };
     showAssignmentDialog("popup-editor", "popup-editor-input", document.activeElement);
     return;
   }
-  if (saveButton) saveButton.onclick = () => saveDescription();
   document.getElementById("popup-editor").style.display = "flex";
   input.focus();
 }
 
-function saveDescription() {
+function saveDescription(session) {
+  // Only the callback bound to this exact open editor may authorize a save.
+  // Rejecting an old callback must not consume, close or refocus a newer editor.
+  if (!session || session !== openEditor.session || session.used || session.type !== editorMode || session.id !== editorTargetId) return;
+  const live = descriptionEditorTarget(db, session.type, session.id);
+  if (db !== session.library || !live || live.collection !== session.collection || live.record !== session.record ||
+      window.location.hash !== session.route || !equalAssignValue(session.snapshot, live.record)) {
+    closePopup();
+    alert(t(session.type === "formula" ? "Formeln har ändrats. Öppna formeln igen innan du redigerar." : "Data har ändrats. Öppna profilen igen innan du redigerar."));
+    return;
+  }
+  session.used = true;
+  openEditor.session = null;
   const input = document.getElementById("popup-editor-input").value;
   if (editorMode === "formula") {
     const draft = openEditor.formulaDraft;
@@ -3370,6 +3405,10 @@ function saveDescription() {
     renderFormulaDetailPage(draft.id);
     document.querySelector('[data-core-action="formulaEditor"]')?.focus();
     return;
+  }
+  const descriptor = Object.getOwnPropertyDescriptor(session.record, "desc");
+  if (descriptor ? !("value" in descriptor) || !descriptor.writable : !Object.isExtensible(session.record)) {
+    closePopup(); alert(t("Data har ändrats. Öppna profilen igen innan du redigerar.")); return;
   }
   const val = input.trim();
   if (editorMode === "herb") {

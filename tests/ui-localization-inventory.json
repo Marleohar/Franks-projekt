@@ -31,6 +31,7 @@
     "Cannot restore this record: its data format is invalid.",
     "Data changed. Reopen the assignment dialog to use current values.",
     "Data har ändrats. Öppna egenskapen igen innan du byter namn.",
+    "Data har ändrats. Öppna profilen igen innan du redigerar.",
     "Den nya örtens namn",
     "Egenskap",
     "Egenskapen \"{0}\" finns inte i biblioteket.",
