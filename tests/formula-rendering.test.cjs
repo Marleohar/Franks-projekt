@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {formulaLibrary}=require('./fixtures/formula-library.cjs');
 const source=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
-const names=['descriptionEditorTarget','formulaComponentText','renderFormulaComponents','getDisplayObjName','equalAssignValue','escapeCoreText','coreAction','bindCoreActions','renderFormulasIndexPage','renderFormulaDetailPage','promptCreateFormula','deleteFormula','handleRouting','openEditor','saveDescription','closePopup','releaseAssignmentDialog','showAssignmentDialog'];
+const names=['formulaComponentArrayLayoutSupported','formulaComponentRows','descriptionEditorTarget','formulaComponentText','renderFormulaComponents','getDisplayObjName','equalAssignValue','escapeCoreText','coreAction','bindCoreActions','renderFormulasIndexPage','renderFormulaDetailPage','promptCreateFormula','deleteFormula','handleRouting','openEditor','saveDescription','closePopup','releaseAssignmentDialog','showAssignmentDialog'];
 const functions=names.map(name=>{const pattern=name==='deleteFormula'?/^function deleteFormula\([^\r\n]*$/gm:new RegExp(`^function ${name}\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}`,'gm');const m=[...source.matchAll(pattern)];assert.equal(m.length,1,name);return m[0][0]}).join('\n');
 function run(code){const c=vm.createContext(Object.create(null),{codeGeneration:{strings:false,wasm:false}});c.structuredClone=structuredClone;c.inputJSON=JSON.stringify(formulaLibrary());return JSON.parse(new vm.Script(`
 const f=JSON.parse(inputJSON),nodes=Object.create(null);let db=f.library;const window={location:{hash:'#formulas'},scrollTo(){}};

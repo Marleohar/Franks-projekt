@@ -447,6 +447,13 @@
   </div>
 
   <!-- Shared, confirmation-only direct herb/property linking. -->
+  <div class="popup-overlay" id="popup-formula-component">
+    <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="formula-component-title">
+      <div class="popup-header"><span id="formula-component-title"></span></div>
+      <div class="popup-body" id="formula-component-body"></div>
+    </div>
+  </div>
+
   <div class="popup-overlay" id="popup-direct-link" onclick="closeOnOverlayClick(event, 'popup-direct-link')">
     <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="direct-link-title">
       <div class="popup-header"><span id="direct-link-title"></span><button class="wiki-btn" onclick="closePopup()" aria-label="Stäng" data-i18n-aria-label="Stäng">✕</button></div>
@@ -846,7 +853,18 @@ const i18n = {
     "En ny ört skapas först när du bekräftar.": "A new herb is created only when you confirm.",
     "Vald: {0}": "Selected: {0}",
     "Välj ett sökresultat och bekräfta.": "Select a search result, then confirm.",
-    "Välj en post eller ange ett namn på den nya örten.": "Select a record or enter a name for the new herb."
+    "Välj en post eller ange ett namn på den nya örten.": "Select a record or enter a name for the new herb.",
+    "Lägg till komponent": "Add component",
+    "Redigera komponent": "Edit component",
+    "Ta bort komponent": "Remove component",
+    "Äldre komponentformat stöds inte för redigering. Data bevaras.": "This legacy component format cannot be edited. Data is preserved.",
+    "Sök befintlig ört eller ID": "Search existing herbs or IDs",
+    "Vald ört: {0}": "Selected herb: {0}",
+    "Välj ört": "Select herb",
+    "Ta bort endast den här komponentraden?": "Remove only this component row?",
+    "Bekräfta borttagning": "Confirm removal",
+    "Välj en befintlig ört och ange en giltig mängd. Data har inte ändrats.": "Select an existing herb and enter a valid quantity. Data has not changed.",
+    "Inga örter hittades.": "No herbs found."
   },
   "sv": {
     "brand": "Ört-Wiki",
@@ -1097,7 +1115,18 @@ const i18n = {
     "En ny ört skapas först när du bekräftar.": "En ny ört skapas först när du bekräftar.",
     "Vald: {0}": "Vald: {0}",
     "Välj ett sökresultat och bekräfta.": "Välj ett sökresultat och bekräfta.",
-    "Välj en post eller ange ett namn på den nya örten.": "Välj en post eller ange ett namn på den nya örten."
+    "Välj en post eller ange ett namn på den nya örten.": "Välj en post eller ange ett namn på den nya örten.",
+    "Lägg till komponent": "Lägg till komponent",
+    "Redigera komponent": "Redigera komponent",
+    "Ta bort komponent": "Ta bort komponent",
+    "Äldre komponentformat stöds inte för redigering. Data bevaras.": "Äldre komponentformat stöds inte för redigering. Data bevaras.",
+    "Sök befintlig ört eller ID": "Sök befintlig ört eller ID",
+    "Vald ört: {0}": "Vald ört: {0}",
+    "Välj ört": "Välj ört",
+    "Ta bort endast den här komponentraden?": "Ta bort endast den här komponentraden?",
+    "Bekräfta borttagning": "Bekräfta borttagning",
+    "Välj en befintlig ört och ange en giltig mängd. Data har inte ändrats.": "Välj en befintlig ört och ange en giltig mängd. Data har inte ändrats.",
+    "Inga örter hittades.": "Inga örter hittades."
   }
 };
 
@@ -1342,6 +1371,8 @@ function bindCoreActions(root) {
     const renameView = renameName !== null && { library: db, properties: db.properties, record: Object.hasOwn(db.properties, renameName) ? db.properties[renameName] : null, route: window.location.hash, used: false };
     const formulaArgs = element.dataset.coreAction === "formulaEditor" ? JSON.parse(element.dataset.coreArgs) : null;
     const formulaView = formulaArgs && { library: db, map: db.formulas, record: db.formulas?.[formulaArgs[0]], route: window.location.hash };
+    const componentArgs = ["componentAdd", "componentEdit", "componentRemove"].includes(element.dataset.coreAction) ? JSON.parse(element.dataset.coreArgs) : null;
+    const componentView = componentArgs && { library: db, map: db.formulas, formula: db.formulas?.[componentArgs[0]], components: db.formulas?.[componentArgs[0]]?.components, rows: formulaComponentArrayLayoutSupported(db.formulas?.[componentArgs[0]]?.components) ? formulaComponentRows(db.formulas[componentArgs[0]].components) : [], route: window.location.hash, snapshot: structuredClone(db) };
     element.addEventListener("click", event => {
       event.preventDefault();
       const args = JSON.parse(element.dataset.coreArgs);
@@ -1353,6 +1384,12 @@ function bindCoreActions(root) {
             alert(t("Formeln har ändrats. Öppna formeln igen innan du redigerar.")); break;
           }
           openEditor("formula", formulaArgs[0]); break;
+        case "componentAdd":
+        case "componentEdit":
+        case "componentRemove":
+          if (openFormulaComponent.draft || openEditor.session) break;
+          if (element.isConnected === false || !formulaComponentContextValid(componentView, args[0])) { alert(t("Formeln har ändrats. Öppna formeln igen innan du redigerar.")); break; }
+          openFormulaComponent(args[0], element.dataset.coreAction === "componentAdd" ? "add" : element.dataset.coreAction === "componentEdit" ? "edit" : "remove", args[1]); break;
         case "formulaCreate": promptCreateFormula(); break;
         case "formulaDelete": deleteFormula(...args); break;
         case "glossaryCreate": promptCreateHerbFromGlossary(); break;
@@ -2939,10 +2976,14 @@ function formulaComponentText(value) {
   return typeof value === "object" ? JSON.stringify(value) : String(value);
 }
 
-function renderFormulaComponents(formula) {
+function renderFormulaComponents(formula, formulaName) {
   if (!Array.isArray(formula.components)) return `<p>${escapeCoreText(t("Komponentdata saknas eller stöds inte."))}</p>`;
   if (!formula.components.length) return `<p>${escapeCoreText(t("Inga komponenter i receptet än."))}</p>`;
-  return `<ul class="wiki-list formula-components">${formula.components.map(component => {
+  // Stored array metadata can shadow methods. Read indexed rows without calling it.
+  let rows = "";
+  for (let index = 0; index < formula.components.length; index++) {
+    if (!(index in formula.components)) continue;
+    const component = formula.components[index];
     const row = component && typeof component === "object" && !Array.isArray(component) ? component : {};
     const id = Object.hasOwn(row, "objId") && typeof row.objId === "string" ? row.objId : null;
     const herb = id !== null && (db.objects || []).find(object => object && object.id === id);
@@ -2950,13 +2991,16 @@ function renderFormulaComponents(formula) {
     try { if (herb) link = "#herb-id/" + encodeURIComponent(id); } catch (error) { /* Unencodable legacy IDs stay unavailable. */ }
     const name = link ? `<a class="wiki-link" href="${link}">${escapeCoreText(getDisplayObjName(herb))}</a>`
       : escapeCoreText(id !== null ? t("Otillgängligt objekt: {0}", {0: id}) : t("Objektreferens saknas."));
-    return `<li style="overflow-wrap:anywhere; margin-bottom:16px;">${name}
+    rows += `<li style="overflow-wrap:anywhere; margin-bottom:16px;">${name}
       <dl style="display:flex; flex-wrap:wrap; gap:8px 24px; margin:4px 0;">
         <div style="min-width:0; max-width:100%;"><dt>${escapeCoreText(t("Roll"))}</dt><dd class="formula-role" style="margin:0;">${escapeCoreText(formulaComponentText(row.role))}</dd></div>
         <div style="min-width:0; max-width:100%;"><dt>${escapeCoreText(t("Mängd"))}</dt><dd class="formula-qty" style="margin:0;">${escapeCoreText(formulaComponentText(row.qty))}</dd></div>
         <div style="min-width:0; max-width:100%;"><dt>${escapeCoreText(t("Enhet"))}</dt><dd class="formula-unit" style="margin:0;">${escapeCoreText(formulaComponentText(row.unit))}</dd></div>
-      </dl></li>`;
-  }).join("")}</ul>`;
+      </dl>${formulaName !== undefined ? (Object.hasOwn(row, "objId") && typeof row.objId === "string" && !Object.hasOwn(row, "formulaId")
+        ? `<div style="display:flex; flex-wrap:wrap; gap:8px;"><button class="wiki-btn" ${coreAction("componentEdit", formulaName, index)}>${escapeCoreText(t("Redigera komponent"))}</button><button class="wiki-btn" ${coreAction("componentRemove", formulaName, index)}>${escapeCoreText(t("Ta bort komponent"))}</button></div>`
+        : `<p>${escapeCoreText(t("Äldre komponentformat stöds inte för redigering. Data bevaras."))}</p>`) : ""}</li>`;
+  }
+  return `<ul class="wiki-list formula-components">${rows}</ul>`;
 }
 
 function renderFormulaDetailPage(fName) {
@@ -2974,9 +3018,193 @@ function renderFormulaDetailPage(fName) {
     <button class="wiki-btn" ${coreAction("formulaEditor", fName)}>${escapeCoreText(t("Redigera beskrivning"))}</button>
     <hr class="wiki-divider">
     <h2 class="wiki-section">${escapeCoreText(t("Ingående komponenter"))}</h2>
-    ${renderFormulaComponents(formula)}
+    ${formulaComponentArrayLayoutSupported(formula.components) ? `<button class="wiki-btn" ${coreAction("componentAdd", fName)}>${escapeCoreText(t("Lägg till komponent"))}</button>` : ""}
+    ${Array.isArray(formula.components) && !formulaComponentArrayLayoutSupported(formula.components)
+      ? `<p>${escapeCoreText(t("Äldre komponentformat stöds inte för redigering. Data bevaras."))}</p>` : renderFormulaComponents(formula, fName)}
   `;
   bindCoreActions(app);
+}
+
+// Flat component operations retain in-memory row identity; no persistent IDs or migrations.
+function formulaComponentContextValid(view, id) {
+  return !!view && view.library === db && view.map === db.formulas && Object.hasOwn(db.formulas || {}, id) &&
+    view.formula === db.formulas[id] && view.route === window.location.hash &&
+    view.components === view.formula.components && Array.isArray(view.components) &&
+    view.rows.length === view.components.length && view.rows.every((row, index) => row === view.components[index]) && equalAssignValue(view.snapshot, db);
+}
+
+function formulaComponentActive(draft) {
+  return !!draft && openFormulaComponent.draft === draft && !draft.used;
+}
+
+function formulaComponentArrayLayoutSupported(array) {
+  // Imported JSON arrays are dense, with ordinary own data slots. Do not repair
+  // sparse/accessor/hidden-index layouts or invoke inherited indexed behavior.
+  if (!Array.isArray(array) || Object.getPrototypeOf(array) !== Array.prototype) return false;
+  const isIndex = key => typeof key === "string" && String(Number(key)) === key &&
+    Number.isInteger(Number(key)) && Number(key) >= 0 && Number(key) < 4294967295;
+  for (let proto = Object.getPrototypeOf(array); proto; proto = Object.getPrototypeOf(proto)) {
+    if (Reflect.ownKeys(proto).some(isIndex)) return false;
+  }
+  let indices = 0;
+  for (const key of Reflect.ownKeys(array)) {
+    const descriptor = Object.getOwnPropertyDescriptor(array, key);
+    if (!("value" in descriptor) || typeof key === "symbol" || key === "constructor" || typeof descriptor.value === "function") return false;
+    if (isIndex(key)) {
+      if (!descriptor.enumerable || descriptor.value === undefined) return false;
+      indices++;
+    }
+  }
+  return indices === Object.getOwnPropertyDescriptor(array, "length").value;
+}
+
+function formulaComponentRows(array) {
+  const rows = [];
+  for (let index = 0; index < array.length; index++) rows.push(Object.getOwnPropertyDescriptor(array, String(index)).value);
+  return rows;
+}
+
+function formulaComponentArrayWritable(array) {
+  if (!formulaComponentArrayLayoutSupported(array) || !Object.isExtensible(array) ||
+      !Object.getOwnPropertyDescriptor(array, "length").writable) return false;
+  for (let index = 0; index < array.length; index++) {
+    const descriptor = Object.getOwnPropertyDescriptor(array, String(index));
+    if (!descriptor.writable || !descriptor.configurable) return false;
+  }
+  return true;
+}
+
+function prepareFormulaComponentMutation(draft, changes) {
+  const array = draft.components;
+  if (!formulaComponentArrayLayoutSupported(array)) return null;
+  if (draft.mode === "edit") {
+    const slots = [];
+    for (const [key, value] of Object.entries(changes)) {
+      const descriptor = Object.getOwnPropertyDescriptor(draft.row, key);
+      if (descriptor ? !("value" in descriptor) || (!descriptor.writable && !descriptor.configurable) : !Object.isExtensible(draft.row)) return null;
+      slots.push([key, descriptor ? {...descriptor, value} : {value, enumerable: true, configurable: true, writable: true}]);
+    }
+    return { target: draft.row, slots };
+  }
+  if (!formulaComponentArrayWritable(array)) return null;
+  const length = array.length;
+  if (draft.mode === "add") {
+    if (length === 4294967295) return null;
+    return { target: array, slots: [[String(length), {value: {objId: draft.selected.id, role: changes.role, qty: changes.qty, unit: changes.unit}, enumerable: true, configurable: true, writable: true}]] };
+  }
+  if (!Number.isInteger(draft.index) || draft.index < 0 || draft.index >= length || array[draft.index] !== draft.row) return null;
+  const slots = [];
+  for (let index = draft.index; index < length - 1; index++) {
+    slots.push([String(index), {...Object.getOwnPropertyDescriptor(array, String(index)), value: Object.getOwnPropertyDescriptor(array, String(index + 1)).value}]);
+  }
+  return { target: array, slots, remove: String(length - 1), length: length - 1 };
+}
+
+function applyFormulaComponentMutation(plan) {
+  // The complete plan is validated first. Ordinary own data-slot definitions
+  // invoke neither setters, species constructors nor user array methods.
+  for (const [key, descriptor] of plan.slots) Object.defineProperty(plan.target, key, descriptor);
+  if (plan.remove !== undefined) {
+    Reflect.deleteProperty(plan.target, plan.remove);
+    Object.defineProperty(plan.target, "length", {value: plan.length});
+  }
+}
+
+function openFormulaComponent(id, mode, index) {
+  const formula = db.formulas && Object.hasOwn(db.formulas, id) ? db.formulas[id] : null;
+  if (!formula || !Array.isArray(formula.components) || !["add", "edit", "remove"].includes(mode)) return;
+  if (!formulaComponentArrayLayoutSupported(formula.components)) { alert(t("Formeln har ändrats. Öppna formeln igen innan du redigerar.")); return; }
+  if (mode !== "add" && (!Number.isInteger(index) || index < 0 || index >= formula.components.length)) return;
+  const row = mode === "add" ? null : Object.getOwnPropertyDescriptor(formula.components, String(index)).value;
+  if (mode !== "add" && (!row || typeof row !== "object" || Array.isArray(row) || !Object.hasOwn(row, "objId") || typeof row.objId !== "string" || Object.hasOwn(row, "formulaId"))) return;
+  let draft;
+  try { draft = { id, mode, index, row, library: db, map: db.formulas, formula, components: formula.components, rows: formulaComponentRows(formula.components), route: window.location.hash, snapshot: structuredClone(db), used: false, selected: null, fields: {}, originalText: {} }; }
+  catch (error) { return; }
+  const invoker = assignModalReturn || document.activeElement;
+  closePopup();
+  openFormulaComponent.draft = draft;
+  const body = document.getElementById("formula-component-body");
+  body.replaceChildren();
+  document.getElementById("formula-component-title").textContent = t(mode === "add" ? "Lägg till komponent" : mode === "edit" ? "Redigera komponent" : "Ta bort komponent");
+  const message = document.createElement("p");
+  message.id = "formula-component-message"; message.setAttribute("role", "status");
+  const button = (label, id, callback) => { const node = document.createElement("button"); node.type = "button"; node.className = "wiki-btn"; node.id = id; node.textContent = t(label); node.onclick = () => { if (formulaComponentActive(draft)) callback(); }; return node; };
+  let focusId;
+  if (mode === "add") {
+    const label = document.createElement("label"); label.textContent = t("Sök befintlig ört eller ID");
+    const search = document.createElement("input"); search.id = "formula-component-search"; search.type = "search"; label.htmlFor = search.id;
+    const results = document.createElement("div"); results.id = "formula-component-results"; results.style.cssText = "max-height:180px; overflow:auto; overflow-wrap:anywhere;";
+    const selection = document.createElement("p"); selection.id = "formula-component-selection";
+    search.oninput = () => {
+      if (!formulaComponentActive(draft)) return;
+      results.replaceChildren();
+      const q = search.value.toLocaleLowerCase();
+      const objects = (db.objects || []).filter(object => object && typeof object.id === "string" && (getDisplayObjName(object) + " " + object.id).toLocaleLowerCase().includes(q));
+      if (!objects.length) results.textContent = t("Inga örter hittades.");
+      objects.forEach(object => {
+        const choose = button("Välj ört", "", () => {
+          if (!formulaComponentContextValid(draft, id) || !db.objects.includes(object)) return;
+          draft.selected = object;
+          selection.textContent = t("Vald ört: {0}", {0: getDisplayObjName(object) + " — " + object.id});
+        });
+        choose.textContent = getDisplayObjName(object) + " — " + object.id;
+        choose.style.cssText = "display:block; width:100%; white-space:normal; overflow-wrap:anywhere; margin-bottom:6px;";
+        results.append(choose);
+      });
+    };
+    body.append(label, search, results, selection); search.oninput(); focusId = search.id;
+  } else {
+    const reference = document.createElement("p"); reference.textContent = row.objId; reference.style.overflowWrap = "anywhere"; body.append(reference);
+  }
+  if (mode === "remove") {
+    const question = document.createElement("p"); question.textContent = t("Ta bort endast den här komponentraden?"); body.append(question);
+  } else {
+    for (const [key, labelText] of [["role", "Roll"], ["qty", "Mängd"], ["unit", "Enhet"]]) {
+      const label = document.createElement("label"); label.textContent = t(labelText);
+      const input = document.createElement("input"); input.type = "text"; input.id = "formula-component-" + key; label.htmlFor = input.id;
+      const value = mode === "add" ? ({role: "", qty: 1, unit: "g"})[key] : row[key];
+      input.value = value === undefined ? "" : typeof value === "object" ? JSON.stringify(value) : String(value);
+      draft.originalText[key] = input.value; draft.fields[key] = input;
+      body.append(label, input);
+    }
+  }
+  const confirm = button(mode === "remove" ? "Bekräfta borttagning" : "Spara", "formula-component-save", () => saveFormulaComponent(draft));
+  const cancel = button("Avbryt", "formula-component-cancel", () => closePopup());
+  body.append(message, confirm, cancel);
+  const overlay = document.getElementById("popup-formula-component");
+  overlay.onclick = event => { if (event.target === overlay && formulaComponentActive(draft)) closePopup(); };
+  showAssignmentDialog(overlay.id, focusId || (mode === "remove" ? confirm.id : "formula-component-role"), invoker);
+}
+
+function saveFormulaComponent(draft) {
+  if (!formulaComponentActive(draft)) return;
+  if (!formulaComponentArrayLayoutSupported(draft.components) || !formulaComponentContextValid(draft, draft.id)) {
+    closePopup(); alert(t("Formeln har ändrats. Öppna formeln igen innan du redigerar.")); return;
+  }
+  const fail = () => { document.getElementById("formula-component-message").textContent = t("Välj en befintlig ört och ange en giltig mängd. Data har inte ändrats."); };
+  const changes = {};
+  if (draft.mode !== "remove") {
+    for (const key of ["role", "qty", "unit"]) {
+      const text = draft.fields[key].value;
+      if (draft.mode === "edit" && text === draft.originalText[key]) continue;
+      if (key === "qty" && (!text.trim() || !Number.isFinite(Number(text)))) { fail(); return; }
+      changes[key] = key === "qty" ? Number(text) : text;
+    }
+    if (draft.mode === "add") {
+      if (!draft.selected || !db.objects.includes(draft.selected) || db.objects.filter(object => object && object.id === draft.selected.id).length !== 1) { fail(); return; }
+    } else {
+      for (const key of Object.keys(changes)) if (Object.hasOwn(draft.row, key) && equalAssignValue(draft.row[key], changes[key])) delete changes[key];
+      if (!Object.keys(changes).length) { closePopup(); return; }
+    }
+  }
+  const plan = prepareFormulaComponentMutation(draft, changes);
+  if (!plan) { closePopup(); alert(t("Formeln har ändrats. Öppna formeln igen innan du redigerar.")); return; }
+  draft.used = true;
+  applyFormulaComponentMutation(plan);
+  persist(true);
+  closePopup();
+  renderFormulaDetailPage(draft.id);
+  document.querySelector('[data-core-action="componentAdd"]')?.focus();
 }
 
 function deleteFormula(fName) { if (!confirm(t("Radera formeln '{0}'?", {0: fName}))) return; delete db.formulas[fName]; persist(); window.location.hash = "#formulas"; }
@@ -3298,6 +3526,10 @@ function submitDirectLink(draft) {
 }
 
 function closePopup() {
+  if (typeof openFormulaComponent === "function" && openFormulaComponent.draft) {
+    openFormulaComponent.draft.used = true;
+    openFormulaComponent.draft = null;
+  }
   if (typeof openEditor === "function") {
     if (openEditor.session) openEditor.session.used = true;
     openEditor.session = null;
@@ -3330,6 +3562,7 @@ function descriptionEditorTarget(library, type, id) {
 function openEditor(type, id) {
   const target = descriptionEditorTarget(db, type, id);
   if (!target) return;
+  if (typeof openFormulaComponent === "function" && openFormulaComponent.draft) closePopup();
   let session;
   try {
     session = { ...target, library: db, type, id, route: window.location.hash, snapshot: structuredClone(target.record), used: false };
