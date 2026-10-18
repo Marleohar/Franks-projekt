@@ -51,6 +51,7 @@ test('actual dispatcher forwards original property action arguments without eval
   context.inputJSON = JSON.stringify(cases);
   const result = JSON.parse(new vm.Script(`
     const cases=JSON.parse(inputJSON), calls=[]; let payloads=0;
+    const db={properties:Object.fromEntries(cases.filter(([action])=>action==='renameProperty').map(([,args])=>[args[0],{}]))},window={location:{hash:'#property/synthetic'}};
     const record=(name,args)=>calls.push([name,args]);
     function promptRenameProperty(...args){record('renameProperty',args);}
     function deleteTagWithWarning(...args){record('delete',args);}

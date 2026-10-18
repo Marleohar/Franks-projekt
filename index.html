@@ -824,6 +824,8 @@ const i18n = {
     "Skapa en ny ört...": "Create a new herb...",
     "Den nya örtens namn": "New herb name",
     "Bekräfta koppling": "Confirm link",
+    "Data har ändrats. Öppna egenskapen igen innan du byter namn.": "Data changed. Reopen the property before renaming.",
+    "Namnet används redan av lagrad egenskapsdata.": "This name is already used by stored property data.",
     "Sök och koppla egenskap": "Search and link a property",
     "Koppla ört till {0}": "Link a herb to {0}",
     "Sök örtens visningsnamn...": "Search visible herb names...",
@@ -1063,6 +1065,8 @@ const i18n = {
     "Skapa en ny ört...": "Skapa en ny ört...",
     "Den nya örtens namn": "Den nya örtens namn",
     "Bekräfta koppling": "Bekräfta koppling",
+    "Data har ändrats. Öppna egenskapen igen innan du byter namn.": "Data har ändrats. Öppna egenskapen igen innan du byter namn.",
+    "Namnet används redan av lagrad egenskapsdata.": "Namnet används redan av lagrad egenskapsdata.",
     "Sök och koppla egenskap": "Sök och koppla egenskap",
     "Koppla ört till {0}": "Koppla ört till {0}",
     "Sök örtens visningsnamn...": "Sök örtens visningsnamn...",
@@ -1314,6 +1318,8 @@ function bindCoreActions(root) {
     const unlinkArgs = element.dataset.coreAction === "unlinkCategory" ? JSON.parse(element.dataset.coreArgs) : null;
     const unlinkHerb = unlinkArgs && db.objects.find(o => o.id === unlinkArgs[0]);
     const unlinkView = unlinkHerb && { library: db, herb: unlinkHerb, category: db.categories[unlinkArgs[1]], links: structuredClone(unlinkHerb.categoryLinks) };
+    const renameName = element.dataset.coreAction === "renameProperty" ? JSON.parse(element.dataset.coreArgs)[0] : null;
+    const renameView = renameName !== null && { library: db, properties: db.properties, record: Object.hasOwn(db.properties, renameName) ? db.properties[renameName] : null, route: window.location.hash, used: false };
     element.addEventListener("click", event => {
       event.preventDefault();
       const args = JSON.parse(element.dataset.coreArgs);
@@ -1330,7 +1336,12 @@ function bindCoreActions(root) {
         case "systemCategory": toggleSysCategory(...args); break;
         case "systemStudy": openSysStudyModal(...args); break;
         case "systemSource": openSysSourceModal(...args); break;
-        case "renameProperty": promptRenameProperty(...args); break;
+        case "renameProperty":
+          if (renameView.used || element.isConnected === false || renameView.library !== db || renameView.properties !== db.properties || !Object.hasOwn(db.properties, renameName) || renameView.record !== db.properties[renameName] || renameView.route !== window.location.hash) {
+            alert(t("Data har ändrats. Öppna egenskapen igen innan du byter namn.")); break;
+          }
+          if (promptRenameProperty(renameName)) renameView.used = true;
+          break;
         case "propertySummary": promptEditPropertySummary(...args); break;
         case "directProperty": openDirectPropertySearch(...args); break;
         case "connectHerb": openConnectHerbsToPropertyPopup(...args); break;
@@ -2266,29 +2277,94 @@ function openRelatedPropertiesTwoWayPopup(propName) {
   }
 }
 
+// Only schema-defined property references participate; unknown metadata stays literal.
+function propertyRenameTargets(library) {
+  const trash = library.trash || [];
+  const holders = [...(library.objects || []), ...(library.studyObjects || []),
+    ...trash.filter(item => (item.type === "object" || item.type === "study_object") && item.data && typeof item.data === "object").map(item => item.data)];
+  const definitions = [...Object.values(library.properties),
+    ...trash.filter(item => item.type === "property" && item.data && typeof item.data === "object").map(item => item.data)];
+  const sources = library.sources || [];
+  const tags = sources.flatMap(source => Array.isArray(source.tags) ? source.tags : []);
+  const identities = [library.properties, library.objects, library.studyObjects, library.sources, library.trash,
+    ...holders.flatMap(record => [record, record.props]), ...definitions.flatMap(record => [record, record.related]),
+    ...sources.flatMap(record => [record, record.tags]), ...tags, ...trash.flatMap(item => [item, item.data])];
+  return { holders, definitions, tags, trash, identities };
+}
+
+function createPropertyRenameDraft(oldName) {
+  if (typeof oldName !== "string" || !db || !db.properties || !Object.hasOwn(db.properties, oldName)) return null;
+  const definition = db.properties[oldName];
+  if (!definition || typeof definition !== "object" || Array.isArray(definition)) return null;
+  try {
+    return { library: db, oldName, definition: db.properties[oldName], route: window.location.hash,
+      snapshot: structuredClone(db), identities: propertyRenameTargets(db).identities, used: false };
+  } catch (error) { return null; }
+}
+
+function renamedPropertyKey(record, oldName, newName) {
+  // Rebuild only this key map, retaining order, descriptors, prototype and exact values.
+  const replacement = Object.create(Object.getPrototypeOf(record));
+  for (const key of Reflect.ownKeys(record)) {
+    Object.defineProperty(replacement, key === oldName ? newName : key, Object.getOwnPropertyDescriptor(record, key));
+  }
+  return replacement;
+}
+
+function commitPropertyRename(draft, input) {
+  if (!draft || draft.used) return { status: "inactive" };
+  draft.used = true;
+  if (input === null) return { status: "cancelled" };
+  if (typeof input !== "string" || !input.trim()) return { status: "invalid" };
+  if (input === draft.oldName || input.trim() === draft.oldName) return { status: "unchanged" };
+  const name = input.trim(), oldName = draft.oldName;
+  try { encodeURIComponent(name); } catch (error) { return { status: "invalid" }; }
+  if (db !== draft.library || db.properties !== draft.identities[0] || window.location.hash !== draft.route || !Object.hasOwn(db.properties, oldName) || db.properties[oldName] !== draft.definition) return { status: "stale" };
+  let targets;
+  try {
+    targets = propertyRenameTargets(db);
+    if (targets.identities.length !== draft.identities.length || targets.identities.some((record, index) => record !== draft.identities[index]) || !equalAssignValue(draft.snapshot, db)) return { status: "stale" };
+  } catch (error) { return { status: "stale" }; }
+  if (Object.hasOwn(db.properties, name)) return { status: "existing" };
+  const typedTag = tag => tag && typeof tag === "object" && Object.hasOwn(tag, "type") && tag.type === "property" && Object.hasOwn(tag, "id");
+  // Dangling destination references also reserve a name: never silently merge graphs.
+  if (targets.holders.some(record => record.props && Object.hasOwn(record.props, name)) ||
+      targets.definitions.some(record => Array.isArray(record.related) && record.related.includes(name)) ||
+      targets.tags.some(tag => typedTag(tag) && tag.id === name) ||
+      targets.trash.some(item => item.type === "property" && item.id === name)) return { status: "conflict" };
+  const updates = [[db, "properties", renamedPropertyKey(db.properties, oldName, name)]];
+  for (const record of targets.holders) {
+    if (record.props && Object.hasOwn(record.props, oldName)) updates.push([record, "props", renamedPropertyKey(record.props, oldName, name)]);
+  }
+  for (const record of targets.definitions) {
+    if (Array.isArray(record.related) && record.related.includes(oldName)) updates.push([record, "related", record.related.map(value => value === oldName ? name : value)]);
+  }
+  for (const tag of targets.tags) {
+    if (typedTag(tag) && tag.id === oldName) updates.push([tag, "id", name]);
+  }
+  // Preflight every write before changing any live record, including read-only slots.
+  const descriptors = updates.map(([record, key]) => Object.getOwnPropertyDescriptor(record, key));
+  if (descriptors.some(descriptor => !descriptor || !("value" in descriptor) || !descriptor.configurable && !descriptor.writable)) return { status: "stale" };
+  updates.forEach(([record, key, value], index) => Object.defineProperty(record, key, { ...descriptors[index], value }));
+  persist(true); // No initializer/normalizer: preserve sparse fields and unknown metadata.
+  return { status: "saved", name };
+}
+
 function promptRenameProperty(oldName) {
-  const newName = prompt(t("Ange nytt namn på egenskapen:"), oldName);
-  if (!newName || !newName.trim() || newName.trim() === oldName) return;
-  const cleanNew = newName.trim();
-  if (db.properties[cleanNew]) { alert(t("Egenskapen finns redan.")); return; }
-
-  db.properties[cleanNew] = db.properties[oldName];
-  delete db.properties[oldName];
-
-  db.objects.forEach(o => {
-    if (hasProp(o, oldName)) {
-      setProp(o, oldName, false);
-      setProp(o, cleanNew, true);
-    }
-  });
-  Object.values(db.properties).forEach(p => {
-    if (p.related && p.related.includes(oldName)) {
-      p.related = p.related.map(r => r === oldName ? cleanNew : r);
-    }
-  });
-
-  persist();
-  window.location.hash = `#property/${encodeURIComponent(cleanNew)}`;
+  if (promptRenameProperty.pending) return false;
+  const draft = createPropertyRenameDraft(oldName);
+  if (!draft) { alert(t("Data har ändrats. Öppna egenskapen igen innan du byter namn.")); return false; }
+  promptRenameProperty.pending = true;
+  try {
+    const result = commitPropertyRename(draft, prompt(t("Ange nytt namn på egenskapen:"), oldName));
+    if (result.status === "existing") alert(t("Egenskapen finns redan."));
+    else if (result.status === "conflict") alert(t("Namnet används redan av lagrad egenskapsdata."));
+    else if (result.status === "stale") alert(t("Data har ändrats. Öppna egenskapen igen innan du byter namn."));
+    if (result.status !== "saved") return false;
+    activeFilterProps = activeFilterProps.map(name => name === oldName ? result.name : name);
+    window.location.hash = `#property/${encodeURIComponent(result.name)}`;
+    return true;
+  } finally { promptRenameProperty.pending = false; }
 }
 
 // ==================== KATEGORIPROFIL ====================
