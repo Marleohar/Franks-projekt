@@ -1,0 +1,198 @@
+{
+  "objects": [
+    {
+      "id": "h1",
+      "name": "Audit Herb",
+      "desc": "Herb preserved",
+      "props": {
+        "P": 0,
+        "False": false,
+        "Null": null
+      },
+      "taxonomies": {
+        "Botanical Name": "Audit latin"
+      },
+      "categoryLinks": [
+        "C",
+        "Empty"
+      ],
+      "metadata": {
+        "keep": 1
+      }
+    },
+    {
+      "id": "h2",
+      "name": "Other Herb",
+      "props": {
+        "P": {
+          "dose": 99,
+          "metadata": {
+            "keep": [
+              0,
+              false
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "P": {
+      "category": "C",
+      "subcategory": "Sub",
+      "desc": "Property description",
+      "related": [
+        "Q"
+      ]
+    },
+    "Q": {
+      "category": "C",
+      "related": [
+        "P"
+      ]
+    }
+  },
+  "categories": {
+    "C": {
+      "system": "S",
+      "desc": "Category description",
+      "subcategories": [
+        "Sub"
+      ]
+    },
+    "Empty": {
+      "system": "S",
+      "subcategories": []
+    }
+  },
+  "systems": {
+    "S": {
+      "categories": [
+        "C",
+        "Empty"
+      ],
+      "desc": "System description"
+    },
+    "T": {
+      "categories": []
+    },
+    "Ospecifierade kategorier": {
+      "categories": [],
+      "desc": "Kategorier som saknar skola."
+    }
+  },
+  "systemOrder": [
+    "S",
+    "T",
+    "Ospecifierade kategorier"
+  ],
+  "studyObjects": [
+    {
+      "id": "study%2Fone",
+      "name": "Audit Study",
+      "type": "Crystal",
+      "desc": "Study description",
+      "props": {
+        "P": true
+      },
+      "systems": [
+        "S"
+      ],
+      "links": [
+        {
+          "text": "Synthetic local reference",
+          "url": "https://invalid.example/offline-only"
+        }
+      ],
+      "metadata": {
+        "keep": [
+          false,
+          null
+        ]
+      }
+    },
+    {
+      "id": "study2",
+      "name": "Unlinked Study",
+      "props": {}
+    }
+  ],
+  "sources": [
+    {
+      "id": "src1",
+      "title": "Audit Source",
+      "author": "Audit Author",
+      "year": "1999",
+      "publisher": "Audit Publisher",
+      "link": "https://invalid.example/source",
+      "tags": [
+        {
+          "type": "object",
+          "id": "h1",
+          "pages": "11"
+        },
+        {
+          "type": "category",
+          "id": "C",
+          "pages": "12"
+        },
+        {
+          "type": "formula",
+          "id": "Blend",
+          "pages": "13"
+        },
+        {
+          "type": "property",
+          "id": "P",
+          "pages": "14"
+        },
+        {
+          "type": "system",
+          "id": "S",
+          "pages": "15"
+        }
+      ],
+      "metadata": {
+        "keep": 2
+      }
+    },
+    {
+      "id": "src2",
+      "title": "Other Source",
+      "author": "Other Author",
+      "year": "2001",
+      "tags": []
+    }
+  ],
+  "formulas": {
+    "Blend": {
+      "desc": "Formula description",
+      "components": [
+        {
+          "objId": "h1",
+          "role": "Main role",
+          "qty": 2,
+          "unit": "g",
+          "metadata": {
+            "keep": 3
+          }
+        }
+      ],
+      "metadata": {
+        "keep": true
+      }
+    },
+    "Child": {
+      "desc": "Child formula",
+      "components": []
+    }
+  },
+  "trash": [],
+  "unknown": {
+    "keep": [
+      0,
+      false,
+      null
+    ]
+  }
+}
