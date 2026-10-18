@@ -2,12 +2,14 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {formulaLibrary}=require('./fixtures/formula-library.cjs');
 const source=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
-const names=['escapeCoreText','coreAction','bindCoreActions','renderFormulasIndexPage','renderFormulaDetailPage','promptCreateFormula','deleteFormula','handleRouting','openEditor','saveDescription','closePopup','releaseAssignmentDialog'];
+const names=['formulaComponentText','renderFormulaComponents','getDisplayObjName','equalAssignValue','escapeCoreText','coreAction','bindCoreActions','renderFormulasIndexPage','renderFormulaDetailPage','promptCreateFormula','deleteFormula','handleRouting','openEditor','saveDescription','closePopup','releaseAssignmentDialog','showAssignmentDialog'];
 const functions=names.map(name=>{const pattern=name==='deleteFormula'?/^function deleteFormula\([^\r\n]*$/gm:new RegExp(`^function ${name}\\([^\\r\\n]*\\) \\{[\\s\\S]*?^\\}`,'gm');const m=[...source.matchAll(pattern)];assert.equal(m.length,1,name);return m[0][0]}).join('\n');
-function run(code){const c=vm.createContext(Object.create(null),{codeGeneration:{strings:false,wasm:false}});c.inputJSON=JSON.stringify(formulaLibrary());return JSON.parse(new vm.Script(`
-const f=JSON.parse(inputJSON),db=f.library,nodes=Object.create(null),window={location:{hash:'#formulas'},scrollTo(){}};
-const document={getElementById(id){return nodes[id]||={innerHTML:'',value:'',style:{},focus(){},querySelectorAll(){return []}}},querySelectorAll(){return Object.values(nodes)}};
-let directLinkDraft=null,assignModal=null;let writes=0,answers=[],approval=false,editorMode='',editorTargetId='';function persist(){writes++}function prompt(){return answers.shift()??null}function confirm(){return approval}function renderIndexPage(){throw Error('Unexpected route fallback')}
+function run(code){const c=vm.createContext(Object.create(null),{codeGeneration:{strings:false,wasm:false}});c.structuredClone=structuredClone;c.inputJSON=JSON.stringify(formulaLibrary());return JSON.parse(new vm.Script(`
+const f=JSON.parse(inputJSON),nodes=Object.create(null);let db=f.library;const window={location:{hash:'#formulas'},scrollTo(){}};
+const document={getElementById(id){return nodes[id]||={innerHTML:'',value:'',style:{},focus(){},querySelectorAll(){return []}}},addEventListener(){},removeEventListener(){},querySelector(){return null},querySelectorAll(){return Object.values(nodes)}};
+const currentLang="sv";const indexNameDisplayMode="swedish",herbSwedishDictionary={},herbEnglishDictionary={};
+let directLinkDraft=null,assignModal=null,assignModalReturn=null;let writes=0,answers=[],approval=false,editorMode='',editorTargetId='';function alert(){}function persist(){writes++}function prompt(){return answers.shift()??null}function confirm(){return approval}function renderIndexPage(){throw Error('Unexpected route fallback')}
+function assignmentKeydown(){}function containAssignmentFocus(){}
 function t(key, params = {}) { return key.replace(/\\{(\\w+)\\}/g, (token, name) => Object.hasOwn(params, name) ? String(params[name]) : token); }
 ${functions}
 const before=JSON.stringify(db);let result;
@@ -47,4 +49,46 @@ test('existing formula description editor receives exact key/text and saves only
 test('formula editor opening/closing is read-only; reserved inherited keys retain pre-existing creation behavior',()=>{
   const r=run(`openEditor('formula',f.special);closePopup();`);unchanged(r);
   const reserved=run("answers=['constructor'];promptCreateFormula();result=Object.hasOwn(db.formulas,'constructor');");unchanged(reserved);assert.equal(reserved.result,false);assert.equal(reserved.hash,'#formula/constructor');
+});
+
+// TASK019: additions preserve all pre-existing creation/deletion/security assertions above.
+for(const components of [[],[{objId:'ordinary',role:'literal',qty:0,unit:'g'}],[null,42,'legacy',{},[]],{unknown:[1]},null])test('component shapes remain read-only '+JSON.stringify(components),()=>{
+ const r=run(`db.formulas[f.special].components=${JSON.stringify(components)};result=JSON.parse(JSON.stringify(db));renderFormulaDetailPage(f.special);`);
+ assert.equal(r.writes,0);assert.deepEqual(r.library,r.result);assert(r.html.includes('formulaEditor'));
+ if(Array.isArray(components)&&components[0]?.qty===0){assert(r.html.includes('formula-qty" style="margin:0;">0<'));assert(r.html.includes('#herb-id/ordinary'));}
+});
+test('hostile component fields and missing identities render literal text, never markup',()=>{
+ const r=run(`db.formulas[f.special].components=[{objId:f.payload,role:f.payload,qty:0,unit:f.payload},{objId:'ordinary',role:'exact',qty:'0.00',unit:'g'}];result=JSON.parse(JSON.stringify(db));renderFormulaDetailPage(f.special);`);
+ assert.deepEqual(r.library,r.result);assert.equal(r.writes,0);assert.doesNotMatch(r.html,/<img|onclick=|onerror="/);assert(r.html.includes('0.00'));assert(r.html.includes('Otillgängligt objekt'));
+});
+for(const kind of ['cancel','unchanged','repeat','whitespace','absent'])test('formula editor no-op '+kind,()=>{
+ const setup=kind==='whitespace'?"db.formulas[f.special].desc='  keep whitespace  ';":kind==='absent'?"delete db.formulas[f.special].desc;":'';
+ const action=kind==='cancel'?"document.getElementById('popup-editor-input').value='discard';closePopup();saveDescription();":"saveDescription();saveDescription();";
+ const r=run(`${setup}result=JSON.parse(JSON.stringify(db));openEditor('formula',f.special);${action}`);assert.deepEqual(r.library,r.result);assert.equal(r.writes,0);
+});
+for(const mutation of [
+ "db=structuredClone(db)","db.formulas={...db.formulas}","db.formulas[f.special]={...db.formulas[f.special]}","delete db.formulas[f.special]", "db.formulas=null",
+ "db.formulas[f.special].desc='newer'","db.formulas[f.special].unknown.keep=true","db.formulas[f.special].components.push({objId:'newer'})",
+ "db.formulas[f.special].components=[...db.formulas[f.special].components]","db.formulas[f.special].components[0]={...db.formulas[f.special].components[0]}",
+ "window.location.hash='#index'","editorTargetId='One'","Object.freeze(db.formulas[f.special])"
+])test('formula stale/readonly save rejects '+mutation,()=>{
+ const r=run(`openEditor('formula',f.special);document.getElementById('popup-editor-input').value='conflicting';${mutation};result=JSON.parse(JSON.stringify(db));saveDescription();saveDescription();`);assert.deepEqual(r.library,r.result);assert.equal(r.writes,0);
+});
+test('approved formula change preserves component/value identities and all metadata with one save',()=>{
+ const r=run(`const record=db.formulas[f.special],rows=record.components,first=rows[0];openEditor('formula',f.special);document.getElementById('popup-editor-input').value=' changed ';saveDescription();saveDescription();result={record:record===db.formulas[f.special],rows:rows===record.components,first:first===rows[0]};`);
+ const expected=structuredClone(formulaLibrary().library);expected.formulas[formulaLibrary().special].desc='changed';assert.deepEqual(r.library,expected);assert.equal(r.writes,1);assert.deepEqual(r.result,{record:true,rows:true,first:true});
+});
+for(const name of ['__proto__','constructor','toString','valueOf','hasOwnProperty'])test('own literal formula key '+name,()=>{
+ const r=run(`Object.defineProperty(db.formulas,${JSON.stringify(name)},{value:{desc:'before',components:[],metadata:{keep:false}},enumerable:true,writable:true,configurable:true});openEditor('formula',${JSON.stringify(name)});document.getElementById('popup-editor-input').value='after';saveDescription();result=Object.getPrototypeOf(db.formulas)===Object.prototype;`);assert.equal(r.result,true);assert.equal(r.library.formulas[name].desc,'after');assert.equal(r.writes,1);
+});
+
+for(const desc of [0,false,null,{legacy:[0,false]},['legacy']])test('unchanged non-text legacy description is not normalized '+JSON.stringify(desc),()=>{
+ const r=run(`db.formulas[f.special].desc=${JSON.stringify(desc)};result=JSON.parse(JSON.stringify(db));openEditor('formula',f.special);saveDescription();`);assert.deepEqual(r.library,r.result);assert.equal(r.writes,0);
+});
+
+test('sparse formula gets only an explicitly saved description',()=>{
+ const r=run(`delete db.formulas[f.special].desc;openEditor('formula',f.special);document.getElementById('popup-editor-input').value='new description';saveDescription();`);const expected=structuredClone(formulaLibrary().library);expected.formulas[formulaLibrary().special].desc='new description';assert.deepEqual(r.library,expected);assert.equal(r.writes,1);
+});
+test('nonextensible sparse formula rejects before adding description',()=>{
+ const r=run(`delete db.formulas[f.special].desc;Object.preventExtensions(db.formulas[f.special]);result=JSON.parse(JSON.stringify(db));openEditor('formula',f.special);document.getElementById('popup-editor-input').value='blocked';saveDescription();`);assert.deepEqual(r.library,r.result);assert.equal(r.writes,0);
 });
