@@ -7,7 +7,7 @@ PR: https://github.com/Marleohar/Franks-projekt/pull/17
 - Verified unchanged main baseline: `619c707bb74ad4c6c5f616a405af3300e73b4e0c`.
 - Immutable tested implementation/test commit: `18ac667688f358e7ce73b5bb08d5869bd6ebe641`.
 - Branch: `task-018-non-destructive-property-rename`.
-- The following report-only commit records that tested revision. Its final delivery SHA is recorded in the PR body and delivery response; production/test content is unchanged, avoiding a self-referential document hash. Independent QA must test the final PR HEAD.
+- Following report-only commits record that tested revision. Its final delivery SHA is recorded in the PR body and delivery response; production/test content is unchanged, avoiding a self-referential document hash. Independent QA must test the final PR HEAD.
 
 ## Original defect reproduced before production changes
 
@@ -79,7 +79,7 @@ Actual native prompts test cancellation and successful UI actions. Native prompt
 
 Swedish/English at **1280, 375 and 320 px** pass, including hostile literal names, prototype checks and document overflow bounds. Six screenshots are `property-rename-{sv,en}-{1280,375,320}.png`; English 320 px was visually inspected. Very long names still wrap heavily in the inherited narrow header layout; no unrelated CSS redesign was included. Stored names/data are not translated. Two paired error strings extend the controlled inventory from 237 to **239** keys per language.
 
-All focused runs report **0 page errors and 0 external requests**. Firebase SDK scripts/config/initialization are removed before startup, requests blocked and service workers disabled. Browser counters use a Node-side binding outside the document so unload writes survive reload observation. Node persistence mocks validate serialized payloads; no live cloud acknowledgment is claimed.
+Final focused runs report **0 page errors and 0 external requests**. Firebase SDK scripts/config/initialization are removed before startup, requests blocked and service workers disabled. Browser counters use a Node-side binding outside the document so unload writes survive reload observation. Node persistence mocks validate serialized payloads; no live cloud acknowledgment is claimed.
 
 `git diff --check`: PASS. Existing tracked screenshot generation did not change tracked bytes. Working tree is clean after the implementation and report commits.
 
@@ -109,7 +109,7 @@ git diff --check
 git status -sb
 ```
 
-For independent QA use a **new separate checkout**, separate evidence subfolder and the exact final PR HEAD; do not modify the development checkout. Original evidence/scratch directories should not be overwritten by independent QA. Digital GM supplies external tooling only; all cwd/output/temp paths remain under Frank's task workspace. No production data, real Firebase services, Digital GM files or StudyWiki files were accessed or modified.
+For independent QA use a **new separate checkout**, separate evidence subfolder and the exact final PR HEAD; do not modify the development checkout. Original evidence/scratch directories should not be overwritten by independent QA. Digital GM supplies external tooling only; all cwd/output/temp paths remain under Frank's task workspace. No production data or real Firebase services were accessed. Digital GM project and StudyWiki files remain unchanged; the external Playwright dependency was read only as tooling.
 
 ## Remaining limits and follow-ups
 
