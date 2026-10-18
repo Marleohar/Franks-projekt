@@ -446,6 +446,26 @@
     </div>
   </div>
 
+  <!-- Shared, confirmation-only direct herb/property linking. -->
+  <div class="popup-overlay" id="popup-direct-link" onclick="closeOnOverlayClick(event, 'popup-direct-link')">
+    <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="direct-link-title">
+      <div class="popup-header"><span id="direct-link-title"></span><button class="wiki-btn" onclick="closePopup()" aria-label="Stäng" data-i18n-aria-label="Stäng">✕</button></div>
+      <div class="popup-body">
+        <input id="direct-link-search" type="text" autocomplete="off" oninput="renderDirectLinkResults()">
+        <div id="direct-link-results" class="checklist-container" role="group"></div>
+        <div id="direct-link-create-area">
+          <button class="wiki-btn" id="direct-link-create" type="button" data-i18n="Skapa en ny ört...">Skapa en ny ört...</button>
+          <label id="direct-link-name-label" hidden><span data-i18n="Den nya örtens namn">Den nya örtens namn</span><input id="direct-link-name" type="text" autocomplete="off"></label>
+        </div>
+        <p id="direct-link-selection" role="status" style="margin:0; overflow-wrap:anywhere;"></p>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end;">
+          <button id="direct-link-confirm" class="wiki-btn primary" type="button" data-i18n="Bekräfta koppling">Bekräfta koppling</button>
+          <button class="wiki-btn" onclick="closePopup()" data-i18n="Avbryt">Avbryt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- POPUP: REDIGERA BESKRIVNING -->
   <div class="popup-overlay" id="popup-editor" onclick="closeOnOverlayClick(event, 'popup-editor')">
     <div class="popup-box">
@@ -800,7 +820,21 @@ const i18n = {
     "Kategorin har tilldelade egenskaper. Ta bort dem med [+] innan du tar bort kategorikopplingen.": "This category has assigned properties. Remove them with [+] before removing the category link.",
     "Kategorin är kopplad till en ört, även i papperskorgen. Ta bort kopplingen först.": "This category is linked to a herb, possibly in Trash. Remove the link first.",
     "Namnet är reserverat av en kategorikoppling. Ta bort den gamla kopplingen först.": "This name is reserved by a category link. Remove the old link first.",
-    "Kategorin saknas": "Category unavailable"
+    "Kategorin saknas": "Category unavailable",
+    "Skapa en ny ört...": "Create a new herb...",
+    "Den nya örtens namn": "New herb name",
+    "Bekräfta koppling": "Confirm link",
+    "Sök och koppla egenskap": "Search and link a property",
+    "Koppla ört till {0}": "Link a herb to {0}",
+    "Sök örtens visningsnamn...": "Search visible herb names...",
+    "Sök egenskap, kategori eller system...": "Search properties, categories or systems...",
+    "Välj befintlig ört": "Choose an existing herb",
+    "Välj befintlig egenskap": "Choose an existing property",
+    "Valet är inte tillgängligt": "Selection unavailable",
+    "En ny ört skapas först när du bekräftar.": "A new herb is created only when you confirm.",
+    "Vald: {0}": "Selected: {0}",
+    "Välj ett sökresultat och bekräfta.": "Select a search result, then confirm.",
+    "Välj en post eller ange ett namn på den nya örten.": "Select a record or enter a name for the new herb."
   },
   "sv": {
     "brand": "Ört-Wiki",
@@ -1025,7 +1059,21 @@ const i18n = {
     "Kategorin har tilldelade egenskaper. Ta bort dem med [+] innan du tar bort kategorikopplingen.": "Kategorin har tilldelade egenskaper. Ta bort dem med [+] innan du tar bort kategorikopplingen.",
     "Kategorin är kopplad till en ört, även i papperskorgen. Ta bort kopplingen först.": "Kategorin är kopplad till en ört, även i papperskorgen. Ta bort kopplingen först.",
     "Namnet är reserverat av en kategorikoppling. Ta bort den gamla kopplingen först.": "Namnet är reserverat av en kategorikoppling. Ta bort den gamla kopplingen först.",
-    "Kategorin saknas": "Kategorin saknas"
+    "Kategorin saknas": "Kategorin saknas",
+    "Skapa en ny ört...": "Skapa en ny ört...",
+    "Den nya örtens namn": "Den nya örtens namn",
+    "Bekräfta koppling": "Bekräfta koppling",
+    "Sök och koppla egenskap": "Sök och koppla egenskap",
+    "Koppla ört till {0}": "Koppla ört till {0}",
+    "Sök örtens visningsnamn...": "Sök örtens visningsnamn...",
+    "Sök egenskap, kategori eller system...": "Sök egenskap, kategori eller system...",
+    "Välj befintlig ört": "Välj befintlig ört",
+    "Välj befintlig egenskap": "Välj befintlig egenskap",
+    "Valet är inte tillgängligt": "Valet är inte tillgängligt",
+    "En ny ört skapas först när du bekräftar.": "En ny ört skapas först när du bekräftar.",
+    "Vald: {0}": "Vald: {0}",
+    "Välj ett sökresultat och bekräfta.": "Välj ett sökresultat och bekräfta.",
+    "Välj en post eller ange ett namn på den nya örten.": "Välj en post eller ange ett namn på den nya örten."
   }
 };
 
@@ -1196,7 +1244,7 @@ function getDisplayObjName(obj) {
 }
 
 function hasProp(obj, propName) {
-  if (!obj || !obj.props) return false;
+  if (!obj || !obj.props || !Object.hasOwn(obj.props, propName)) return false;
   return obj.props[propName] !== undefined && obj.props[propName] !== null && obj.props[propName] !== false;
 }
 
@@ -1207,7 +1255,7 @@ function getPropKeys(obj) {
 
 function setProp(obj, propName, isChecked) {
   if (!obj.props) obj.props = {};
-  if (isChecked) obj.props[propName] = true;
+  if (isChecked) Object.defineProperty(obj.props, propName, { value: true, enumerable: true, writable: true, configurable: true });
   else delete obj.props[propName];
 }
 
@@ -1284,6 +1332,7 @@ function bindCoreActions(root) {
         case "systemSource": openSysSourceModal(...args); break;
         case "renameProperty": promptRenameProperty(...args); break;
         case "propertySummary": promptEditPropertySummary(...args); break;
+        case "directProperty": openDirectPropertySearch(...args); break;
         case "connectHerb": openConnectHerbsToPropertyPopup(...args); break;
         case "relatedProperty": openRelatedPropertiesTwoWayPopup(...args); break;
         case "addPropertySource": openAddSourceToPropertyDirect(...args); break;
@@ -1771,6 +1820,7 @@ function renderHerbPage(herbId) {
 
     <h2 class="wiki-section">${escapeCoreText(t("Egenskaper"))}</h2>
     <button class="wiki-btn" ${coreAction("chooseCategory", obj.id)}>${escapeCoreText(t("Lägg till befintlig kategori / egenskap"))}</button>
+    <button class="wiki-btn" ${coreAction("directProperty", obj.id)}>${escapeCoreText(t("Sök och koppla egenskap"))}</button>
     <div style="margin-bottom:6px;">
       <a class="wiki-action-link" onclick="promptCreateCategoryForHerb()">${escapeCoreText(t("[+ Skapa ny kategori]"))}</a>
     </div>
@@ -1850,7 +1900,7 @@ let assignModalReturn = null;
 function snapshotAssignValues(entity, properties) {
   const snapshot = new Map([...properties.keys()].map(name => [name, {
     present: Object.hasOwn(entity.props || {}, name),
-    value: structuredClone(entity.props?.[name])
+    value: Object.hasOwn(entity.props || {}, name) ? structuredClone(entity.props[name]) : undefined
   }]));
   snapshot.categoryLinks = structuredClone(entity.categoryLinks);
   snapshot.linked = false;
@@ -1996,7 +2046,7 @@ function submitAssignProps() {
     const original = assignValueSnapshot.get(name);
     return db.properties[name] !== record || record.category !== activeAssignCategory ||
       !original || original.present !== Object.hasOwn(activeAssignEntity.props || {}, name) ||
-      !equalAssignValue(original.value, activeAssignEntity.props?.[name]);
+      original.present && !equalAssignValue(original.value, activeAssignEntity.props[name]);
   })) {
     rejectAssignDraft(); return;
   }
@@ -2087,7 +2137,7 @@ function renderPropertyPage(propName) {
 
   app.innerHTML = `
     <h1 class="wiki-title">
-      <span>${escapeCoreText(propName)}</span>
+      <span id="property-profile-name">${escapeCoreText(propName)}</span>
       <div style="display:flex; align-items:center; gap:8px;">
         <a class="wiki-action-link" ${coreAction("renameProperty", propName)} title="${escapeCoreText(t("Ändra namn"))}">🖋</a>
         <a class="wiki-action-link" style="color:var(--danger);" ${coreAction("delete", "property", propName)}>${escapeCoreText(t("[radera]"))}</a>
@@ -2116,7 +2166,7 @@ function renderPropertyPage(propName) {
     </h2>
     <ul class="wiki-list">${herbsListHtml}</ul>
     <div style="margin-top:-4px; margin-bottom:12px;">
-      <a class="wiki-action-link" ${coreAction("connectHerb", propName)}>${escapeCoreText(t("+ Lägg till ört"))}</a>
+      <button class="wiki-btn" type="button" aria-describedby="property-profile-name" ${coreAction("connectHerb", propName)}>${escapeCoreText(t("+ Lägg till ört"))}</button>
     </div>
     <hr class="wiki-divider">
 
@@ -2284,10 +2334,10 @@ function renderCategoryPage(catName) {
       return `
         <div class="wiki-data-row">
           <div class="wiki-row-label">
-            <a href="#property/${encodeURIComponent(p)}">${escapeCoreText(p)}:</a>
+            <a href="#property/${encodeURIComponent(p)}" id="category-property-label-${escapeCoreText(encodeURIComponent(p))}">${escapeCoreText(p)}:</a>
             ${summary}
           </div>
-          <div class="wiki-row-content">${herbLinks || `<i>${escapeCoreText(t("inga örter"))}</i>`}</div>
+          <div class="wiki-row-content">${herbLinks || `<i>${escapeCoreText(t("inga örter"))}</i>`} <button class="wiki-btn" type="button" aria-describedby="category-property-label-${escapeCoreText(encodeURIComponent(p))}" ${coreAction("connectHerb", p)}>${escapeCoreText(t("+ Lägg till ört"))}</button></div>
         </div>
       `;
     }).join("");
@@ -2308,10 +2358,10 @@ function renderCategoryPage(catName) {
       return `
         <div class="wiki-data-row">
           <div class="wiki-row-label">
-            <a href="#property/${encodeURIComponent(p)}">${escapeCoreText(p)}:</a>
+            <a href="#property/${encodeURIComponent(p)}" id="category-property-label-${escapeCoreText(encodeURIComponent(p))}">${escapeCoreText(p)}:</a>
             ${summary}
           </div>
-          <div class="wiki-row-content">${herbLinks || `<i>${escapeCoreText(t("inga örter"))}</i>`}</div>
+          <div class="wiki-row-content">${herbLinks || `<i>${escapeCoreText(t("inga örter"))}</i>`} <button class="wiki-btn" type="button" aria-describedby="category-property-label-${escapeCoreText(encodeURIComponent(p))}" ${coreAction("connectHerb", p)}>${escapeCoreText(t("+ Lägg till ört"))}</button></div>
         </div>
       `;
     }).join("");
@@ -2940,21 +2990,187 @@ function permanentDeleteTrash(idx, generation) {
 }
 
 // ==================== ALLMÄNNA HJÄLPFUNKTIONER ====================
-function openConnectHerbsToPropertyPopup(propName) {
-  const allHerbs = db.objects;
-  const choice = prompt(t("Ange örtens namn att koppla till {0}:\n", {0: propName}) + allHerbs.map((h, i) => `${i+1}. ${getDisplayObjName(h)}`).join("\n"));
-  if (!choice) return;
-  const idx = parseInt(choice) - 1;
-  if (allHerbs[idx]) {
-    setProp(allHerbs[idx], propName, true);
-    persist();
-    renderPropertyPage(propName);
+let directLinkDraft = null;
+window.addEventListener("hashchange", () => { if (directLinkDraft) directLinkDraft.staleRoute = true; });
+
+function snapshotDirectHerb(record) {
+  return { record, id: record.id, name: record.name, visible: getDisplayObjName(record), links: structuredClone(record.categoryLinks) };
+}
+
+function snapshotDirectProperty(name) {
+  const record = db.properties[name];
+  const category = record?.category;
+  const categoryRecord = typeof category === "string" && Object.hasOwn(db.categories, category) ? db.categories[category] : null;
+  return { name, record, category, categoryRecord, system: categoryRecord?.system };
+}
+
+function validDirectHerb(snapshot) {
+  return snapshot && typeof snapshot.id === "string" && snapshot.id.length > 0 && db.objects.filter(herb => herb.id === snapshot.id).length === 1 &&
+    db.objects.includes(snapshot.record) && snapshot.record.id === snapshot.id && snapshot.record.name === snapshot.name &&
+    getDisplayObjName(snapshot.record) === snapshot.visible && equalAssignValue(snapshot.links, snapshot.record.categoryLinks);
+}
+
+function validDirectProperty(snapshot) {
+  return snapshot && typeof snapshot.name === "string" && snapshot.name.length > 0 && typeof snapshot.category === "string" && snapshot.category.length > 0 && Object.hasOwn(db.properties, snapshot.name) && db.properties[snapshot.name] === snapshot.record &&
+    snapshot.record?.category === snapshot.category && snapshot.categoryRecord &&
+    Object.hasOwn(db.categories, snapshot.category) && db.categories[snapshot.category] === snapshot.categoryRecord &&
+    snapshot.categoryRecord.system === snapshot.system;
+}
+
+function snapshotDirectValue(herb, name) {
+  return { present: Object.hasOwn(herb.props || {}, name), value: Object.hasOwn(herb.props || {}, name) ? structuredClone(herb.props[name]) : undefined };
+}
+
+function createDirectLinkDraft(mode, key) {
+  const route = window.location.hash;
+  let routeType, routeKey;
+  try { [routeType, routeKey] = route.slice(1).split("/"); if (routeType !== "herb") routeKey = decodeURIComponent(routeKey); } catch { return null; }
+  const herbs = new Map(db.objects.map(herb => [herb.id, snapshotDirectHerb(herb)]));
+  const properties = new Map(Object.keys(db.properties).map(name => [name, snapshotDirectProperty(name)]));
+  const target = mode === "herb" ? properties.get(key) : herbs.get(key);
+  if (mode === "herb") {
+    if (!validDirectProperty(target) || !(routeType === "property" && routeKey === key || routeType === "category" && routeKey === target.category)) return null;
+  } else if (mode !== "property" || !validDirectHerb(target) || !["herb", "herb-id"].includes(routeType) || routeKey !== key) return null;
+  const values = new Map();
+  if (mode === "herb") herbs.forEach((herb, id) => values.set(id, snapshotDirectValue(herb.record, key)));
+  else properties.forEach((property, name) => values.set(name, snapshotDirectValue(target.record, name)));
+  return { library: db, route, mode, target, herbs, properties, values, selection: null, create: false, staleRoute: false };
+}
+
+function generateDirectHerbId() {
+  const used = new Set([...db.objects.map(herb => herb.id), ...(db.trash || []).filter(item => item.type === "object").flatMap(item => [item.id, item.data?.id])]);
+  const base = "herb_" + crypto.randomUUID();
+  let id = base;
+  for (let suffix = 1; used.has(id); suffix++) id = base + "_" + suffix;
+  return id;
+}
+
+function confirmDirectLink(draft, newName = "") {
+  if (!draft || draft !== directLinkDraft) return { status: "inactive" };
+  const stale = () => { directLinkDraft = null; return { status: "stale" }; };
+  if (db !== draft.library || window.location.hash !== draft.route || draft.staleRoute) return stale();
+  const property = draft.mode === "herb" ? draft.target : draft.properties.get(draft.selection);
+  if (!property) return draft.selection === null && !draft.create ? { status: "invalid" } : stale();
+  if (!validDirectProperty(property)) return stale();
+  if (draft.create && draft.mode === "herb") {
+    if (typeof newName !== "string" || !newName.trim()) return { status: "invalid" };
+    const herb = { id: generateDirectHerbId(), name: newName.trim(), desc: "", props: {}, taxonomies: {} };
+    Object.defineProperty(herb.props, property.name, { value: true, enumerable: true, configurable: true, writable: true });
+    db.objects.push(herb);
+    directLinkDraft = null;
+    persist(true);
+    return { status: "saved", herbId: herb.id, propertyName: property.name };
   }
+  const herb = draft.mode === "property" ? draft.target : draft.herbs.get(draft.selection);
+  if (!herb) return { status: "invalid" };
+  if (!validDirectHerb(herb)) return stale();
+  const value = draft.values.get(draft.selection);
+  if (!value || value.present !== Object.hasOwn(herb.record.props || {}, property.name) || value.present && !equalAssignValue(value.value, herb.record.props[property.name])) return stale();
+  directLinkDraft = null; // Consume before persistence: retained confirmations cannot save twice.
+  if (hasProp(herb.record, property.name)) return { status: "unchanged" };
+  if (!herb.record.props) herb.record.props = {};
+  Object.defineProperty(herb.record.props, property.name, { value: true, enumerable: true, configurable: true, writable: true });
+  persist(true);
+  return { status: "saved", herbId: herb.id, propertyName: property.name };
+}
+
+function openConnectHerbsToPropertyPopup(propName) {
+  openDirectLinkDialog("herb", propName);
+}
+
+function openDirectPropertySearch(herbId) {
+  openDirectLinkDialog("property", herbId);
+}
+
+function openDirectLinkDialog(mode, key) {
+  const invoker = document.activeElement;
+  closePopup();
+  const draft = createDirectLinkDraft(mode, key);
+  if (!draft) { rejectAssignDraft(); return; }
+  directLinkDraft = draft;
+  draft.invoker = invoker;
+  draft.focusAction = invoker?.dataset?.coreAction;
+  draft.focusArgs = invoker?.dataset?.coreArgs;
+  document.getElementById("direct-link-title").textContent = mode === "herb" ? t("Koppla ört till {0}", {0: key}) : t("Sök och koppla egenskap");
+  const search = document.getElementById("direct-link-search");
+  search.value = "";
+  search.placeholder = mode === "herb" ? t("Sök örtens visningsnamn...") : t("Sök egenskap, kategori eller system...");
+  search.setAttribute("aria-label", search.placeholder);
+  document.getElementById("direct-link-results").setAttribute("aria-label", mode === "herb" ? t("Välj befintlig ört") : t("Välj befintlig egenskap"));
+  document.getElementById("direct-link-create-area").hidden = mode !== "herb";
+  document.getElementById("direct-link-name-label").hidden = true;
+  document.getElementById("direct-link-name").value = "";
+  document.getElementById("direct-link-name").setAttribute("aria-label", t("Den nya örtens namn"));
+  document.getElementById("direct-link-create").onclick = () => {
+    if (directLinkDraft !== draft) return;
+    draft.create = true; draft.selection = null;
+    document.getElementById("direct-link-name-label").hidden = false;
+    renderDirectLinkResults();
+    document.getElementById("direct-link-name").focus();
+  };
+  document.getElementById("direct-link-confirm").onclick = () => submitDirectLink(draft);
+  renderDirectLinkResults();
+  showAssignmentDialog("popup-direct-link", "direct-link-search", invoker);
+}
+
+function renderDirectLinkResults() {
+  const draft = directLinkDraft;
+  if (!draft) return;
+  const list = document.getElementById("direct-link-results");
+  list.replaceChildren();
+  const query = document.getElementById("direct-link-search").value.trim().toLowerCase();
+  const candidates = draft.mode === "herb" ? draft.herbs : draft.properties;
+  candidates.forEach((candidate, key) => {
+    const caption = draft.mode === "herb" ? candidate.visible + " — ID: " + candidate.id :
+      candidate.name + " — " + (candidate.category || t("Kategorin saknas")) + (candidate.system ? " — " + candidate.system : "");
+    if (!caption.toLowerCase().includes(query)) return;
+    const label = document.createElement("label");
+    label.className = "check-label";
+    label.style.cssText = "overflow-wrap:anywhere; min-width:0;";
+    const radio = document.createElement("input");
+    radio.type = "radio"; radio.name = "direct-link-choice";
+    radio.dataset.linkKey = key;
+    radio.checked = !draft.create && draft.selection === key;
+    radio.disabled = draft.mode === "herb" ? !validDirectHerb(candidate) : !validDirectProperty(candidate);
+    const text = document.createElement("span");
+    text.textContent = caption + (radio.disabled ? " — " + t("Valet är inte tillgängligt") : "");
+    radio.onchange = () => {
+      if (directLinkDraft !== draft) return;
+      draft.create = false; draft.selection = key;
+      document.getElementById("direct-link-name-label").hidden = true;
+      updateDirectLinkSelection();
+    };
+    label.append(radio, text); list.appendChild(label);
+  });
+  if (!list.childElementCount) list.textContent = t("Inga träffar hittades.");
+  updateDirectLinkSelection();
+}
+
+function updateDirectLinkSelection() {
+  const draft = directLinkDraft;
+  if (!draft) return;
+  const candidate = draft.mode === "herb" ? draft.herbs.get(draft.selection) : draft.properties.get(draft.selection);
+  document.getElementById("direct-link-selection").textContent = draft.create ? t("En ny ört skapas först när du bekräftar.") : candidate ?
+    t("Vald: {0}", {0: draft.mode === "herb" ? candidate.visible + " — ID: " + candidate.id : candidate.name}) : t("Välj ett sökresultat och bekräfta.");
+  document.getElementById("direct-link-confirm").disabled = !draft.create && !candidate;
+}
+
+function submitDirectLink(draft) {
+  const result = confirmDirectLink(draft, document.getElementById("direct-link-name").value);
+  if (result.status === "inactive") return;
+  if (result.status === "invalid") { alert(t("Välj en post eller ange ett namn på den nya örten.")); return; }
+  if (result.status === "stale") { rejectAssignDraft(); if (!draft.invoker?.isConnected) document.getElementById("btn-menu-text")?.focus(); return; }
+  closePopup();
+  handleRouting();
+  [...document.querySelectorAll("[data-core-action]")].find(node => node.dataset.coreAction === draft.focusAction && node.dataset.coreArgs === draft.focusArgs)?.focus();
 }
 
 function closePopup() {
+  const direct = directLinkDraft;
+  directLinkDraft = null;
   document.querySelectorAll(".popup-overlay").forEach(el => el.style.display = "none");
   releaseAssignmentDialog();
+  if (direct && !direct.invoker?.isConnected) document.getElementById("btn-menu-text")?.focus();
 }
 function closeOnOverlayClick(e, overlayId) {
   if (e.target.id === overlayId) closePopup();
