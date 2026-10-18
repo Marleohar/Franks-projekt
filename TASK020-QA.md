@@ -2,12 +2,61 @@
 
 **READY FOR INDEPENDENT RE-QA — NOT MERGED.**
 
-Corrected implementation/test commit: `873764da1a56ce46b4f00453adee19f508767fd1`.
-Rejected HEAD: `5ae92a32b61ecee78236cba71b168be904bbb0f3`.
+Q20-2 implementation/test commit: `77b7102bd9664ba3c0900c255ee625e0497abab8`.
+Rejected HEAD: `62ced68be3d4c3504d0d4673f4f017ab3ef4ef8f`.
 Verified unchanged main: `acccfa35cd613e521c864fbf3fe3865222763bfa`.
 Existing PR: https://github.com/Marleohar/Franks-projekt/pull/19.
 
-The following report-only commit records this validation. Final immutable PR HEAD is recorded in the PR body, delivery and `task-020/correction/qa-preparation/README.md`, avoiding a self-referential tracked hash. The corrected exact HEAD requires new independent QA approval.
+The following report-only commit records this validation. Final immutable PR HEAD is recorded in the PR body, delivery and `task-020/q20-2/qa-preparation/README.md`, avoiding a self-referential tracked hash. The exact final HEAD requires fresh independent QA approval.
+
+## Q20-2 — Preserve method-shadowing metadata without dispatching through it
+
+Read the independent re-QA report and complete graph, descriptor, UI, payload and error evidence. Before modifying production code, freshly reproduced all three native Add/Edit/Remove failures and the pre-existing-profile failure on a new checkout pinned to the exact rejected HEAD. Prior QA/correction artifacts remain untouched: **749 recorded hashes verified** (130 original QA, 419 correction, 200 re-QA).
+
+Root cause: the layout validator correctly accepted ordinary data metadata, but renderFormulaComponents called the stored array's map member. An own read-only/non-enumerable map:null passed preflight, mutation/persist completed, then rerender threw. Mutation planning was already atomic; rendering left three displayed rows despite four saved rows after Add or two after Remove. Edit retained old displayed text. The failure is a late rendering mismatch, not another partial-array mutation.
+
+The narrow production correction replaces the renderer's source-array map call with an indexed loop building the same escaped row markup. It reads the existing rows, retains sparse skip behavior of the read-only renderer and invokes no stored component-array methods, iterators, constructors or species hooks. Useful read-only/writable named data metadata is preserved with its exact value/reference and descriptor. No metadata deletion, normalization, hidden-property rewrite, array rebuilding, migration or changed persistence policy.
+
+Source-array audit: archive/detail use length and indexed reads; captured component rows come from validated own descriptors; context every operates on a fresh internal row array; mutation plans use validated own descriptors and application uses defineProperty/deleteProperty, not stored push/splice. Object.keys(...).every uses a fresh keys array. JSON serialization only treats callable toJSON as a hook; existing layout validation rejects own function-valued/accessor fields before operations. No remaining explicit component-source-array method call exists in index.html. Herb collection methods and internal array helpers are separate from the stored component array. Q20-1 validation, prepared mutations, session/full-graph/identity/route guards and shared description authority are unchanged.
+
+Existing conservative concurrency policy remains: adding enumerable metadata after opening changes the captured graph structure and rejects atomically with 0/0/0 writes. Pre-existing enumerable metadata is supported. Late non-enumerable data metadata is supported and retained. Unsupported function-valued hooks, accessors, symbols and own constructor metadata still reject before mutation or hook execution, with the existing localized non-destructive unsupported state.
+
+## Q20-2 before/after and permanent regressions
+
+New evidence directory: `C:\dev\Franks projekt\Ort-Wiki\task-020\q20-2\evidence`.
+
+- `before/independent-graphs.json`: three native operations each mutate the intended full graph and write 1 persist / 1 local / 1 mocked cloud, then escape a map TypeError; pre-existing metadata throws on profile rendering at 0/0/0. Graphs, runtime descriptors, payloads, UI counts and screenshots included. The reused raw driver version label is inherited from independent instrumentation; `rejected-checkout` is pinned to 62ced68 and before/after phases are identified by paths and immutable source refs.
+- `original-after/independent-graphs.json`, `original-before-after.json`: the exact same four initial graphs/descriptors now complete with no error. All three confirmed operations save once, displayed component count matches the saved graph, metadata remains intact and focus returns to Add component. The pre-existing profile renders without a write. `original-after/{Add,Edit,Remove}.png` demonstrates corrected profiles.
+- `negative-test/node.txt`: new permanent tests against rejected production source yield 744 passing / 48 expected failing cases; the 48 method-shadow rendering cases expose Q20-2. `negative-test/browser.txt` exits 1 on the pre-existing map:null rendering exception. The tests cannot pass merely because the data/save counter is correct while rendering fails.
+- `after/component-method-snapshots.json`: complete browser graphs/descriptors/UI/counters/actual payloads for every comparison. Metadata never becomes a row or influences its immutable object ID.
+- `q20-1/independent-graphs.json`: all four exact independent Q20-1 rejection cases plus each ordinary reload, **8/8 PASS**, original descriptors/graph unchanged, zero operation writes and original reload payloads. `q20-1.txt` is the raw result.
+- `preserved-qa-artifacts.json`: all 749 historical evidence hashes unchanged; `validation-summary.json` records source/test fingerprints and results.
+
+Permanent Node tests: tests/component-methods.test.cjs and a full synthetic fixtures/component-method-library.cjs. **792 new tests**: 768 data-metadata cases spanning 16 method names, six values (null/false/0/empty and nonempty strings/plain objects), all eight writable/enumerable/configurable descriptor combinations, each exercising all three operations with metadata before/after opening; plus 24 executable-layout rejection cases. They invoke the actual save/planning/rendering functions, compare full graphs, array/row identity, exact metadata descriptors and generated row counts/values. Renderer exceptions fail the test.
+
+Permanent real-Chromium suite: tests/browser-component-methods.cjs. **507 full comparisons**, persistence/local/cloud distribution **{'1/1/1': 357, '0/0/0': 149, '1/1/0': 1}**. All **715 complete payload observations** match expected graphs. The map value/descriptor matrix exercises all three modes/both timings; 15 other method names exercise all six values/both timings. It checks full rendered names, exact links/IDs, roles, zero/string quantities, units, row counts and action controls, not only storage. Function/accessor/symbol/constructor cases preserve full graphs/descriptors and execute no hooks. Native controls, focus completion, Escape/Tab/Shift+Tab and Swedish/English at 1280/375/320 pass without horizontal overflow. Screenshots: `after/methods-{Add,Edit,Remove}-{before,after}.png`, `after/methods-{sv,en}-{1280,375,320}.png`.
+
+Actual downloaded backup, real file-input import and ordinary reload match complete expected graphs. Counters live outside the browser page: normal formula-route unload records the existing 1 persist / 1 local / 0 deferred cloud path, separately from successful 1/1/1 user mutations. Runtime named array properties/descriptors are not JSON fields; serialization retains its existing array-values contract. They are preserved during operations, not invented as a new persistent schema.
+
+## Q20-2 complete validation and delivery boundary
+
+**1,497 Node tests PASS, zero failures/skips**: all 705 prior tests and 792 new tests. **All 20 Chromium suites PASS**: all 19 existing suites and the new component-methods suite. Fresh logs: `after/node.txt`, `after/browser-*.txt`.
+
+Existing atomicity suite remains **218 comparisons / 68 complete payloads** with its original assertions; shared description sessions remain **163 checks**. TASK015 category associations/orphan routing, TASK016 exact-ID direct links/special keys, TASK018 rename and TASK019 formula display/description authority remain passing. Original formula components retain 123 checks, direct linking 119/24 stale cases, special keys 101, rename 76 and profiles 57.
+
+No existing test assertions were weakened. Correction changed files: index.html; tests/component-methods.test.cjs (new); tests/browser-component-methods.cjs (new); tests/fixtures/component-method-library.cjs (new); TASK020-QA.md. Production change is limited to the rendering loop. Whitespace checks pass; screenshot-writing suites leave tracked files unchanged; final committed branch is clean.
+
+Tests use synthetic libraries/disposable contexts, production Firebase SDK/configuration/initialization removed before startup, blocked external requests/service workers and a dead external proxy. TEMP/TMP, downloads, screenshots and logs stay in q20-2. Digital GM supplies an external Playwright dependency only; production libraries, paid services and unrelated repositories were not accessed or modified.
+
+A test-only descriptor collector initially failed when applying a regex to a Symbol key. It was corrected to stringify keys, then the entire new browser suite reran successfully; the diagnostic is preserved separately. No production workaround or assertion weakening was used.
+
+Limits: headless viewport/touch emulation is not physical-device testing; mocked cloud writes do not establish live durability. Supported ordinary arrays/JSON-compatible records and tested runtime descriptors are covered; arbitrary executable Proxies/tampered native intrinsics are not claimed supported. Named array metadata cannot survive JSON as named array fields without a schema change, which is deliberately not introduced. No remaining Q20-1/Q20-2 blocker is known from developer validation. This is not independent approval.
+
+**READY FOR INDEPENDENT RE-QA — NOT MERGED.** No merge, deployment or auto-merge. Fresh independent QA must approve the exact immutable corrected HEAD.
+
+## Historical Q20-1 correction and original feature evidence
+
+The following prior results describe earlier deliveries and are preserved for context; the Q20-2 results above supersede their totals/HEADs.
 
 ## Q20-1 — Complete array preflight and prepared in-place mutations
 
