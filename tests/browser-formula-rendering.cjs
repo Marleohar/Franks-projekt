@@ -54,7 +54,7 @@ async function main() {
     });
     await page.goto(origin);
     const fixture=formulaLibrary();
-    await page.evaluate(()=>{window.__payloads=0;window.qaPersistCalls=0;const old=persist;persist=()=>{window.qaPersistCalls++;return old()}});
+    await page.evaluate(()=>{window.__payloads=0;window.qaPersistCalls=0;const old=persist;persist=(...args)=>{window.qaPersistCalls++;return old(...args)}});
     async function reset(){await page.evaluate(f=>{db=f.library;window.location.hash='#formulas';handleRouting(true);window.qaPersistCalls=0;window.qaWrites=[];},fixture);await page.locator('[data-core-action="formulaCreate"]').waitFor()}
     async function state(expected,writes){
       assert.deepEqual(await page.evaluate(()=>JSON.parse(JSON.stringify(db))),expected);
@@ -80,13 +80,13 @@ async function main() {
     answers=['Formula name'];await page.locator('[data-core-action="formulaCreate"]').click();await page.waitForFunction(()=>window.location.hash==='#formula/Formula%20name'&&!!document.querySelector('[data-core-action="formulaDelete"]'));await state(fixture.library,0);await archive();
     const created='Created '+fixture.special;answers=[created];await page.locator('[data-core-action="formulaCreate"]').click();await page.waitForFunction(name=>document.querySelector('h1.wiki-title > span')?.textContent.endsWith(name),created);assert.equal(await page.evaluate(()=>window.location.hash),'#formula/'+encodeURIComponent(created));expected=structuredClone(fixture.library);expected.formulas[created]={desc:'',components:[]};await state(expected,1);
     await archive();await open(fixture.special);await state(expected,1);
-    // No formula detail editor control exists on baseline. Exercise its existing entry point explicitly, then the real Save button.
-    assert.equal(await page.locator('[data-core-action="editor"]').count(),0);
-    await page.evaluate(name=>openEditor('formula',name),fixture.special);assert.equal(await page.evaluate(()=>editorTargetId),fixture.special);assert.equal(await page.locator('#popup-editor-input').inputValue(),fixture.description);await state(expected,1);
+    // TASK019 restores the visible formula action; retain the existing exact-key/text/save assertions.
+    assert.equal(await page.locator('[data-core-action="formulaEditor"]').count(),1);
+    await page.locator('[data-core-action="formulaEditor"]').click();assert.equal(await page.evaluate(()=>editorTargetId),fixture.special);assert.equal(await page.locator('#popup-editor-input').inputValue(),fixture.description);await state(expected,1);
     const edited='Edited '+fixture.special;await page.locator('#popup-editor-input').fill(edited);await page.locator('#popup-editor .primary').click();expected.formulas[fixture.special].desc=edited;await state(expected,2);assert((await page.locator('h1.wiki-title > span').textContent()).endsWith(fixture.special));assert.equal(await page.locator('#wiki-app .wiki-paragraph').textContent(),edited);
     assert.equal(await page.evaluate(()=>typeof firebase),'undefined');assert.equal(await page.evaluate(()=>firestoreDb),null);assert.deepEqual(errors,[]);assert.deepEqual(externalRequests,[]);
     await page.screenshot({path:path.join(tempDir,'safe-formula-rendering.png'),fullPage:true});
-    console.log(JSON.stringify({result:'PASS',browser:browser.version(),payloadExecutions:0,injectedElements:0,errors,externalRequests,identityCollisions:true,cancelledWrites:0,deletionScenarioWrites:1,creationAndEditorScenarioWrites:2,unexpectedWrites:0,editorOpenedProgrammatically:true,evidence:tempDir}));await context.close();
+    console.log(JSON.stringify({result:'PASS',browser:browser.version(),payloadExecutions:0,injectedElements:0,errors,externalRequests,identityCollisions:true,cancelledWrites:0,deletionScenarioWrites:1,creationAndEditorScenarioWrites:2,unexpectedWrites:0,editorOpenedVisibly:true,evidence:tempDir}));await context.close();
   }finally{if(browser)await browser.close()}
 }
 main().catch(error=>{console.error(error);process.exitCode=1});
